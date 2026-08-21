@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "1.0.0",
+  "fixtureId": "raw",
+  "source": "../fixtures/sources/raw.txt",
+  "answerPolicy": {
+    "language": "en",
+    "basis": "standardEnglishPresentSimpleAndPastSimple",
+    "provenance": "deterministicRule",
+    "reviewStatus": "needsReview",
+    "normalization": ["trim", "caseInsensitive", "normalizeWhitespace", "acceptExpandedContractions"]
+  },
+  "summary": {
+    "numberedItemCount": 18,
+    "bracketExpressionCount": 29,
+    "explicitShortAnswerCount": 4,
+    "answerFieldCount": 33,
+    "requiredWarnings": ["SOURCE_TRUNCATED"],
+    "generatedContinuationCount": 0
+  },
+  "items": [
+    {
+      "itemNumber": 1,
+      "answerFields": [
+        { "kind": "bracket", "sourceVerb": "to study", "acceptedValues": ["studies"] }
+      ]
+    },
+    {
+      "itemNumber": 2,
+      "answerFields": [
+        {
+          "kind": "bracket",
+          "sourceVerb": "to study",
+          "acceptedValues": ["studied"],
+          "sourceSpansLineBreak": true
+        }
+      ]
+    },
+    {
+      "itemNumber": 3,
+      "answerFields": [
+        { "kind": "bracket", "sourceVerb": "to come", "acceptedValues": ["Did you come"] },
+        { "kind": "shortAnswer", "sourceMarker": "No, I ... .", "acceptedValues": ["didn't", "did not"] },
+        { "kind": "bracket", "sourceVerb": "to come", "acceptedValues": ["came"] },
+        { "kind": "bracket", "sourceVerb": "to be", "acceptedValues": ["was"] },
+        { "kind": "bracket", "sourceVerb": "to have", "acceptedValues": ["had"] },
+        { "kind": "bracket", "sourceVerb": "to be", "acceptedValues": ["was"] },
+        { "kind": "bracket", "sourceVerb": "to drink", "acceptedValues": ["drank"] },
+        { "kind": "bracket", "sourceVerb": "to rest", "acceptedValues": ["rested"] }
+      ]
+    },
+    {
+      "itemNumber": 4,
+      "answerFields": [
+        { "kind": "bracket", "sourceVerb": "to go", "acceptedValues": ["go"] }
+      ]
+    },
+    {
+      "itemNumber": 5,
+      "answerFields": [
+        { "kind": "bracket", "sourceVerb": "to go", "acceptedValues": ["went"] }
+      ]
+    },
+    {
+      "itemNumber": 6,
+      "answerFields": [
+        { "kind": "bracket", "sourceVerb": "to wash", "acceptedValues": ["washes"] }
+      ]
+    },
+    {
+      "itemNumber": 7,
+      "answerFields": [
+        { "kind": "bracket", "sourceVerb": "to wash", "acceptedValues": ["washed"] }
+      ]
+    },
+    {
+      "itemNumber": 8,
+      "answerFields": [
+        {
+          "kind": "bracket",
+          "sourceVerb": "not to have",
+          "acceptedValues": ["don't have", "do not have"],
+          "sourceSpansLineBreak": true
+        }
+      ]
+    },
+    {
+      "itemNumber": 9,
+      "answerFields": [
+        { "kind": "bracket", "sourceVerb": "not to rest", "acceptedValues": ["didn't rest", "did not rest"] }
+      ]
+    },
+    {
+      "itemNumber": 10,
+      "answerFields": [
+        { "kind": "bracket", "sourceVerb": "not to drink", "acceptedValues": ["didn't drink", "did not drink"] }
+      ]
+    },
+    {
+      "itemNumber": 11,
+      "answerFields": [
+        { "kind": "bracket", "sourceVerb": "to take", "acceptedValues": ["takes"] },
+        { "kind": "bracket", "sourceVerb": "not to take", "acceptedValues": ["didn't take", "did not take"] },
+        { "kind": "bracket", "sourceVerb": "to walk", "acceptedValues": ["walked"] }
+      ]
+    },
+    {
+      "itemNumber": 12,
+      "answerFields": [
+        { "kind": "bracket", "sourceVerb": "to talk", "acceptedValues": ["Do you talk"] },
+        { "kind": "shortAnswer", "sourceMarker": "Yes, I ... .", "acceptedValues": ["do"] },
+        { "kind": "bracket", "sourceVerb": "not to talk", "acceptedValues": ["didn't talk", "did not talk"] },
+        { "kind": "bracket", "sourceVerb": "to be", "acceptedValues": ["was"] }
+      ]
+    },
+    {
+      "itemNumber": 13,
+      "answerFields": [
+        { "kind": "bracket", "sourceVerb": "to go", "acceptedValues": ["Does your sister go"] },
+        { "kind": "shortAnswer", "sourceMarker": "Yes, she ... .", "acceptedValues": ["does"] }
+      ]
+    },
+    {
+      "itemNumber": 14,
+      "answerFields": [
+        { "kind": "bracket", "sourceVerb": "to like", "acceptedValues": ["likes"] }
+      ]
+    },
+    {
+      "itemNumber": 15,
+      "answerFields": [
+        { "kind": "bracket", "sourceVerb": "to write", "acceptedValues": ["wrote"] }
+      ]
+    },
+    {
+      "itemNumber": 16,
+      "answerFields": [
+        {
+          "kind": "bracket",
+          "sourceVerb": "to tell",
+          "acceptedValues": ["Did you tell"],
+          "reviewNote": "Past Simple is selected because 'the money' implies a specific prior incident; verify against the publisher's answer key if available."
+        }
+      ]
+    },
+    {
+      "itemNumber": 17,
+      "answerFields": [
+        { "kind": "bracket", "sourceVerb": "to wear", "acceptedValues": ["Did you wear"] },
+        { "kind": "shortAnswer", "sourceMarker": "Yes, I ... .", "acceptedValues": ["did"] },
+        { "kind": "bracket", "sourceVerb": "to wear", "acceptedValues": ["wore"] }
+      ]
+    },
+    {
+      "itemNumber": 18,
+      "answerFields": [
+        { "kind": "bracket", "sourceVerb": "to like", "acceptedValues": ["like"] }
+      ],
+      "requiredWarning": "SOURCE_TRUNCATED",
+      "reviewNote": "Only the visible bracket expression is answered; no continuation is invented."
+    }
+  ]
+}

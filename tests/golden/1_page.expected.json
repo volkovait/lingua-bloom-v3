@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "1.0.0",
+  "fixtureId": "1_page",
+  "source": "../fixtures/sources/1_page.pdf",
+  "answerPolicy": {
+    "language": "en",
+    "basis": "standardEnglishGrammarAndVocabulary",
+    "provenance": "deterministicRule",
+    "reviewStatus": "needsReview",
+    "normalization": ["trim", "caseInsensitiveForTextEntry", "normalizeWhitespace"]
+  },
+  "summary": {
+    "exerciseGroupCount": 5,
+    "answerableItemCount": 34,
+    "unsupportedAdditionCount": 0
+  },
+  "groups": [
+    {
+      "exerciseNumber": 1,
+      "title": "Choose the correct answer (a, b or c).",
+      "interactionKind": "singleChoice",
+      "items": [
+        { "itemNumber": 1, "correctOptionId": "b", "acceptedValues": ["love"] },
+        { "itemNumber": 2, "correctOptionId": "c", "acceptedValues": ["a lot"] },
+        { "itemNumber": 3, "correctOptionId": "c", "acceptedValues": ["don't like", "do not like"] },
+        { "itemNumber": 4, "correctOptionId": "a", "acceptedValues": ["really"] },
+        { "itemNumber": 5, "correctOptionId": "c", "acceptedValues": ["think"] },
+        { "itemNumber": 6, "correctOptionId": "b", "acceptedValues": ["a lot"] }
+      ]
+    },
+    {
+      "exerciseNumber": 2,
+      "title": "Put the words in the correct order to make sentences and questions.",
+      "interactionKind": "wordOrder",
+      "items": [
+        { "itemNumber": 1, "canonicalAnswer": "Does Jake like his job?" },
+        { "itemNumber": 2, "canonicalAnswer": "I don't have any sisters." },
+        { "itemNumber": 3, "canonicalAnswer": "Julie has some new headphones." },
+        { "itemNumber": 4, "canonicalAnswer": "Are your English classes good?" },
+        { "itemNumber": 5, "canonicalAnswer": "Do you get up late at the weekends?" },
+        { "itemNumber": 6, "canonicalAnswer": "We have some friends in Shanghai." },
+        { "itemNumber": 7, "canonicalAnswer": "Does Veronika live in France?" }
+      ]
+    },
+    {
+      "exerciseNumber": 3,
+      "title": "Complete the text with the correct form of the verb in brackets.",
+      "interactionKind": "bracketGap",
+      "items": [
+        { "itemNumber": 1, "acceptedValues": ["loves"] },
+        { "itemNumber": 2, "acceptedValues": ["doesn't work", "does not work"] },
+        { "itemNumber": 3, "acceptedValues": ["goes"] },
+        { "itemNumber": 4, "acceptedValues": ["studies"] },
+        { "itemNumber": 5, "acceptedValues": ["has"] },
+        { "itemNumber": 6, "acceptedValues": ["watches"] },
+        { "itemNumber": 7, "acceptedValues": ["doesn't make", "does not make"] }
+      ]
+    },
+    {
+      "exerciseNumber": 4,
+      "title": "Choose the object that is different in each group.",
+      "interactionKind": "oddOneOut",
+      "items": [
+        { "itemNumber": 1, "acceptedValues": ["bread"] },
+        { "itemNumber": 2, "acceptedValues": ["banana"] },
+        { "itemNumber": 3, "acceptedValues": ["scissors"] },
+        { "itemNumber": 4, "acceptedValues": ["cereal"] },
+        { "itemNumber": 5, "acceptedValues": ["bookshop"] },
+        { "itemNumber": 6, "acceptedValues": ["skirt"] },
+        { "itemNumber": 7, "acceptedValues": ["bike"] }
+      ]
+    },
+    {
+      "exerciseNumber": 5,
+      "title": "Complete the sentences with the words in the box.",
+      "interactionKind": "wordBankGap",
+      "items": [
+        { "itemNumber": 1, "acceptedValues": ["oranges"] },
+        { "itemNumber": 2, "acceptedValues": ["rice"] },
+        { "itemNumber": 3, "acceptedValues": ["chicken"] },
+        { "itemNumber": 4, "acceptedValues": ["salt"] },
+        { "itemNumber": 5, "acceptedValues": ["vegetables"] },
+        { "itemNumber": 6, "acceptedValues": ["tea"] },
+        { "itemNumber": 7, "acceptedValues": ["cereal"] }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lingua-bloom.local/schemas/document-ir/1-0-0",
+  "title": "DocumentIR",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sourceDocumentId", "pages", "blocks", "warnings"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "sourceDocumentId": { "type": "string", "minLength": 1 },
+    "pages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["index", "width", "height"],
+        "properties": {
+          "index": { "type": "integer", "minimum": 0 },
+          "width": { "type": "number", "exclusiveMinimum": 0 },
+          "height": { "type": "number", "exclusiveMinimum": 0 }
+        }
+      }
+    },
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "rawText", "order"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "pageIndex": { "type": ["integer", "null"], "minimum": 0 },
+          "kind": { "enum": ["text", "table", "image", "line", "unknown"] },
+          "rawText": { "type": "string" },
+          "normalizedText": { "type": ["string", "null"] },
+          "order": { "type": "integer", "minimum": 0 },
+          "bbox": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["x", "y", "width", "height"],
+                "properties": {
+                  "x": { "type": "number" },
+                  "y": { "type": "number" },
+                  "width": { "type": "number", "minimum": 0 },
+                  "height": { "type": "number", "minimum": 0 }
+                }
+              }
+            ]
+          },
+          "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "warnings": { "type": "array", "items": { "type": "string" } }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "1.0.0",
+  "fixtures": [
+    {
+      "id": "1_page",
+      "path": "sources/1_page.pdf",
+      "kind": "pdf",
+      "expected": {
+        "exerciseGroupCount": 5,
+        "answerableItemCount": 34,
+        "unsupportedAdditionCount": 0,
+        "answersRequireReview": true
+      }
+    },
+    {
+      "id": "raw",
+      "path": "sources/raw.txt",
+      "kind": "text",
+      "expected": {
+        "numberedItemCount": 18,
+        "bracketExpressionCount": 29,
+        "explicitShortAnswerCount": 4,
+        "answerFieldCount": 33,
+        "answersRequireReview": true,
+        "requiredWarnings": ["SOURCE_TRUNCATED"],
+        "generatedContinuationCount": 0
+      }
+    }
+  ]
+}
