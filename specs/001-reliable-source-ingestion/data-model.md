@@ -67,6 +67,10 @@ Required fields: `id`, `candidateKind`, `sourceRefs`, `rawValue`, `normalizedVal
 Teacher-reviewable structured exercise. Contains `id`, `groupId`, `ordinal`, `interactionKind`,
 `prompt`, addressable `options`, `answerFields`, provenance, `candidateIds`, and `reviewStatus`.
 
+The containing mutable draft has a monotonically increasing integer `revision`. Every modifying
+operation supplies `expectedRevision`; persistence compares and increments it atomically. A mismatch
+returns `DRAFT_VERSION_CONFLICT` and applies no part of the attempted mutation.
+
 Supported initial `interactionKind` values: `singleChoice`, `wordOrder`, `bracketGap`, `oddOneOut`,
 and `wordBankGap`.
 
@@ -147,15 +151,18 @@ States:
 accepted -> processing -> awaiting_review -> processing -> ready_to_publish -> completed
                 |             |                    |
                 v             +-> blocked           +-> cancelled
-             retrying
+              failed
                 |
-                +-> processing
-                +-> failed (terminal)
+                +-> processing (owner-triggered resume, retriable only)
 ```
 
-`retrying` always carries a retriable failure plus next-attempt metadata. `failed` is terminal.
+`failed` always carries `FailureInfo`. `failure.kind = retriable` sets `manualResumeAllowed = true`;
+`failure.kind = terminal` sets it to `false`. There is no `retrying` state, `nextAttemptAt`, scheduler
+or automatic failure retry. Owner-triggered resume requires an idempotency key and continues the same
+run from its last successful checkpoint.
 `blocked` carries at least one blocking issue and requires teacher action or a replacement source.
-A run stores current step, input/output artifact IDs, idempotency keys, event sequence and timestamps.
+A run stores current step, last successful checkpoint, input/output artifact IDs, idempotency keys,
+event sequence and timestamps.
 
 ## GenerationManifest
 
@@ -173,6 +180,15 @@ tables have no TTL, and SourceRepository has no delete operation. Automated clea
 imports is also excluded. Account closure and mandatory legal deletion require a later lifecycle
 design that explicitly handles all dependent drafts, published versions and audit evidence.
 
+## Import Limits
+
+Ingress validation runs before persistence. A PDF above 20 pages or 50 MiB (52,428,800 bytes), or
+pasted text above 500,000 Unicode code points counted before normalization, produces
+`413 SOURCE_TOO_LARGE` and creates no SourceDocument, PipelineRun or draft. Answer-field cardinality
+is validated after candidate extraction; a count above 500 marks the
+existing PipelineRun as terminal `SOURCE_TOO_LARGE` and prevents draft assembly. The error records
+`limitType`, `limit` and `actual`, and directs the teacher to create separate imports and lessons.
+
 ## PublicLessonAccess
 
 Student read access is anonymous and capability-based. Only a published lesson can be resolved by its
@@ -180,6 +196,10 @@ Student read access is anonymous and capability-based. Only a published lesson c
 and returns the same not-found result for unknown and unpublished IDs. A successful lookup returns
 the version referenced by `currentPublishedVersionId`; publication updates this pointer only inside
 the same successful transaction that creates the immutable LessonVersion.
+
+`publicLessonId` has no revocation, disablement or rotation state and no corresponding mutation
+operation. First publication requires an explicit teacher confirmation recorded after the UI warns
+that the capability link remains publicly usable indefinitely.
 
 ## Relationships
 

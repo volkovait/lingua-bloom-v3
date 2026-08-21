@@ -64,7 +64,8 @@ pnpm test:resilience
 ```
 
 Expected: timeout, duplicate event, worker restart and double resume do not duplicate artifacts or
-published versions; API различает blocked, retrying/retriable и failed/terminal states.
+published versions; временный сбой не запускает автоматический retry, owner-triggered resume
+продолжает тот же run с checkpoint, а API различает blocked, failed/retriable и failed/terminal.
 
 ## 5. Run security and public-access gates
 

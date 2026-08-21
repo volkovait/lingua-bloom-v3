@@ -10,19 +10,21 @@
 
 - **[P]**: задача может выполняться параллельно в другом файле
 - **[Story]**: связь с US1–US4 из `spec.md`
+- **Stable IDs**: remediation tasks T093–T100 размещены в требуемых фазах без перенумерации уже
+  существующих T001–T092; порядок выполнения определяется положением и зависимостями, а не номером.
 
 ## Phase 1: Setup
 
 **Purpose**: Воспроизводимый workspace и общие команды качества.
 
-- [ ] T001 Инициализировать pnpm workspace и root scripts в package.json и pnpm-workspace.yaml
-- [ ] T002 Создать Next.js 16 приложение в apps/web/package.json и apps/web/app/layout.tsx
-- [ ] T003 [P] Создать packages/contracts/package.json и packages/contracts/tsconfig.json
-- [ ] T004 [P] Создать packages/domain/package.json и packages/domain/tsconfig.json
-- [ ] T005 [P] Создать package manifests для document-ingestion, exercise-extraction, lesson-pipeline и evals в packages/*/package.json
-- [ ] T006 [P] Настроить TypeScript strict project references в tsconfig.base.json
-- [ ] T007 [P] Настроить lint и format scripts в eslint.config.mjs и prettier.config.mjs
-- [ ] T008 [P] Настроить Vitest и Playwright projects в vitest.workspace.ts и apps/web/playwright.config.ts
+- [x] T001 Инициализировать pnpm workspace и root scripts в package.json и pnpm-workspace.yaml
+- [x] T002 Создать Next.js 16 приложение в apps/web/package.json и apps/web/app/layout.tsx
+- [x] T003 [P] Создать packages/contracts/package.json и packages/contracts/tsconfig.json
+- [x] T004 [P] Создать packages/domain/package.json и packages/domain/tsconfig.json
+- [x] T005 [P] Создать package manifests для document-ingestion, exercise-extraction, lesson-pipeline и evals в packages/*/package.json
+- [x] T006 [P] Настроить TypeScript strict project references в tsconfig.base.json
+- [x] T007 [P] Настроить lint и format scripts в eslint.config.mjs и prettier.config.mjs
+- [x] T008 [P] Настроить Vitest и Playwright projects в vitest.workspace.ts и apps/web/playwright.config.ts
 
 **Checkpoint**: `pnpm install`, `pnpm typecheck` и пустые test suites запускаются локально.
 
@@ -36,53 +38,58 @@
 
 ### Contracts and domain invariants
 
-- [ ] T009 Перенести три JSON Schema и OpenAPI из specs/001-reliable-source-ingestion/contracts в packages/contracts, добавить schema-sync test в packages/contracts/src/schema-sync.test.ts и baseline compatibility fixtures/tests в packages/contracts/src/compatibility.test.ts
-- [ ] T010 [P] Реализовать Zod contracts для SourceDocument, DocumentIR и version-pinned SourceRef shape в packages/contracts/src/document-ir.ts
-- [ ] T011 [P] Реализовать отдельные Zod contracts для draft AnswerRecord и strict published OptionSpec, AnswerSpec, ProvenanceLink и LessonSpec в packages/contracts/src/lesson-spec.ts
-- [ ] T012 [P] Реализовать отдельный StudentLessonSpec без answer fields и provenance в packages/contracts/src/student-lesson-spec.ts
-- [ ] T013 [P] Реализовать Zod contracts для SectionSpec, ValidationIssue, CoverageReport и ReviewDecision в packages/contracts/src/validation.ts
-- [ ] T014 Добавить negative contract tests для non-passed published validation, ненулевых counters, needsReview/rejected/modelInferred answers, empty accepted values, option provenance, cross-document SourceRef и student key leakage в packages/contracts/src/contracts.test.ts
-- [ ] T015 [P] Создать domain error taxonomy, retriable/terminal FailureInfo и result types в packages/domain/src/errors.ts и packages/domain/src/result.ts
-- [ ] T016 [P] Создать версии pipeline/parser/schema artifacts в packages/domain/src/versions.ts
+- [ ] T009 Синхронизировать OpenAPI 0.3.0 и три JSON Schema из specs/001-reliable-source-ingestion/contracts в packages/contracts, обновить schema-sync test и pre-release compatibility fixtures/tests в packages/contracts/src/schema-sync.test.ts и packages/contracts/src/compatibility.test.ts
+- [x] T010 [P] Реализовать Zod contracts для SourceDocument, DocumentIR и version-pinned SourceRef shape в packages/contracts/src/document-ir.ts
+- [x] T011 [P] Реализовать отдельные Zod contracts для draft AnswerRecord и strict published OptionSpec, AnswerSpec, ProvenanceLink и LessonSpec в packages/contracts/src/lesson-spec.ts
+- [x] T012 [P] Реализовать отдельный StudentLessonSpec без answer fields и provenance в packages/contracts/src/student-lesson-spec.ts
+- [x] T013 [P] Реализовать Zod contracts для SectionSpec, ValidationIssue, CoverageReport и ReviewDecision в packages/contracts/src/validation.ts
+- [x] T014 Добавить negative contract tests для non-passed published validation, ненулевых counters, needsReview/rejected/modelInferred answers, empty accepted values, option provenance, cross-document SourceRef и student key leakage в packages/contracts/src/contracts.test.ts
+- [ ] T015 [P] Обновить domain error taxonomy и FailureInfo: `failed + retriable + manualResumeAllowed` либо `failed + terminal`, без `retrying` и `nextAttemptAt`, в packages/domain/src/errors.ts и packages/domain/src/result.ts
+- [x] T016 [P] Создать версии pipeline/parser/schema artifacts в packages/domain/src/versions.ts
 
 ### Authentication and tenant isolation
 
-- [ ] T017 [P] Добавить server-only environment validation без утечки secrets в apps/web/src/config/server-env.ts
-- [ ] T018 Реализовать Supabase teacher session resolver в apps/web/src/auth/require-teacher.ts
-- [ ] T019 Реализовать reusable API ownership guard для source, run и lesson в apps/web/src/auth/require-owned-resource.ts
-- [ ] T020 Создать Supabase migration для sources, IR, runs, drafts, issues, decisions, lessons, versions, events и manifests с `ON DELETE RESTRICT` для source lineage и без TTL в supabase/migrations/0001_reliable_ingestion.sql
-- [ ] T021 Добавить tenant-isolated Postgres RLS и immutable-version policies в supabase/migrations/0002_ingestion_rls.sql
-- [ ] T022 Создать private source bucket и owner-prefixed Storage policies в supabase/migrations/0003_source_storage.sql
-- [ ] T023 Добавить database/API/Storage cross-tenant и immutable-version tests в tests/security/tenant-isolation.test.ts, а также no-delete-API, no-TTL, repository-without-delete и source-survives-v2 assertions в tests/security/source-retention.test.ts
+- [x] T017 [P] Добавить server-only environment validation без утечки secrets в apps/web/src/config/server-env.ts
+- [x] T018 Реализовать Supabase teacher session resolver в apps/web/src/auth/require-teacher.ts
+- [x] T019 Реализовать reusable API ownership guard для source, run и lesson в apps/web/src/auth/require-owned-resource.ts
+- [x] T020 Создать Supabase migration для sources, IR, runs, drafts, issues, decisions, lessons, versions, events и manifests с `ON DELETE RESTRICT` для source lineage и без TTL в supabase/migrations/0001_reliable_ingestion.sql
+- [x] T021 Добавить tenant-isolated Postgres RLS и immutable-version policies в supabase/migrations/0002_ingestion_rls.sql
+- [x] T022 Создать private source bucket и owner-prefixed Storage policies в supabase/migrations/0003_source_storage.sql
+- [x] T023 Добавить database/API/Storage cross-tenant и immutable-version tests в tests/security/tenant-isolation.test.ts, а также no-delete-API, no-TTL, repository-without-delete и source-survives-v2 assertions в tests/security/source-retention.test.ts
 
 ### Public lesson capability boundary
 
-- [ ] T024 [P] Реализовать URL-safe public lesson ID generator с CSPRNG entropy не менее 128 бит в packages/domain/src/public-lesson-id.ts
-- [ ] T025 Добавить immutable unique public_lesson_id, current_published_version_id и pre-0004 idempotent backfill без изменения LessonVersion payloads в supabase/migrations/0004_public_lesson_access.sql и tests/integration/public-lesson-migration.test.ts
-- [ ] T026 Добавить property/security tests для entropy, формата, uniqueness, stable ID after v2, latest-version lookup, non-enumerability и одинакового 404 в tests/security/public-lesson-access.test.ts
-- [ ] T027 Добавить anonymous access, uniform 404, no-public-listing и noindex API contract tests в apps/web/tests/api/public-lesson.contract.test.ts
+- [x] T024 [P] Реализовать URL-safe public lesson ID generator с CSPRNG entropy не менее 128 бит в packages/domain/src/public-lesson-id.ts
+- [x] T025 Добавить immutable unique public_lesson_id, current_published_version_id и pre-0004 idempotent backfill без изменения LessonVersion payloads в supabase/migrations/0004_public_lesson_access.sql и tests/integration/public-lesson-migration.test.ts
+- [ ] T026 Расширить property/security tests для entropy, формата, uniqueness, stable ID after v2, indefinite access, latest-version lookup, non-enumerability и одинакового 404 в tests/security/public-lesson-access.test.ts
+- [ ] T027 Добавить anonymous access, uniform 404, no-public-listing, noindex и отсутствие revoke/disable/rotate API operations в apps/web/tests/api/public-lesson.contract.test.ts
 
 ### Shared ingestion and coverage services
 
-- [ ] T028 [P] Создать SourceRepository interface только с persist/read operations и без delete operation в packages/document-ingestion/src/source-repository.ts
-- [ ] T029 Реализовать Supabase Storage/Postgres SourceRepository adapter в packages/document-ingestion/src/supabase-source-repository.ts
-- [ ] T030 [P] Реализовать section taxonomy и classifier interface в packages/document-ingestion/src/section-classifier.ts
-- [ ] T031 [P] Реализовать shared candidate-to-draft assembler в packages/exercise-extraction/src/assemble-draft.ts
-- [ ] T032 Реализовать complete-accounting coverage validator в packages/exercise-extraction/src/coverage-validator.ts и repository-backed SourceRef lineage validator в packages/exercise-extraction/src/source-lineage-validator.ts
+- [x] T028 [P] Создать SourceRepository interface только с persist/read operations и без delete operation в packages/document-ingestion/src/source-repository.ts
+- [x] T029 Реализовать Supabase Storage/Postgres SourceRepository adapter в packages/document-ingestion/src/supabase-source-repository.ts
+- [x] T030 [P] Реализовать section taxonomy и classifier interface в packages/document-ingestion/src/section-classifier.ts
+- [x] T031 [P] Реализовать shared candidate-to-draft assembler в packages/exercise-extraction/src/assemble-draft.ts
+- [x] T032 Реализовать complete-accounting coverage validator в packages/exercise-extraction/src/coverage-validator.ts и repository-backed SourceRef lineage validator в packages/exercise-extraction/src/source-lineage-validator.ts
 
 ### Durable workflow and observability
 
-- [ ] T033 [P] Создать structured run event, manifest и blocked/retrying/terminal status contracts в packages/lesson-pipeline/src/observability.ts
-- [ ] T034 Реализовать ordered event и immutable manifest repository в packages/lesson-pipeline/src/observability-repository.ts
-- [ ] T035 Добавить redaction tests для source text, answers, tokens и signed URLs в packages/lesson-pipeline/src/observability-repository.test.ts
-- [ ] T036 [P] Реализовать owner-scoped import idempotency key, request fingerprint и publish uniqueness helpers в packages/lesson-pipeline/src/idempotency.ts
-- [ ] T037 Настроить Inngest client и typed workflow events в apps/web/src/inngest/client.ts и apps/web/src/inngest/events.ts
-- [ ] T038 Создать authenticated Inngest serving route в apps/web/app/api/inngest/route.ts
+- [ ] T033 [P] Переработать structured run event и manifest contracts: `blocked`, `failed/retriable` с ручным resume и `failed/terminal`, без `retrying`, scheduler metadata и автоматических повторов, в packages/lesson-pipeline/src/observability.ts
+- [x] T034 Реализовать ordered event и immutable manifest repository в packages/lesson-pipeline/src/observability-repository.ts
+- [x] T035 Добавить redaction tests для source text, answers, tokens и signed URLs в packages/lesson-pipeline/src/observability-repository.test.ts
+- [x] T036 [P] Реализовать owner-scoped import idempotency key, request fingerprint и publish uniqueness helpers в packages/lesson-pipeline/src/idempotency.ts
+- [x] T037 Настроить Inngest client и typed workflow events в apps/web/src/inngest/client.ts и apps/web/src/inngest/events.ts
+- [x] T038 Создать authenticated Inngest serving route в apps/web/app/api/inngest/route.ts
 
 ### Shared import entry point
 
-- [ ] T039 Добавить authenticated PDF/text tests для required idempotency key, exact replay и same-key/different-fingerprint 409 в apps/web/tests/api/create-import.contract.test.ts
-- [ ] T040 Реализовать `POST /api/imports` с validation, ownership, atomic idempotency binding, single run creation и event dispatch в apps/web/app/api/imports/route.ts
+- [ ] T039 Добавить authenticated PDF/text tests для required idempotency key, exact replay, same-key/different-fingerprint 409 и exact/above ingress limits 20 pages, 52,428,800 bytes и 500,000 pre-normalization Unicode code points; проверить structured `413 SOURCE_TOO_LARGE` и отсутствие source/run/draft в apps/web/tests/api/create-import.contract.test.ts
+- [ ] T040 Реализовать `POST /api/imports` с pre-persistence input-limit validation, structured `413 SOURCE_TOO_LARGE`, ownership, atomic idempotency binding, single run creation и event dispatch в apps/web/app/api/imports/route.ts
+- [ ] T093 Добавить migration для monotonic draft revision, last successful checkpoint, failure kind и manual-resume constraints в supabase/migrations/0005_clarified_workflow.sql и migration tests в tests/integration/clarified-workflow-migration.test.ts
+- [ ] T094 [P] Добавить unit/boundary tests для exact/above 20 pages, 52,428,800 bytes, 500,000 pre-normalization Unicode code points и 500 answer fields, включая terminal post-extraction failure без draft, в packages/lesson-pipeline/src/import-limits.test.ts
+- [ ] T095 Реализовать shared pre-persistence и post-extraction import limit policies с `limitType`, `limit`, `actual` и separate-lessons guidance в packages/lesson-pipeline/src/import-limits.ts
+- [ ] T096 Добавить atomic compare-and-swap draft repository с all-or-nothing `DRAFT_VERSION_CONFLICT` tests в packages/lesson-pipeline/src/draft-repository.ts и packages/lesson-pipeline/src/draft-repository.test.ts
+- [ ] T100 [P] Добавить domain/OpenAPI contract tests для `failed/retriable`, `failed/terminal`, `manualResumeAllowed`, отсутствия `retrying`/`nextAttemptAt` и запрета resume для terminal failure в packages/domain/src/errors.test.ts и apps/web/tests/api/import-status.contract.test.ts
 
 **Checkpoint**: Contracts запрещают unsafe states; auth/RLS/Storage изолируют teacher data; public
 lesson capability IDs, source persistence, assembly, coverage, observability и import endpoint готовы.
@@ -108,7 +115,7 @@ lesson capability IDs, source persistence, assembly, coverage, observability и 
 
 ### Implementation for User Story 1
 
-- [ ] T047 [P] [US1] Создать PDF/text import form с MIME, size, exclusive-input validation и UUID idempotency key на одну user submission в apps/web/components/import/source-import-form.tsx
+- [ ] T047 [P] [US1] Создать PDF/text import form с MIME, exact page/byte/character limits, exclusive-input validation, UUID idempotency key и `SOURCE_TOO_LARGE` guidance о самостоятельных уроках в apps/web/components/import/source-import-form.tsx
 - [ ] T048 [US1] Создать authenticated import page и progress redirect в apps/web/app/imports/new/page.tsx
 - [ ] T049 [US1] Реализовать PDF text-item и geometry DocumentIR builder в packages/document-ingestion/src/pdf-to-ir.ts
 - [ ] T050 [US1] Реализовать column-aware reading order в packages/document-ingestion/src/reading-order.ts
@@ -160,19 +167,21 @@ source ref, сохраняет teacher decision, возобновляет run и
 
 ### Tests for User Story 3
 
-- [ ] T065 [P] [US3] Добавить exhaustive blocked/retrying/terminal status, review и ownership API contract tests в apps/web/tests/api/import-review.contract.test.ts
-- [ ] T066 [P] [US3] Добавить wait/resume, ordered-events и duplicate-review tests в tests/integration/review-workflow.test.ts
+- [ ] T065 [P] [US3] Добавить exhaustive blocked, failed/retriable и failed/terminal status, exact `DRAFT_VERSION_CONFLICT`, review и ownership API contract tests без `retrying` в apps/web/tests/api/import-review.contract.test.ts
+- [ ] T066 [P] [US3] Добавить wait-for-review, manual failure resume, ordered-events, stale concurrent write и duplicate-review tests в tests/integration/review-workflow.test.ts
 - [ ] T067 [P] [US3] Добавить two-action navigation, keyboard, mobile и recovery Playwright tests в apps/web/tests/e2e/review-import.spec.ts
 
 ### Implementation for User Story 3
 
-- [ ] T068 [US3] Реализовать durable ingestion workflow с explicit blocked/retrying/terminal transitions, persisted events, manifest и wait-for-review в apps/web/src/inngest/reliable-ingestion.ts
-- [ ] T069 [US3] Реализовать owned `GET /api/imports/{runId}` со structured FailureInfo в apps/web/app/api/imports/[runId]/route.ts
-- [ ] T070 [US3] Реализовать owned idempotent review handler в apps/web/app/api/imports/[runId]/review/route.ts
+- [ ] T068 [US3] Реализовать durable ingestion workflow с explicit blocked, failed/retriable и failed/terminal transitions, persisted checkpoints/events, manifest, wait-for-review и без automatic retry в apps/web/src/inngest/reliable-ingestion.ts
+- [ ] T069 [US3] Реализовать owned `GET /api/imports/{runId}` со structured FailureInfo и `manualResumeAllowed` без `nextAttemptAt` в apps/web/app/api/imports/[runId]/route.ts
+- [ ] T070 [US3] Реализовать owned idempotent review handler с atomic expected draft revision check и exact `409 DRAFT_VERSION_CONFLICT` в apps/web/app/api/imports/[runId]/review/route.ts
 - [ ] T071 [P] [US3] Создать source viewer с block highlighting в apps/web/components/review/source-viewer.tsx
-- [ ] T072 [P] [US3] Создать structured draft editor в apps/web/components/review/exercise-draft-editor.tsx
+- [ ] T072 [P] [US3] Создать structured draft editor с expected revision и reload guidance после `DRAFT_VERSION_CONFLICT` в apps/web/components/review/exercise-draft-editor.tsx
 - [ ] T073 [P] [US3] Создать issue list и provenance badges в apps/web/components/review/validation-issues.tsx
-- [ ] T074 [US3] Собрать accessible responsive review workspace с отдельными blocked, retrying и terminal recovery states в apps/web/app/imports/[runId]/review/page.tsx
+- [ ] T074 [US3] Собрать accessible responsive review workspace с отдельными blocked, manually retriable failure и terminal failure states без automatic-retry UI в apps/web/app/imports/[runId]/review/page.tsx
+- [ ] T097 [P] [US3] Добавить owner, idempotency, same-run checkpoint, terminal rejection и no-auto-retry contract tests для `POST /api/imports/{runId}/resume` в apps/web/tests/api/resume-import.contract.test.ts
+- [ ] T098 [US3] Реализовать owner-only idempotent `POST /api/imports/{runId}/resume`, продолжающий retriable run с последнего checkpoint, в apps/web/app/api/imports/[runId]/resume/route.ts
 
 **Checkpoint**: Decisions append-only, stale draft даёт conflict, blocking issues не исчезают без
 решения, events/manifests сохраняются без sensitive content.
@@ -192,18 +201,19 @@ source ref, сохраняет teacher decision, возобновляет run и
 - [ ] T075 [P] [US4] Добавить publish rejection для draft-only answer states и invalid SourceRef lineage, duplicate publish и storage-level immutability tests в tests/integration/publish-version.test.ts
 - [ ] T076 [P] [US4] Добавить LessonSpec-to-StudentLessonSpec projection tests в packages/lesson-pipeline/src/student-projection.test.ts
 - [ ] T077 [P] [US4] Добавить anonymous student API/HTML/browser key-leakage tests в tests/security/student-answer-leakage.test.ts
-- [ ] T078 [P] [US4] Добавить versioning/diff journey и проверку, что стабильная public link после v2 показывает v2, в apps/web/tests/e2e/lesson-versioning.spec.ts
+- [ ] T078 [P] [US4] Добавить versioning/diff journey, permanent-access confirmation, отсутствие revoke/disable/rotate и проверку, что стабильная public link после v2 показывает v2, в apps/web/tests/e2e/lesson-versioning.spec.ts
 
 ### Implementation for User Story 4
 
 - [ ] T079 [US4] Реализовать draft-to-published projection, strict LessonSpec и repository-backed lineage validation, создание immutable public ID и атомарное продвижение latest version в packages/lesson-pipeline/src/publish-version.ts
 - [ ] T080 [US4] Реализовать LessonSpec-to-StudentLessonSpec projection в packages/lesson-pipeline/src/student-projection.ts
-- [ ] T081 [US4] Реализовать owned publish handler в apps/web/app/api/imports/[runId]/publish/route.ts
+- [ ] T081 [US4] Реализовать owned publish handler, требующий `confirmPermanentPublicAccess: true` при первой публикации, в apps/web/app/api/imports/[runId]/publish/route.ts
 - [ ] T082 [US4] Реализовать owned version-list handler в apps/web/app/api/lessons/[lessonId]/versions/route.ts
 - [ ] T083 [US4] Реализовать anonymous student-safe handler с lookup latest published version по public ID и uniform 404 в apps/web/app/api/lessons/[publicLessonId]/student/route.ts
 - [ ] T084 [P] [US4] Реализовать renderer только из StudentLessonSpec в apps/web/components/lesson/lesson-renderer.tsx
 - [ ] T085 [US4] Создать public student lesson page без auth и teacher payload, с noindex metadata, в apps/web/app/learn/[publicLessonId]/page.tsx
 - [ ] T086 [US4] Реализовать version history и diff view в apps/web/app/lessons/[lessonId]/versions/page.tsx
+- [ ] T099 [US4] Создать отдельное необратимое publish confirmation UI без revoke/disable/rotate controls в apps/web/components/lesson/publish-confirmation.tsx
 
 **Checkpoint**: Published payload schema-valid и immutable; anonymous student surface доступен только
 по public ID и структурно не может получить answers; новая редакция не меняет старую.
@@ -214,11 +224,11 @@ source ref, сохраняет teacher decision, возобновляет run и
 
 **Purpose**: Release hardening перед следующей feature.
 
-- [ ] T087 [P] Добавить timeout, restart, duplicate event и double resume cases в tests/resilience/ingestion-resilience.test.ts
-- [ ] T088 [P] Добавить prompt-injection, malformed PDF, MIME и oversized-input cases в tests/security/untrusted-source.test.ts
+- [ ] T087 [P] Добавить timeout, restart, duplicate event, отсутствие automatic retry, idempotent manual resume и double resume cases в tests/resilience/ingestion-resilience.test.ts
+- [ ] T088 [P] Добавить prompt-injection, malformed PDF, MIME, exact/above every input limit, 501 answer fields и two-parts-create-independent-imports cases в tests/security/untrusted-source.test.ts
 - [ ] T089 [P] Добавить full accessibility matrix для upload, review и student views в apps/web/tests/e2e/accessibility.spec.ts
 - [ ] T090 Запустить и зафиксировать baseline metrics в tests/golden/baseline-report.json
-- [ ] T091 Проверить import acceptance p95 и parsing limits для 1, 5 и 20 страниц в packages/evals/src/performance.eval.test.ts
+- [ ] T091 Проверить import acceptance p95 и exact boundary behavior для 1, 5, 20/21 страниц, 52,428,800 bytes, 500,000 Unicode code points и 500/501 answer fields в packages/evals/src/performance.eval.test.ts
 - [ ] T092 Выполнить specs/001-reliable-source-ingestion/quickstart.md и записать результат в specs/001-reliable-source-ingestion/validation-report.md
 
 ---

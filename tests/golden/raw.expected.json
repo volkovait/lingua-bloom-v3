@@ -39,7 +39,7 @@
       "itemNumber": 3,
       "answerFields": [
         { "kind": "bracket", "sourceVerb": "to come", "acceptedValues": ["Did you come"] },
-        { "kind": "shortAnswer", "sourceMarker": "No, I ... .", "acceptedValues": ["didn't", "did not"] },
+        { "kind": "bracket", "sourceMarker": "No, I ... .", "acceptedValues": ["didn't", "did not"] },
         { "kind": "bracket", "sourceVerb": "to come", "acceptedValues": ["came"] },
         { "kind": "bracket", "sourceVerb": "to be", "acceptedValues": ["was"] },
         { "kind": "bracket", "sourceVerb": "to have", "acceptedValues": ["had"] },
@@ -107,7 +107,7 @@
       "itemNumber": 12,
       "answerFields": [
         { "kind": "bracket", "sourceVerb": "to talk", "acceptedValues": ["Do you talk"] },
-        { "kind": "shortAnswer", "sourceMarker": "Yes, I ... .", "acceptedValues": ["do"] },
+        { "kind": "bracket", "sourceMarker": "Yes, I ... .", "acceptedValues": ["do"] },
         { "kind": "bracket", "sourceVerb": "not to talk", "acceptedValues": ["didn't talk", "did not talk"] },
         { "kind": "bracket", "sourceVerb": "to be", "acceptedValues": ["was"] }
       ]
@@ -116,7 +116,7 @@
       "itemNumber": 13,
       "answerFields": [
         { "kind": "bracket", "sourceVerb": "to go", "acceptedValues": ["Does your sister go"] },
-        { "kind": "shortAnswer", "sourceMarker": "Yes, she ... .", "acceptedValues": ["does"] }
+        { "kind": "bracket", "sourceMarker": "Yes, she ... .", "acceptedValues": ["does"] }
       ]
     },
     {
@@ -146,7 +146,7 @@
       "itemNumber": 17,
       "answerFields": [
         { "kind": "bracket", "sourceVerb": "to wear", "acceptedValues": ["Did you wear"] },
-        { "kind": "shortAnswer", "sourceMarker": "Yes, I ... .", "acceptedValues": ["did"] },
+        { "kind": "bracket", "sourceMarker": "Yes, I ... .", "acceptedValues": ["did"] },
         { "kind": "bracket", "sourceVerb": "to wear", "acceptedValues": ["wore"] }
       ]
     },

@@ -38,7 +38,8 @@ ownership checks для teacher API, database и Storage; публичный stu
 энтропией не менее 128 бит; источники не удаляются в рамках этой feature
 
 **Scale/Scope**: Первый вертикальный срез на 2 supplied fixtures и расширяемый regression set;
-до 20 страниц и 500 answer fields на документ в первой версии
+один import принимает PDF до 20 страниц и 50 МиБ (52 428 800 байт) либо текст до 500 000 Unicode
+code points до нормализации и создаёт не более 500 answer fields
 
 ## Constitution Check
 
@@ -124,12 +125,13 @@ tests/
 ```text
 receive-source
   -> authenticate-owner
-  -> validate-upload
+  -> validate-input-limits
   -> persist-source
   -> create-run
   -> build-document-ir
   -> detect-sections
   -> extract-candidates
+  -> validate-answer-field-limit
   -> assemble-draft
   -> validate-coverage
   -> wait-for-review (only when required)
@@ -138,12 +140,23 @@ receive-source
 ```
 
 Каждый шаг имеет стабильный idempotency key `{runId}:{stepName}:{inputVersion}`. Успешный результат
-шага сохраняется и не пересчитывается при retry. `publish-version` использует уникальное ограничение
-по `runId` и версии черновика.
+шага сохраняется и не пересчитывается при ручном продолжении или восстановлении после restart.
+Лимит автоматических повторов явно равен нулю: временный сбой переводит run в `failed` с
+`failure.kind = retriable`, а terminal failure использует тот же статус с `failure.kind = terminal`.
+Только владелец может вручную продолжить retriable run; idempotent resume начинает выполнение с
+последнего успешного checkpoint. `publish-version` использует уникальное ограничение по `runId` и
+версии черновика.
 
 Import creation uses a required client-generated `idempotencyKey` scoped to the authenticated owner.
 The server stores `{ownerId, idempotencyKey, requestFingerprint, runId}` under a unique constraint.
 An identical replay returns the stored run; reuse with another fingerprint returns `409`.
+
+PDF page count and byte size, and pasted-text character count, are validated before source
+persistence and run creation. An ingress violation returns structured `413 SOURCE_TOO_LARGE` with
+`limitType`, `limit` and `actual`. Answer-field cardinality is known only after extraction; exceeding
+500 therefore terminates the existing run with terminal `SOURCE_TOO_LARGE` before draft assembly.
+Both paths instruct the teacher to split the material, with every part becoming an independent
+import and lesson.
 
 `SourceRef` shape validation is followed by a repository-backed lineage check: every ref must repeat
 the LessonSpec root `sourceDocumentId` and `documentIrId`, its `blockId` must exist in that immutable
@@ -162,6 +175,8 @@ cannot rely on counters alone and reruns this validator.
   entropy. Student reads require no session; internal IDs, listing and enumeration endpoints remain
   private, and unknown or unpublished public IDs return the same `404` response. The ID is stable for
   the lesson and resolves through an atomically updated pointer to its latest published version.
+  The product has no revoke, disable or rotate operation for this ID. Before first publication the
+  teacher UI shows an irreversible-public-access warning and requires a separate confirmation.
 - Original sources and derived artifacts are retained for provenance. Feature 001 exposes no source
   deletion endpoint and runs no abandoned-import or source-purge workflow. Database foreign keys use
   `ON DELETE RESTRICT`, source tables have no TTL, and `SourceRepository` exposes no delete method.
@@ -181,9 +196,15 @@ cannot rely on counters alone and reruns this validator.
   LessonVersion payloads. The migration is tested from a pre-0004 fixture and is idempotent.
 - OpenAPI compatibility tests compare the committed baseline and reject removal or incompatible
   narrowing of existing teacher operations without an API version change.
+- The clarified failure lifecycle is published as pre-release OpenAPI `0.3.0`: it removes
+  `retrying`/`nextAttemptAt`, adds owner-only manual resume and adds structured limit and draft
+  conflict errors. Contract fixtures and compatibility expectations move together before Phase 3.
 
 ## Draft and Published Answer Boundary
 
+- Every mutable draft has a monotonically increasing `revision`. Each modifying request supplies the
+  expected revision; persistence uses an atomic compare-and-swap update and returns
+  `409 DRAFT_VERSION_CONFLICT` without partial writes when it is stale.
 - `AnswerRecord` is a draft/review entity and may be `needsReview`, `rejected` or `modelInferred`.
 - Published `LessonSpec` accepts only `verified` answers with non-empty accepted values and excludes
   `modelInferred` provenance. Publication projects the reviewed draft into this stricter contract.
@@ -199,18 +220,20 @@ cannot rely on counters alone and reruns this validator.
    coverage services reused by PDF and text.
 4. **Deterministic extraction**: groups, numbering, addressable options, gaps, word bank and order.
 5. **Coverage and answer provenance**: blocking issues and publish gate.
-6. **Durable workflow and observability**: retries, idempotency, persisted events/manifests and review
-   wait/resume.
+6. **Durable workflow and observability**: failure classification, checkpoints, idempotent manual
+   resume without automatic retries, persisted events/manifests and review wait/resume.
 7. **Teacher review slice**: upload, source/draft/issues side-by-side.
 8. **Versioned publish, stable latest-version public link and student-safe smoke view**.
 9. **Full regression, public-access, resilience, security and cross-browser gates**.
 
 ## Post-Design Constitution Check
 
-PASS. Контракты требуют provenance каждого option/exercise/answer либо teacher decision и содержат
+PASS после выполнения обновлённых Foundation tasks. Контракты требуют provenance каждого
+option/exercise/answer либо teacher decision и содержат
 conditional publish invariants. API не предоставляет publish без успешного validation report и
 разделяет teacher/student DTO. Data model разделяет source, draft и immutable version, а задачи
-покрывают teacher auth, Storage RLS, public lesson capability IDs и redacted observability. Источники
+покрывают teacher auth, Storage RLS, public lesson capability IDs, optimistic draft concurrency,
+structured input limits и redacted observability. Источники
 не удаляются этой feature; отдельный lifecycle удаления потребуется только при появлении такой
 продуктовой или юридической потребности.
 

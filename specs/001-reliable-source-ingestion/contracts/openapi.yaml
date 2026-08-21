@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Lingua-Bloom Source Ingestion API
-  version: 0.2.0
+  version: 0.3.0
 paths:
   /api/imports:
     post:
@@ -35,7 +35,7 @@ paths:
         '400': { $ref: '#/components/responses/InvalidInput' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '409': { description: Idempotency key was already bound to a different request fingerprint }
-        '413': { description: Source exceeds configured limits }
+        '413': { $ref: '#/components/responses/SourceTooLarge' }
   /api/imports/{runId}:
     get:
       summary: Return the owner's run state, ordered events, issues, and draft reference
@@ -52,6 +52,24 @@ paths:
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { description: Run not found }
+  /api/imports/{runId}/resume:
+    post:
+      summary: Manually resume an owner-controlled run after a retriable failure
+      security:
+        - teacherSession: []
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ResumeSubmission' }
+      responses:
+        '202': { description: Resume accepted; the same run continues from its last checkpoint }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: Run not found }
+        '409': { description: Run is not retriable or the idempotency key conflicts }
   /api/imports/{runId}/review:
     post:
       summary: Submit idempotent teacher decisions and resume processing
@@ -68,7 +86,14 @@ paths:
         '202': { description: Review accepted }
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '409': { description: Idempotency conflict or stale draft version }
+        '409':
+          description: Idempotency conflict or stale draft version
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/DraftVersionConflict'
+                  - $ref: '#/components/schemas/IdempotencyConflict'
   /api/imports/{runId}/publish:
     post:
       summary: Publish an immutable lesson version after all gates pass
@@ -76,6 +101,11 @@ paths:
         - teacherSession: []
       parameters:
         - $ref: '#/components/parameters/RunId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PublishSubmission' }
       responses:
         '201':
           description: Lesson version created
@@ -111,6 +141,10 @@ paths:
       responses:
         '200':
           description: Latest published version; contract excludes answer keys and internal provenance
+          headers:
+            X-Robots-Tag:
+              description: Public capability pages must not be indexed
+              schema: { type: string, const: 'noindex, nofollow' }
           content:
             application/json:
               schema: { $ref: './student-lesson-spec.schema.json' }
@@ -147,6 +181,11 @@ components:
       description: Valid teacher session required
     Forbidden:
       description: Authenticated teacher does not own the requested resource
+    SourceTooLarge:
+      description: Source exceeds a pre-persistence input limit
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/SourceTooLargeError' }
   schemas:
     ImportAccepted:
       type: object
@@ -163,7 +202,7 @@ components:
       properties:
         runId: { type: string }
         status:
-          enum: [accepted, processing, awaiting_review, blocked, retrying, ready_to_publish, completed, cancelled, failed]
+          enum: [accepted, processing, awaiting_review, blocked, ready_to_publish, completed, cancelled, failed]
         events: { type: array, items: { type: object } }
         issues: { type: array, items: { type: object } }
         draftId: { type: [string, 'null'] }
@@ -173,22 +212,10 @@ components:
             - $ref: '#/components/schemas/FailureInfo'
       allOf:
         - if:
-            properties: { status: { const: retrying } }
-          then:
-            properties:
-              failure:
-                allOf:
-                  - $ref: '#/components/schemas/FailureInfo'
-                  - required: [nextAttemptAt]
-                    properties: { kind: { const: retriable } }
-        - if:
             properties: { status: { const: failed } }
           then:
             properties:
-              failure:
-                allOf:
-                  - $ref: '#/components/schemas/FailureInfo'
-                  - properties: { kind: { const: terminal } }
+              failure: { $ref: '#/components/schemas/FailureInfo' }
         - if:
             properties: { status: { const: blocked } }
           then:
@@ -202,12 +229,61 @@ components:
     FailureInfo:
       type: object
       additionalProperties: false
-      required: [code, kind, message]
+      required: [code, kind, message, manualResumeAllowed]
       properties:
         code: { type: string, minLength: 1 }
         kind: { enum: [retriable, terminal] }
         message: { type: string, minLength: 1 }
-        nextAttemptAt: { type: [string, 'null'], format: date-time }
+        manualResumeAllowed: { type: boolean }
+        limitType: { enum: [pdfPages, pdfBytes, textCharacters, answerFields] }
+        limit: { type: integer, minimum: 1 }
+        actual: { type: integer, minimum: 1 }
+      allOf:
+        - if:
+            properties: { kind: { const: retriable } }
+          then:
+            properties: { manualResumeAllowed: { const: true } }
+        - if:
+            properties: { kind: { const: terminal } }
+          then:
+            properties: { manualResumeAllowed: { const: false } }
+        - if:
+            properties: { code: { const: SOURCE_TOO_LARGE } }
+          then:
+            required: [limitType, limit, actual]
+    SourceTooLargeError:
+      type: object
+      additionalProperties: false
+      required: [code, message, limitType, limit, actual, splitRequired, partsBecomeSeparateLessons]
+      properties:
+        code: { const: SOURCE_TOO_LARGE }
+        message: { type: string, minLength: 1 }
+        limitType: { enum: [pdfPages, pdfBytes, textCharacters, answerFields] }
+        limit: { type: integer, minimum: 1 }
+        actual: { type: integer, minimum: 1 }
+        splitRequired: { const: true }
+        partsBecomeSeparateLessons: { const: true }
+    DraftVersionConflict:
+      type: object
+      additionalProperties: false
+      required: [code, message, currentDraftVersion]
+      properties:
+        code: { const: DRAFT_VERSION_CONFLICT }
+        message: { type: string, minLength: 1 }
+        currentDraftVersion: { type: integer, minimum: 1 }
+    IdempotencyConflict:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code: { const: IDEMPOTENCY_CONFLICT }
+        message: { type: string, minLength: 1 }
+    ResumeSubmission:
+      type: object
+      additionalProperties: false
+      required: [idempotencyKey]
+      properties:
+        idempotencyKey: { type: string, minLength: 16, maxLength: 128 }
     ReviewSubmission:
       type: object
       additionalProperties: false
@@ -227,6 +303,13 @@ components:
               decision: { enum: [confirm, edit, exclude] }
               reason: { type: string, minLength: 1 }
               replacementValue: { type: [string, 'null'] }
+    PublishSubmission:
+      type: object
+      additionalProperties: false
+      properties:
+        confirmPermanentPublicAccess:
+          const: true
+          description: Required by the server only when the lesson has never been published before
     PublishedVersion:
       type: object
       additionalProperties: false
