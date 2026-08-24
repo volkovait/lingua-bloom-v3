@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@lingua-bloom/contracts": "workspace:*",
+    "@lingua-bloom/document-ingestion": "workspace:*",
     "@lingua-bloom/domain": "workspace:*"
   }
 }

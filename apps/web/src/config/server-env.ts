@@ -7,7 +7,10 @@ const ServerEnvironmentSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   INNGEST_EVENT_KEY: z.string().min(1),
-  INNGEST_SIGNING_KEY: z.string().min(1)
+  INNGEST_SIGNING_KEY: z.string().min(1),
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  OPENAI_BASE_URL: z.url().default("https://polza.ai/api/v1"),
+  OPENAI_MODEL: z.string().min(1).default("openai/gpt-5.4-mini")
 });
 
 export type ServerEnvironment = z.infer<typeof ServerEnvironmentSchema>;

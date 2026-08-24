@@ -79,6 +79,25 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { description: Run not found }
         '409': { description: Run is not retriable or the idempotency key conflicts }
+  /api/imports/{runId}/dispatch:
+    post:
+      summary: Idempotently redispatch an owner-controlled stale accepted or processing run
+      security:
+        - teacherSession: []
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RedispatchSubmission" }
+      responses:
+        "202": { description: Redispatch accepted for the same run }
+        "400": { $ref: "#/components/responses/InvalidInput" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { description: Run not found }
+        "409": { description: Run is not stale, already has a draft, or the idempotency key conflicts }
+        "503": { description: Claim persisted but event delivery failed; retry with the same key }
   /api/imports/{runId}/review:
     post:
       summary: Submit idempotent teacher decisions and resume processing
@@ -123,7 +142,11 @@ paths:
               schema: { $ref: '#/components/schemas/PublishedVersion' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '409': { description: Blocking issues or unresolved answers remain }
+        '409':
+          description: The canonical publication-readiness gate returned one or more reasons
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PublicationBlocked' }
   /api/lessons/{lessonId}/versions:
     get:
       summary: List immutable lesson versions available to the owner
@@ -208,11 +231,16 @@ components:
     ImportStatus:
       type: object
       additionalProperties: false
-      required: [runId, status, events, issues, failure]
+      required: [runId, status, updatedAt, recovery, events, issues, failure]
       properties:
         runId: { type: string }
         status:
           enum: [accepted, processing, awaiting_review, blocked, ready_to_publish, completed, cancelled, failed]
+        updatedAt: { type: string, format: date-time }
+        recovery:
+          oneOf:
+            - type: "null"
+            - $ref: "#/components/schemas/StaleRunRecovery"
         events: { type: array, items: { type: object } }
         issues: { type: array, items: { type: object } }
         draftId: { type: [string, 'null'] }
@@ -297,6 +325,20 @@ components:
       properties:
         code: { const: IDEMPOTENCY_CONFLICT }
         message: { type: string, minLength: 1 }
+    StaleRunRecovery:
+      type: object
+      additionalProperties: false
+      required: [kind, redispatchAllowed, staleSince]
+      properties:
+        kind: { enum: [dispatch_not_started, worker_heartbeat_expired] }
+        redispatchAllowed: { const: true }
+        staleSince: { type: string, format: date-time }
+    RedispatchSubmission:
+      type: object
+      additionalProperties: false
+      required: [idempotencyKey]
+      properties:
+        idempotencyKey: { type: string, minLength: 16, maxLength: 128 }
     ResumeSubmission:
       type: object
       additionalProperties: false
@@ -306,22 +348,58 @@ components:
     ReviewSubmission:
       type: object
       additionalProperties: false
-      required: [draftVersion, idempotencyKey, decisions]
+      required: [draftVersion, idempotencyKey]
+      anyOf:
+        - properties: { decisions: { minItems: 1 } }
+        - properties: { answerReviews: { minItems: 1 } }
+        - properties: { exerciseEdits: { minItems: 1 } }
       properties:
         draftVersion: { type: integer, minimum: 1 }
         idempotencyKey: { type: string, minLength: 16, maxLength: 128 }
         decisions:
           type: array
-          minItems: 1
+          default: []
           items:
             type: object
             additionalProperties: false
             required: [issueId, decision, reason]
             properties:
-              issueId: { type: string }
+              issueId: { type: string, format: uuid }
               decision: { enum: [confirm, edit, exclude] }
               reason: { type: string, minLength: 1 }
-              replacementValue: { type: [string, 'null'] }
+              replacementValue: { type: [string, "null"] }
+        answerReviews:
+          type: array
+          default: []
+          items:
+            type: object
+            additionalProperties: false
+            required: [answerFieldId, decision, reason, replacementValue]
+            properties:
+              answerFieldId: { type: string, minLength: 1 }
+              issueId: { type: [string, "null"], format: uuid }
+              decision: { enum: [confirm, edit] }
+              reason: { type: string, minLength: 1 }
+              replacementValue: { type: string, minLength: 1 }
+        exerciseEdits:
+          type: array
+          default: []
+          items:
+            type: object
+            additionalProperties: false
+            required: [exerciseId, prompt, options]
+            properties:
+              exerciseId: { type: string, minLength: 1 }
+              prompt: { type: string, minLength: 1 }
+              options:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  required: [id, value]
+                  properties:
+                    id: { type: string, minLength: 1 }
+                    value: { type: string }
     PublishSubmission:
       type: object
       additionalProperties: false
@@ -329,6 +407,18 @@ components:
         confirmPermanentPublicAccess:
           const: true
           description: Required by the server only when the lesson has never been published before
+    PublicationBlocked:
+      type: object
+      additionalProperties: false
+      required: [code, message, reasons]
+      properties:
+        code: { const: PUBLISH_BLOCKED }
+        message: { type: string, minLength: 1 }
+        reasons:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: { type: string, minLength: 1 }
     PublishedVersion:
       type: object
       additionalProperties: false

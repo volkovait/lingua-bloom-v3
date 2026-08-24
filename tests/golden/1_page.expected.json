@@ -14,11 +14,20 @@
     "answerableItemCount": 34,
     "unsupportedAdditionCount": 0
   },
+  "provenanceExpectations": {
+    "sourceDocumentId": "source:1_page",
+    "documentIrId": "ir:1_page",
+    "groupSourceRefCount": 5,
+    "exerciseSourceRefCount": 34,
+    "answerFieldSourceRefCount": 34,
+    "everyOptionHasSourceRef": true
+  },
   "groups": [
     {
       "exerciseNumber": 1,
       "title": "Choose the correct answer (a, b or c).",
       "interactionKind": "singleChoice",
+      "optionCountPerItem": 3,
       "items": [
         { "itemNumber": 1, "correctOptionId": "b", "acceptedValues": ["love"] },
         { "itemNumber": 2, "correctOptionId": "c", "acceptedValues": ["a lot"] },
@@ -32,6 +41,7 @@
       "exerciseNumber": 2,
       "title": "Put the words in the correct order to make sentences and questions.",
       "interactionKind": "wordOrder",
+      "optionCountPerItem": 0,
       "items": [
         { "itemNumber": 1, "canonicalAnswer": "Does Jake like his job?" },
         { "itemNumber": 2, "canonicalAnswer": "I don't have any sisters." },
@@ -46,6 +56,7 @@
       "exerciseNumber": 3,
       "title": "Complete the text with the correct form of the verb in brackets.",
       "interactionKind": "bracketGap",
+      "optionCountPerItem": 0,
       "items": [
         { "itemNumber": 1, "acceptedValues": ["loves"] },
         { "itemNumber": 2, "acceptedValues": ["doesn't work", "does not work"] },
@@ -60,6 +71,7 @@
       "exerciseNumber": 4,
       "title": "Choose the object that is different in each group.",
       "interactionKind": "oddOneOut",
+      "optionCountPerItem": 4,
       "items": [
         { "itemNumber": 1, "acceptedValues": ["bread"] },
         { "itemNumber": 2, "acceptedValues": ["banana"] },
@@ -74,6 +86,7 @@
       "exerciseNumber": 5,
       "title": "Complete the sentences with the words in the box.",
       "interactionKind": "wordBankGap",
+      "optionCountPerItem": 7,
       "items": [
         { "itemNumber": 1, "acceptedValues": ["oranges"] },
         { "itemNumber": 2, "acceptedValues": ["rice"] },

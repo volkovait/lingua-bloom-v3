@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createServerClient } from "@supabase/ssr";
+import type { User } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 import { getServerEnvironment } from "../config/server-env";
@@ -37,6 +38,15 @@ export async function createTeacherSupabaseClient() {
 export async function requireTeacher() {
   const supabase = await createTeacherSupabaseClient();
   const { data, error } = await supabase.auth.getUser();
-  if (error) throw new UnauthenticatedError();
-  return { teacher: data.user, supabase };
+  const teacher: User | null = data.user;
+  if (error || !teacher) throw new UnauthenticatedError();
+  return { teacher, supabase };
+}
+
+export async function getOptionalTeacher() {
+  const supabase = await createTeacherSupabaseClient();
+  const { data, error } = await supabase.auth.getUser();
+  const teacher: User | null = data.user;
+  if (error || !teacher) return null;
+  return { teacher, supabase };
 }

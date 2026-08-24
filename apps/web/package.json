@@ -13,6 +13,7 @@
     "@lingua-bloom/contracts": "workspace:*",
     "@lingua-bloom/document-ingestion": "workspace:*",
     "@lingua-bloom/domain": "workspace:*",
+    "@lingua-bloom/exercise-extraction": "workspace:*",
     "@lingua-bloom/lesson-pipeline": "workspace:*",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.57.0",

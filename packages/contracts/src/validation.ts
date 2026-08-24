@@ -21,7 +21,8 @@ export const ValidationIssueSchema = z
       "ANSWER_UNVERIFIED",
       "READING_ORDER_UNCERTAIN",
       "SOURCE_REF_MISSING",
-      "OCR_REQUIRED"
+      "OCR_REQUIRED",
+      "ANSWER_KEY_CONFLICT"
     ]),
     severity: z.enum(["info", "warning", "blocking"]),
     entityIds: z.array(IdSchema),
@@ -66,5 +67,6 @@ export const ReviewDecisionSchema = z
   .strict();
 
 export type CoverageReport = z.infer<typeof CoverageReportSchema>;
+export type SectionSpec = z.infer<typeof SectionSpecSchema>;
 export type ValidationIssue = z.infer<typeof ValidationIssueSchema>;
 export type ReviewDecision = z.infer<typeof ReviewDecisionSchema>;

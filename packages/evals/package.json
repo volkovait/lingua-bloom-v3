@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@lingua-bloom/contracts": "workspace:*",
+    "@lingua-bloom/document-ingestion": "workspace:*",
+    "@lingua-bloom/exercise-extraction": "workspace:*",
     "fast-check": "^4.3.0"
   }
 }

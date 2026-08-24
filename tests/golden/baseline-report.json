@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0.0",
+  "fixture": "1_page.pdf",
+  "model": "openai/gpt-5.4-mini",
+  "promptVersion": "answer-suggestions/1.1.0",
+  "normalizationPolicy": "NFKC+smart-apostrophe+lowercase-en+terminal-punctuation+whitespace+trim/1.1.0",
+  "expectedAnswerFields": 34,
+  "returnedAnswerFields": 34,
+  "knownIdRate": 1,
+  "correctAnswerFields": 32,
+  "answerAccuracy": 0.9411764705882353,
+  "minimumAnswerAccuracy": 0.9,
+  "unsupportedExerciseCount": 0,
+  "passed": true,
+  "comparisonToPreviousBaseline": {
+    "promptVersion": "answer-suggestions/1.0.0",
+    "correctAnswerFields": 28,
+    "answerAccuracy": 0.8235294117647058,
+    "correctAnswerFieldsDelta": 4,
+    "answerAccuracyDelta": 0.11764705882352944
+  },
+  "mismatches": [
+    {
+      "answerFieldId": "group:5:item:3:answer:1",
+      "exerciseNumber": 5,
+      "itemNumber": 3,
+      "interactionKind": "wordBankGap",
+      "expected": [
+        "chicken"
+      ],
+      "actual": [
+        "cereal"
+      ]
+    },
+    {
+      "answerFieldId": "group:5:item:7:answer:1",
+      "exerciseNumber": 5,
+      "itemNumber": 7,
+      "interactionKind": "wordBankGap",
+      "expected": [
+        "cereal"
+      ],
+      "actual": [
+        "chicken"
+      ]
+    }
+  ]
+}

@@ -30,6 +30,23 @@ describe("POST /api/imports contract", () => {
     await expect(parseImportRequest(valid)).rejects.toThrow("idempotencyKey");
   });
 
+  test("accepts the real one-page golden PDF through the default server parser", async () => {
+    const bytes = await readFile(
+      resolve(import.meta.dirname, "../../../../tests/fixtures/sources/1_page.pdf")
+    );
+    const pdf = new FormData();
+    pdf.set("title", "Golden PDF");
+    pdf.set("idempotencyKey", "golden-pdf-0123456789");
+    pdf.set("sourceFile", new File([bytes], "1_page.pdf", { type: "application/pdf" }));
+
+    await expect(parseImportRequest(pdf)).resolves.toMatchObject({
+      title: "Golden PDF",
+      kind: "pdf",
+      mimeType: "application/pdf",
+      bytes: { byteLength: bytes.byteLength }
+    });
+  });
+
   test("accepts exact PDF/text limits and returns structured errors above them", async () => {
     const pdf = new FormData();
     pdf.set("title", "PDF");

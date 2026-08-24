@@ -20,4 +20,12 @@ describe("OpenAPI 0.3.0 compatibility", () => {
       expect(openapi).toContain(operation);
     for (const schema of openapiBaseline.requiredSchemas) expect(openapi).toContain(schema);
   });
+
+  test("keeps legacy decisions while additively accepting answer and exercise review", async () => {
+    const openapi = await readFile(resolve(import.meta.dirname, "../openapi/openapi.yaml"), "utf8");
+    expect(openapi).toContain("decisions:");
+    expect(openapi).toContain("answerReviews:");
+    expect(openapi).toContain("exerciseEdits:");
+    expect(openapi).toContain("required: [draftVersion, idempotencyKey]");
+  });
 });

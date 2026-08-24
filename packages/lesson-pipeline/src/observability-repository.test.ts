@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { RunEventSchema } from "./observability";
+import { GenerationManifestSchema, RunEventSchema } from "./observability";
 import { redactSensitive } from "./observability-repository";
 
 describe("observability redaction", () => {
@@ -67,5 +67,32 @@ describe("observability redaction", () => {
         }
       }).success
     ).toBe(false);
+  });
+
+  test("requires versioned redacted model telemetry in the manifest", () => {
+    const manifest = GenerationManifestSchema.parse({
+      runId: "run-1",
+      pipelineVersion: "1.0.0",
+      schemaVersions: { lesson: "1.0.0" },
+      parserVersions: { pdf: "1.0.0" },
+      model: {
+        provider: "polza-ai-openai-compatible",
+        endpointFamily: "responses",
+        model: "openai/gpt-5.4-mini",
+        promptVersion: "answer-suggestions/1.1.0",
+        inputSchemaVersion: "answer-suggestion-input/1.1.0",
+        outputSchemaVersion: "answer-suggestion-output/1.0.0",
+        outcome: "succeeded"
+      },
+      stepTimingsMs: { suggestUnresolvedAnswers: 125 },
+      tokenUsage: 30,
+      costUsd: null,
+      costStatus: "unavailable",
+      warnings: [],
+      validationSummary: {},
+      finalizedAt: new Date(0).toISOString()
+    });
+    expect(manifest.model?.promptVersion).toBe("answer-suggestions/1.1.0");
+    expect(manifest.costStatus).toBe("unavailable");
   });
 });

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@lingua-bloom/contracts": "workspace:*",
-    "@supabase/supabase-js": "^2.57.0"
+    "@supabase/supabase-js": "^2.57.0",
+    "pdfjs-dist": "^5.4.0"
   }
 }

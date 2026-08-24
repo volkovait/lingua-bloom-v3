@@ -7,7 +7,9 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "pnpm --filter @lingua-bloom/web dev",
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "pnpm --filter @lingua-bloom/web dev",
+    "dev:inngest": "node scripts/inngest.mjs dev -u http://localhost:3000/api/inngest",
     "build": "pnpm --filter @lingua-bloom/web build",
     "typecheck": "tsc -b && pnpm --filter @lingua-bloom/web typecheck",
     "lint": "eslint .",
@@ -21,7 +23,8 @@
     "test:resilience": "vitest run --config vitest.workspace.ts tests/resilience --passWithNoTests",
     "test:security": "vitest run --config vitest.workspace.ts tests/security",
     "test:e2e": "pnpm --filter @lingua-bloom/web test:e2e",
-    "verify:live:phase2": "node apps/web/scripts/verify-live-phase2.mjs"
+    "verify:live:phase2": "node apps/web/scripts/verify-live-phase2.mjs",
+    "db:migrate": "node scripts/apply-pending-migrations.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
@@ -31,6 +34,8 @@
     "@types/react-dom": "^19.1.0",
     "eslint": "^9.39.0",
     "fast-check": "^4.3.0",
+    "inngest-cli": "1.43.0",
+    "pg": "^8.23.0",
     "prettier": "^3.6.0",
     "typescript": "^5.9.0",
     "typescript-eslint": "^8.46.0",

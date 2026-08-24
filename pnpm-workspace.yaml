@@ -4,6 +4,7 @@ packages:
 
 allowBuilds:
   esbuild: set this to true or false
+  inngest-cli: true
   protobufjs: set this to true or false
 
 onlyBuiltDependencies:

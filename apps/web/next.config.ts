@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  agentRules: false
+  agentRules: false,
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
+  serverExternalPackages: ["pdfjs-dist"]
 };
 
 export default nextConfig;

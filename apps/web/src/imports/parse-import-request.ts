@@ -29,7 +29,9 @@ export interface ParseImportDependencies {
 const defaultDependencies: ParseImportDependencies = {
   countPdfPages: async (bytes) => {
     const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
-    const loadingTask = getDocument({ data: bytes, useWorkerFetch: false });
+    // PDF.js transfers the supplied buffer to its worker. Parse a copy so the
+    // original bytes remain available for hashing and durable source storage.
+    const loadingTask = getDocument({ data: bytes.slice(), useWorkerFetch: false });
     try {
       return (await loadingTask.promise).numPages;
     } catch {

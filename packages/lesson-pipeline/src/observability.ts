@@ -66,12 +66,21 @@ export const GenerationManifestSchema = z
     schemaVersions: z.record(z.string(), z.string()),
     parserVersions: z.record(z.string(), z.string()),
     model: z
-      .object({ provider: z.string(), model: z.string(), promptVersion: z.string() })
+      .object({
+        provider: z.string().min(1),
+        endpointFamily: z.string().min(1),
+        model: z.string().min(1),
+        promptVersion: z.string().min(1),
+        inputSchemaVersion: z.string().min(1),
+        outputSchemaVersion: z.string().min(1),
+        outcome: z.enum(["succeeded", "failed", "skipped"])
+      })
       .strict()
       .optional(),
     stepTimingsMs: z.record(z.string(), z.number().nonnegative()),
     tokenUsage: z.number().int().nonnegative().optional(),
-    costUsd: z.number().nonnegative().optional(),
+    costUsd: z.number().nonnegative().nullable().optional(),
+    costStatus: z.enum(["reported", "unavailable", "notApplicable"]).optional(),
     warnings: z.array(z.string()),
     validationSummary: z.record(z.string(), z.unknown()),
     finalizedAt: z.iso.datetime()
