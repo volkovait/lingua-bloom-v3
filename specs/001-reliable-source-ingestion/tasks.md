@@ -38,13 +38,13 @@
 
 ### Contracts and domain invariants
 
-- [ ] T009 Синхронизировать OpenAPI 0.3.0 и три JSON Schema из specs/001-reliable-source-ingestion/contracts в packages/contracts, обновить schema-sync test и pre-release compatibility fixtures/tests в packages/contracts/src/schema-sync.test.ts и packages/contracts/src/compatibility.test.ts
+- [x] T009 Синхронизировать OpenAPI 0.3.0 и три JSON Schema из specs/001-reliable-source-ingestion/contracts в packages/contracts, обновить schema-sync test и pre-release compatibility fixtures/tests в packages/contracts/src/schema-sync.test.ts и packages/contracts/src/compatibility.test.ts
 - [x] T010 [P] Реализовать Zod contracts для SourceDocument, DocumentIR и version-pinned SourceRef shape в packages/contracts/src/document-ir.ts
 - [x] T011 [P] Реализовать отдельные Zod contracts для draft AnswerRecord и strict published OptionSpec, AnswerSpec, ProvenanceLink и LessonSpec в packages/contracts/src/lesson-spec.ts
 - [x] T012 [P] Реализовать отдельный StudentLessonSpec без answer fields и provenance в packages/contracts/src/student-lesson-spec.ts
 - [x] T013 [P] Реализовать Zod contracts для SectionSpec, ValidationIssue, CoverageReport и ReviewDecision в packages/contracts/src/validation.ts
 - [x] T014 Добавить negative contract tests для non-passed published validation, ненулевых counters, needsReview/rejected/modelInferred answers, empty accepted values, option provenance, cross-document SourceRef и student key leakage в packages/contracts/src/contracts.test.ts
-- [ ] T015 [P] Обновить domain error taxonomy и FailureInfo: `failed + retriable + manualResumeAllowed` либо `failed + terminal`, без `retrying` и `nextAttemptAt`, в packages/domain/src/errors.ts и packages/domain/src/result.ts
+- [x] T015 [P] Обновить domain error taxonomy и FailureInfo: `failed + retriable + manualResumeAllowed` либо `failed + terminal`, без `retrying` и `nextAttemptAt`, в packages/domain/src/errors.ts и packages/domain/src/result.ts
 - [x] T016 [P] Создать версии pipeline/parser/schema artifacts в packages/domain/src/versions.ts
 
 ### Authentication and tenant isolation
@@ -61,8 +61,8 @@
 
 - [x] T024 [P] Реализовать URL-safe public lesson ID generator с CSPRNG entropy не менее 128 бит в packages/domain/src/public-lesson-id.ts
 - [x] T025 Добавить immutable unique public_lesson_id, current_published_version_id и pre-0004 idempotent backfill без изменения LessonVersion payloads в supabase/migrations/0004_public_lesson_access.sql и tests/integration/public-lesson-migration.test.ts
-- [ ] T026 Расширить property/security tests для entropy, формата, uniqueness, stable ID after v2, indefinite access, latest-version lookup, non-enumerability и одинакового 404 в tests/security/public-lesson-access.test.ts
-- [ ] T027 Добавить anonymous access, uniform 404, no-public-listing, noindex и отсутствие revoke/disable/rotate API operations в apps/web/tests/api/public-lesson.contract.test.ts
+- [x] T026 Расширить property/security tests для entropy, формата, uniqueness, stable ID after v2, indefinite access, latest-version lookup, non-enumerability и одинакового 404 в tests/security/public-lesson-access.test.ts
+- [x] T027 Добавить anonymous access, uniform 404, no-public-listing, noindex и отсутствие revoke/disable/rotate API operations в apps/web/tests/api/public-lesson.contract.test.ts
 
 ### Shared ingestion and coverage services
 
@@ -74,7 +74,7 @@
 
 ### Durable workflow and observability
 
-- [ ] T033 [P] Переработать structured run event и manifest contracts: `blocked`, `failed/retriable` с ручным resume и `failed/terminal`, без `retrying`, scheduler metadata и автоматических повторов, в packages/lesson-pipeline/src/observability.ts
+- [x] T033 [P] Переработать structured run event и manifest contracts: `blocked`, `failed/retriable` с ручным resume и `failed/terminal`, без `retrying`, scheduler metadata и автоматических повторов, в packages/lesson-pipeline/src/observability.ts
 - [x] T034 Реализовать ordered event и immutable manifest repository в packages/lesson-pipeline/src/observability-repository.ts
 - [x] T035 Добавить redaction tests для source text, answers, tokens и signed URLs в packages/lesson-pipeline/src/observability-repository.test.ts
 - [x] T036 [P] Реализовать owner-scoped import idempotency key, request fingerprint и publish uniqueness helpers в packages/lesson-pipeline/src/idempotency.ts
@@ -83,13 +83,13 @@
 
 ### Shared import entry point
 
-- [ ] T039 Добавить authenticated PDF/text tests для required idempotency key, exact replay, same-key/different-fingerprint 409 и exact/above ingress limits 20 pages, 52,428,800 bytes и 500,000 pre-normalization Unicode code points; проверить structured `413 SOURCE_TOO_LARGE` и отсутствие source/run/draft в apps/web/tests/api/create-import.contract.test.ts
-- [ ] T040 Реализовать `POST /api/imports` с pre-persistence input-limit validation, structured `413 SOURCE_TOO_LARGE`, ownership, atomic idempotency binding, single run creation и event dispatch в apps/web/app/api/imports/route.ts
-- [ ] T093 Добавить migration для monotonic draft revision, last successful checkpoint, failure kind и manual-resume constraints в supabase/migrations/0005_clarified_workflow.sql и migration tests в tests/integration/clarified-workflow-migration.test.ts
-- [ ] T094 [P] Добавить unit/boundary tests для exact/above 20 pages, 52,428,800 bytes, 500,000 pre-normalization Unicode code points и 500 answer fields, включая terminal post-extraction failure без draft, в packages/lesson-pipeline/src/import-limits.test.ts
-- [ ] T095 Реализовать shared pre-persistence и post-extraction import limit policies с `limitType`, `limit`, `actual` и separate-lessons guidance в packages/lesson-pipeline/src/import-limits.ts
-- [ ] T096 Добавить atomic compare-and-swap draft repository с all-or-nothing `DRAFT_VERSION_CONFLICT` tests в packages/lesson-pipeline/src/draft-repository.ts и packages/lesson-pipeline/src/draft-repository.test.ts
-- [ ] T100 [P] Добавить domain/OpenAPI contract tests для `failed/retriable`, `failed/terminal`, `manualResumeAllowed`, отсутствия `retrying`/`nextAttemptAt` и запрета resume для terminal failure в packages/domain/src/errors.test.ts и apps/web/tests/api/import-status.contract.test.ts
+- [x] T039 Добавить authenticated PDF/text tests для required idempotency key, exact replay, same-key/different-fingerprint 409 и exact/above ingress limits 20 pages, 52,428,800 bytes и 500,000 pre-normalization Unicode code points; проверить structured `413 SOURCE_TOO_LARGE` и отсутствие source/run/draft в apps/web/tests/api/create-import.contract.test.ts
+- [x] T040 Реализовать `POST /api/imports` с pre-persistence input-limit validation, structured `413 SOURCE_TOO_LARGE`, ownership, atomic idempotency binding, single run creation и event dispatch в apps/web/app/api/imports/route.ts
+- [x] T093 Добавить migration для monotonic draft revision, last successful checkpoint, failure kind и manual-resume constraints в supabase/migrations/0005_clarified_workflow.sql и migration tests в tests/integration/clarified-workflow-migration.test.ts
+- [x] T094 [P] Добавить unit/boundary tests для exact/above 20 pages, 52,428,800 bytes, 500,000 pre-normalization Unicode code points и 500 answer fields, включая terminal post-extraction failure без draft, в packages/lesson-pipeline/src/import-limits.test.ts
+- [x] T095 Реализовать shared pre-persistence и post-extraction import limit policies с `limitType`, `limit`, `actual` и separate-lessons guidance в packages/lesson-pipeline/src/import-limits.ts
+- [x] T096 Добавить atomic compare-and-swap draft repository с all-or-nothing `DRAFT_VERSION_CONFLICT` tests в packages/lesson-pipeline/src/draft-repository.ts и packages/lesson-pipeline/src/draft-repository.test.ts
+- [x] T100 [P] Добавить domain/OpenAPI contract tests для `failed/retriable`, `failed/terminal`, `manualResumeAllowed`, отсутствия `retrying`/`nextAttemptAt` и запрета resume для terminal failure в packages/domain/src/errors.test.ts и apps/web/tests/api/import-status.contract.test.ts
 
 **Checkpoint**: Contracts запрещают unsafe states; auth/RLS/Storage изолируют teacher data; public
 lesson capability IDs, source persistence, assembly, coverage, observability и import endpoint готовы.

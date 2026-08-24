@@ -1,0 +1,39 @@
+{
+  "name": "lingua-bloom-v3",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @lingua-bloom/web dev",
+    "build": "pnpm --filter @lingua-bloom/web build",
+    "typecheck": "tsc -b && pnpm --filter @lingua-bloom/web typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run --config vitest.workspace.ts --passWithNoTests",
+    "test:unit": "pnpm test",
+    "test:property": "vitest run --config vitest.workspace.ts --passWithNoTests",
+    "contracts:check": "vitest run --config vitest.workspace.ts --project contracts",
+    "test:integration": "vitest run --config vitest.workspace.ts tests/integration",
+    "test:resilience": "vitest run --config vitest.workspace.ts tests/resilience --passWithNoTests",
+    "test:security": "vitest run --config vitest.workspace.ts tests/security",
+    "test:e2e": "pnpm --filter @lingua-bloom/web test:e2e",
+    "verify:live:phase2": "node apps/web/scripts/verify-live-phase2.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^22.18.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "eslint": "^9.39.0",
+    "fast-check": "^4.3.0",
+    "prettier": "^3.6.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.46.0",
+    "vitest": "^3.2.4"
+  }
+}

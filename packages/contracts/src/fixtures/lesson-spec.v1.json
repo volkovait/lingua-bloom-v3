@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "1.0.0",
+  "lessonId": "lesson-fixture",
+  "version": 1,
+  "title": "Fixture lesson",
+  "sourceDocumentId": "source-fixture",
+  "documentIrId": "ir-fixture",
+  "groups": [
+    {
+      "id": "group-1",
+      "ordinal": 1,
+      "instruction": "Choose.",
+      "provenance": {
+        "sourceRefs": [
+          { "sourceDocumentId": "source-fixture", "documentIrId": "ir-fixture", "blockId": "b1" }
+        ]
+      },
+      "exercises": [
+        {
+          "id": "exercise-1",
+          "ordinal": 1,
+          "interactionKind": "singleChoice",
+          "prompt": "A?",
+          "provenance": {
+            "sourceRefs": [
+              {
+                "sourceDocumentId": "source-fixture",
+                "documentIrId": "ir-fixture",
+                "blockId": "b2"
+              }
+            ]
+          },
+          "options": [
+            {
+              "id": "o1",
+              "ordinal": 1,
+              "value": "A",
+              "provenance": {
+                "sourceRefs": [
+                  {
+                    "sourceDocumentId": "source-fixture",
+                    "documentIrId": "ir-fixture",
+                    "blockId": "b3"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "o2",
+              "ordinal": 2,
+              "value": "B",
+              "provenance": {
+                "sourceRefs": [
+                  {
+                    "sourceDocumentId": "source-fixture",
+                    "documentIrId": "ir-fixture",
+                    "blockId": "b4"
+                  }
+                ]
+              }
+            }
+          ],
+          "answerFields": [
+            {
+              "id": "answer-1",
+              "acceptedValues": ["A"],
+              "provenance": "sourceKey",
+              "reviewStatus": "verified",
+              "evidence": {
+                "sourceRefs": [
+                  {
+                    "sourceDocumentId": "source-fixture",
+                    "documentIrId": "ir-fixture",
+                    "blockId": "b5"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "validation": {
+    "status": "passed",
+    "blockingIssueCount": 0,
+    "unsupportedAdditionCount": 0,
+    "unresolvedAnswerCount": 0
+  }
+}

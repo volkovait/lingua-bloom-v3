@@ -1,0 +1,16 @@
+node_modules
+.next
+dist
+coverage
+playwright-report
+test-results
+pnpm-lock.yaml
+
+# External Spec Kit packages and canonical product artifacts retain their own formatting.
+.agents
+.specify
+specs
+tests/fixtures
+tests/golden
+packages/contracts/schemas
+packages/contracts/openapi

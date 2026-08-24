@@ -1,0 +1,20 @@
+{
+  "version": "0.3.0",
+  "requiredOperations": [
+    "/api/imports:",
+    "/api/imports/{runId}:",
+    "/api/imports/{runId}/resume:",
+    "/api/imports/{runId}/review:",
+    "/api/imports/{runId}/publish:",
+    "/api/lessons/{lessonId}/versions:",
+    "/api/lessons/{publicLessonId}/student:"
+  ],
+  "requiredSchemas": [
+    "ImportAccepted:",
+    "ImportStatus:",
+    "FailureInfo:",
+    "SourceTooLargeError:",
+    "DraftVersionConflict:",
+    "ResumeSubmission:"
+  ]
+}
