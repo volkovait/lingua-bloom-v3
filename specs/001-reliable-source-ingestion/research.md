@@ -47,8 +47,9 @@ review.
 ## Decision 4: Extract-first с adapter boundary
 
 **Decision**: Использовать детерминированные extractors для numbering, options, gaps и word bank.
-Сохранять неуверенные результаты как candidates/issues. Subject adapter отвечает только за
-предметную нормализацию и grading.
+Общий материал моделировать отдельно от items: один word bank становится group-level shared resource
+с addressable entries, а использующие его упражнения хранят ссылки. Неуверенные результаты сохранять
+как candidates/issues. Subject adapter отвечает только за предметную нормализацию и grading.
 
 **Rationale**: Структурные признаки теста проверяемы кодом, а дисциплинарные правила будут меняться
 при масштабировании.
@@ -57,6 +58,8 @@ review.
 
 - Универсальный LLM extractor — недостаточно воспроизводим для zero-invention gate.
 - Английская grammar logic в общем parser — блокирует расширение на другие дисциплины.
+- Копировать общий word bank в options каждого item — теряет исходную структуру, раздувает payload и
+  позволяет UI случайно показать один и тот же набор много раз.
 
 ## Decision 5: Contract-first и отдельные версии
 
@@ -160,13 +163,11 @@ readable or that an API change is backward-compatible.
   versioned canonical artifacts from the beginning.
 - Rewrite all stored LessonVersion payloads — rejected because published versions are immutable.
 
-## Decision 12: No LLM dependency in feature 001
+## Decision 12: Bounded model suggestions require teacher confirmation
 
-**Decision**: Feature 001 uses deterministic extraction and teacher review only. A bounded model
-normalizer may be introduced by a later feature with its own prompt contract and eval baseline.
+**Decision**: Feature 001 may call an OpenAI-compatible Responses endpoint only to suggest values for unresolved answer fields. The adapter receives a bounded structured payload, may return only known answerFieldIds, and writes draft-only `modelInferred` values. Every suggested value must be explicitly confirmed or edited by the teacher before publication; the saved result becomes `teacherSupplied` with an append-only ReviewDecision.
 
-**Rationale**: The supplied fixtures do not require model judgment, and a dormant adapter would add
-untested complexity before the fidelity baseline exists.
+**Rationale**: Suggestions reduce manual entry without allowing a model response to become a published answer. Deterministic extraction, SourceRef fidelity, teacher confirmation and the publication gate remain authoritative.
 
 ## Decision 13: Separate draft and published answer states
 
@@ -186,6 +187,26 @@ conflict.
 
 **Rationale**: Workflow step idempotency does not prevent two runs from being created before the
 workflow starts.
+
+## Decision 15: Transport redispatch is separate from workflow retry
+
+**Decision**: Commit the initial `accepted` event with run creation, detect stale pre-draft delivery
+from server timestamps, and let only the owner atomically claim an idempotent redispatch of the same
+run. Local development pins Inngest CLI and supervises Next.js and the Dev Server as one process
+lifecycle.
+
+**Rationale**: An event can be accepted by the HTTP API while no worker is registered. Treating that
+as active work causes infinite polling; treating it as a failed workflow step is also incorrect because
+the function may never have started. A durable claim and claim-derived event ID make user-triggered
+redelivery safe across double clicks and ambiguous network responses.
+
+**Alternatives considered**:
+
+- Infinite polling — rejected because it hides a permanently inactive worker.
+- Automatic scheduler retry — rejected by FR-029 and obscures operator intent.
+- Reusing failed-run resume — rejected because an `accepted` run has no failed checkpoint.
+- Creating a replacement run — rejected because it duplicates the retained source and breaks import
+  identity.
 
 ## Sources
 

@@ -9,15 +9,17 @@
 Создать первый вертикальный срез Lingua-Bloom: неизменяемый источник преобразуется в адресуемый
 DocumentIR, затем детерминированные экстракторы создают кандидатов и черновик упражнений, coverage
 validator проверяет полноту, учитель разрешает спорные элементы, после чего публикуется неизменяемая
-LessonSpec-версия. LLM используется только в ограниченной нормализации неоднозначных кандидатов и не
-может напрямую задавать ответы или публиковать урок.
+LessonSpec-версия. LLM используется только для ограниченных предложений по неразрешённым answer fields через
+OpenAI-compatible Responses endpoint. Каждое предложение требует явного подтверждения или исправления
+учителем, сохраняется как teacherSupplied и не может напрямую публиковать урок.
 
 ## Technical Context
 
 **Language/Version**: TypeScript 5.x в strict mode; поддерживаемая LTS-версия Node.js
 
 **Primary Dependencies**: Next.js 16, React, Zod 4, Supabase Auth/Postgres/Storage, Inngest и
-`pdfjs-dist`. Model adapter исключён из feature 001; неоднозначность разрешается через review.
+`pdfjs-dist`. Bounded Responses adapter предлагает только draft-only ответы; окончательное решение
+всегда принимает учитель через review.
 
 **Storage**: Supabase Postgres для метаданных и версий; Supabase Storage для исходных файлов;
 локальная файловая система только для тестовых fixtures
@@ -33,13 +35,15 @@ packages
 5 секунд; p95 полного разбора одностраничного текстового PDF менее 60 секунд без OCR
 
 **Constraints**: Нулевое число придуманных пунктов в reproduce mode; resumable/idempotent steps;
-неизменяемые опубликованные версии; отдельный `StudentLessonSpec` без ключей; обязательные auth и
-ownership checks для teacher API, database и Storage; публичный student access по URL-safe ID с
+неизменяемые опубликованные версии; отдельный `StudentLessonSpec` без ключей; group-level shared resources вместо дублирования общего
+материала по exercises; обязательные auth и ownership checks для teacher API, database и Storage; публичный student access по URL-safe ID с
 энтропией не менее 128 бит; источники не удаляются в рамках этой feature
 
 **Scale/Scope**: Первый вертикальный срез на 2 supplied fixtures и расширяемый regression set;
 один import принимает PDF до 20 страниц и 50 МиБ (52 428 800 байт) либо текст до 500 000 Unicode
-code points до нормализации и создаёт не более 500 answer fields
+code points до нормализации и создаёт не более 500 answer fields. Teacher-facing страницы используют единый server-derived
+profile shell: Supabase user metadata преобразуется в display name/email и детерминированный initials-avatar,
+а dropdown предоставляет основные переходы и POST sign-out без отдельной profile persistence
 
 ## Constitution Check
 
@@ -134,10 +138,17 @@ receive-source
   -> validate-answer-field-limit
   -> assemble-draft
   -> validate-coverage
+  -> suggest-unresolved-answers (optional bounded model step)
   -> wait-for-review (only when required)
   -> finalize-lesson-spec
   -> publish-version
 ```
+
+`suggest-unresolved-answers` получает только известные answerFieldId и связанные с ними SourceRef
+excerpts, использует versioned prompt и typed JSON output и записывает результат только как
+`modelInferred`. Неизвестный, пропущенный или повторный answerFieldId отклоняет весь результат. Ни одно
+предложение не становится publishable до отдельного confirm/edit, которое сохраняет
+`teacherSupplied` и append-only ReviewDecision.
 
 Каждый шаг имеет стабильный idempotency key `{runId}:{stepName}:{inputVersion}`. Успешный результат
 шага сохраняется и не пересчитывается при ручном продолжении или восстановлении после restart.
@@ -146,6 +157,21 @@ receive-source
 Только владелец может вручную продолжить retriable run; idempotent resume начинает выполнение с
 последнего успешного checkpoint. `publish-version` использует уникальное ограничение по `runId` и
 версии черновика.
+
+Model step имеет checkpoint `suggest-unresolved-answers`, timeout 45 секунд и ноль автоматических
+повторов. Network failure, timeout, HTTP 408/429 и HTTP 5xx переводят run в `failed/retriable`, не
+создают частично обогащённый draft и допускают только owner-only idempotent manual resume с
+предыдущего успешного checkpoint. Malformed typed output, HTTP 4xx кроме 408/429, unknown/duplicate/
+missing answerFieldId и любое нарушение contract/evidence validation считаются `failed/terminal`.
+
+Import creation uses a required client-generated `idempotencyKey` scoped to the authenticated owner.
+Before returning from the atomic binding transaction, a new run records sequence 1 `accepted`; only then
+does the API dispatch the external event. `accepted` with no update for 30 seconds and `processing`
+without a draft/update for 3 minutes are stale delivery states, not workflow failures. Status returns
+`updatedAt` plus a structured recovery descriptor and the UI stops polling. An owner-only redispatch RPC
+uses a per-run advisory lock, idempotency key and durable dispatch claim before emitting an event whose
+ID is derived from that claim. It rejects non-stale runs and runs with drafts. This transport recovery
+does not create a new run, does not count as automatic step retry and does not replace failed-run resume.
 
 Import creation uses a required client-generated `idempotencyKey` scoped to the authenticated owner.
 The server stores `{ownerId, idempotencyKey, requestFingerprint, runId}` under a unique constraint.
@@ -182,8 +208,10 @@ cannot rely on counters alone and reruns this validator.
   `ON DELETE RESTRICT`, source tables have no TTL, and `SourceRepository` exposes no delete method.
   Account/legal deletion is a separate product feature requiring its own migration and
   provenance-impact analysis.
-- Observability persists ordered step events and one immutable run manifest. Logs exclude source
-  content, accepted answers, session tokens and storage URLs.
+- Observability persists ordered step events and one immutable run manifest. Для каждого model call
+  manifest фиксирует provider/endpoint family, model version, prompt version, request/output schema
+  versions, latency, token usage/cost (если provider возвращает usage), outcome и failure category.
+  Logs exclude source content, accepted answers, session tokens, API keys and storage URLs.
 
 ## Schema Compatibility and Migration
 
@@ -210,6 +238,10 @@ cannot rely on counters alone and reruns this validator.
   `modelInferred` provenance. Publication projects the reviewed draft into this stricter contract.
 - `validation.status = passed` is necessary but not sufficient: publish also validates every answer
   and performs repository-backed SourceRef lineage validation.
+- A single deterministic `getPublicationBlockReasons` service is the authority for initial ingestion,
+  review submission and final projection. A run may enter `ready_to_publish` only when this service
+  returns an empty list; the database RPC independently rechecks blocking issues, coverage and answer
+  state before persisting that transition. The publish API returns the same reasons to the UI.
 
 ## Delivery Phases
 
@@ -218,7 +250,8 @@ cannot rely on counters alone and reruns this validator.
    lesson capability IDs.
 3. **Shared ingestion foundation**: import endpoint, source repository, DocumentIR, assembly and
    coverage services reused by PDF and text.
-4. **Deterministic extraction**: groups, numbering, addressable options, gaps, word bank and order.
+4. **Deterministic extraction**: groups, numbering, addressable options, gaps and order; общий word
+   bank извлекается один раз как group-level shared resource, а items получают ссылки на него.
 5. **Coverage and answer provenance**: blocking issues and publish gate.
 6. **Durable workflow and observability**: failure classification, checkpoints, idempotent manual
    resume without automatic retries, persisted events/manifests and review wait/resume.
@@ -231,7 +264,9 @@ cannot rely on counters alone and reruns this validator.
 PASS после выполнения обновлённых Foundation tasks. Контракты требуют provenance каждого
 option/exercise/answer либо teacher decision и содержат
 conditional publish invariants. API не предоставляет publish без успешного validation report и
-разделяет teacher/student DTO. Data model разделяет source, draft и immutable version, а задачи
+разделяет teacher/student DTO. LessonSpec/StudentLessonSpec v1.1 добавляют versioned `sharedResources`;
+v1.0 остаётся читаемым для уже сохранённых версий, а writer не дублирует entries общего word bank
+в exercise-local options. Data model разделяет source, draft и immutable version, а задачи
 покрывают teacher auth, Storage RLS, public lesson capability IDs, optimistic draft concurrency,
 structured input limits и redacted observability. Источники
 не удаляются этой feature; отдельный lifecycle удаления потребуется только при появлении такой

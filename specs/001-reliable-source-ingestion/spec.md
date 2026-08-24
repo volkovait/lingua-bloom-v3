@@ -19,6 +19,13 @@
 - Q: Как обрабатывать одновременное сохранение одного черновика из нескольких вкладок? → A: Использовать оптимистичный контроль версий; устаревшее сохранение отклонять с `409 DRAFT_VERSION_CONFLICT` без перезаписи новых правок.
 - Q: Сколько раз автоматически повторять этап импорта при временном сбое? → A: Не повторять автоматически; первый временный сбой останавливает run, после чего учитель может вручную продолжить его с последнего подтверждённого шага.
 
+### Session 2026-08-24
+
+- Q: Что происходит, если durable worker не получил событие или перестал обновлять run до создания draft? → A: Новый run атомарно записывает `accepted` event до dispatch. `accepted` без обновления 30 секунд и `processing` без draft/обновления 3 минуты считаются stale; polling останавливается, учитель видит последнее обновление и может owner-only идемпотентно повторно доставить событие в тот же run. Это отдельный redispatch, не автоматический retry и не `resume` failed run.
+- Q: Как локально запускать durable workflow? → A: Корневой `pnpm dev` обязан одновременно запускать Next.js и закреплённый Inngest Dev Server; завершение одного процесса завершает второй с ошибкой.
+- Q: Как авторизованный учитель понимает, под каким аккаунтом он работает? → A: На всех teacher-facing страницах верхняя навигация показывает профиль из подтверждённой Supabase-сессии: автоматический аватар, display name/email, ссылки на уроки и создание урока, а также POST sign-out; для анонимного пользователя профиль заменяется входом.
+- Q: Как представлять «Complete the sentences with the words in the box», когда один набор слов относится к нескольким пунктам? → A: Набор слов является одним group-level shared resource типа `wordBank`, показывается один раз между инструкцией и первым пунктом, а задания ссылаются на него и не дублируют слова в собственных options.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Точный перенос PDF-теста (Priority: P1)
@@ -48,6 +55,14 @@
 6. **Given** один источник и один `idempotencyKey`, **When** одинаковый import request отправлен
    повторно, **Then** система возвращает первоначальный `runId` и не создаёт второй run; повторное
    использование ключа с другим источником возвращает `409`.
+7. **Given** run остался `accepted` без запуска worker либо `processing` перестал обновляться до
+   создания draft, **When** истекает документированный stale threshold, **Then** UI прекращает
+   бесконечный polling, показывает последнее обновление и журнал, а owner-only повторная доставка с
+   idempotency key продолжает тот же run без дублирования source, draft или событий доставки.
+8. **Given** группа «Complete the sentences with the words in the box» содержит один блок из семи
+   слов и семь предложений с пропусками, **When** создаются draft и student lesson, **Then** слова
+   сохраняются как один addressable group-level `wordBank`, отображаются один раз над предложениями,
+   а каждое `wordBankGap` упражнение ссылается на этот ресурс без копирования банка в свои `options`.
 
 ---
 
@@ -80,8 +95,9 @@
 
 ### User Story 3 - Проверка спорных элементов учителем (Priority: P2)
 
-Учитель видит источник и черновик рядом, понимает происхождение каждого элемента и исправляет только
-то, что система не смогла определить уверенно.
+Учитель видит источник и черновик рядом, понимает происхождение каждого элемента и может редактировать
+любое поле правильного ответа. Автоматически предложенные ответы остаются `modelInferred` и требуют
+явного подтверждения или исправления учителем; только после этого они становятся `teacherSupplied`.
 
 **Why this priority**: Human-in-the-loop позволяет сохранить скорость автоматизации, не выдавая
 предположения модели за достоверные данные.
@@ -101,6 +117,14 @@
    вкладка успешно сохраняет изменения, а затем вторая пытается сохранить устаревшую версию,
    **Then** второе сохранение получает `409 DRAFT_VERSION_CONFLICT`, не изменяет черновик и предлагает
    обновить данные перед повторным внесением правок.
+5. **Given** модель предложила значение для неразрешённого answer field, **When** учитель открывает
+   review, **Then** поле остаётся редактируемым, помечено как `modelInferred` и не считается
+   подтверждённым до отдельного действия учителя.
+6. **Given** учитель подтверждает предложенное значение без изменений либо исправляет его, **When**
+   review сохраняется, **Then** ответ получает provenance `teacherSupplied`, а append-only
+   ReviewDecision фиксирует исходное предложение, итоговое значение и действие учителя.
+7. **Given** draft уже появился, **When** review UI получил его в очередном status response, **Then**
+   UI прекращает polling и не создаёт последующих status-запросов до явного действия учителя.
 
 ---
 
@@ -131,6 +155,10 @@
 5. **Given** урок ещё не публиковался, **When** учитель начинает первую публикацию, **Then** интерфейс
    явно предупреждает о бессрочной публичной доступности и отсутствии revoke, disable и rotate,
    а публикация выполняется только после отдельного явного подтверждения учителя.
+6. **Given** любой publish-readiness invariant не выполнен, **When** workflow сохраняет или
+   пересчитывает черновик, **Then** run остаётся `awaiting_review`, а `ready_to_publish` выставляется
+   только при пустом canonical `reasons`; попытка публикации возвращает и показывает тот же список
+   конкретных причин.
 
 ### Edge Cases
 
@@ -157,6 +185,9 @@
   на несколько самостоятельных уроков.
 - Пользователь импортирует несколько частей одного большого материала: каждая часть создаёт отдельный
   run, отдельный черновик и при публикации отдельный урок; система не объединяет части автоматически.
+- Durable event принят API, но worker не начал run, либо `processing` run перестал обновляться до
+  создания draft: UI отличает stale delivery от активной работы, прекращает polling и предлагает
+  безопасный owner-only redispatch того же run.
 
 ## Requirements *(mandatory)*
 
@@ -242,6 +273,42 @@
   учителю ручное продолжение с последнего успешно сохранённого checkpoint; ручное продолжение MUST
   быть доступно только владельцу, требовать idempotency key, быть идемпотентным и не дублировать уже
   созданные артефакты. Terminal failure MUST NOT поддерживать продолжение.
+- **FR-030**: Модель MAY предлагать ответы только для существующих неразрешённых answer field через
+  один bounded-вызов с versioned prompt, typed output и evidence из соответствующих SourceRef.
+  Предложение MUST сохраняться только как `modelInferred`; каждое поле MUST оставаться редактируемым,
+  требовать отдельного confirm/edit и после сохранения MUST становиться `teacherSupplied` с
+  append-only ReviewDecision. Модель MUST NOT создавать, удалять или перестраивать упражнения.
+- **FR-031**: Review UI MUST прекратить polling сразу после получения draft. Сбой bounded model step
+  MUST следовать lifecycle из FR-029, сохранять checkpoint и не запускать автоматический retry.
+- **FR-032**: Все переходы в `ready_to_publish` и сам publish endpoint MUST использовать один
+  canonical publish-readiness validator: отсутствие открытых blocking issues и unsupported
+  additions, только verified non-empty answers и валидная repository-backed SourceRef lineage. При
+  невыполнении хотя бы одного invariant run MUST оставаться `awaiting_review`; API MUST вернуть
+  structured `PUBLISH_BLOCKED.reasons`, а publish UI MUST показать каждую причину пользователю.
+- **FR-033**: Создание нового run MUST атомарно сохранять ordered `accepted` event до внешнего event
+  dispatch. Status API MUST возвращать `updatedAt` и structured recovery state для `accepted` без
+  обновления не менее 30 секунд и `processing` без draft/обновления не менее 3 минут. Review UI MUST
+  остановить polling при таком recovery state, показать последнее обновление и ordered event log.
+- **FR-034**: Владелец MUST иметь отдельную idempotent redispatch operation для stale `accepted` или
+  `processing` run без draft. Atomic claim MUST запрещать конкурентную повторную доставку, другой run
+  с тем же ключом, non-stale run и run с draft. Redispatch MUST продолжать тот же run и MUST NOT
+  считаться automatic retry либо заменять manual resume из FR-029. Локальный `pnpm dev` MUST запускать
+  Next.js и version-pinned Inngest Dev Server как единый lifecycle.
+- **FR-035**: После успешной авторизации каждая teacher-facing страница MUST показывать в верхней
+  навигации профиль текущего пользователя, полученный только из серверно проверенной Supabase session.
+  Профиль MUST содержать автоматически созданный аватар с инициалами, display name с безопасным
+  fallback на email, сам email в раскрытом dropdown, переходы к урокам и новому импорту и POST sign-out.
+  Главная страница MUST заменять CTA входа этим профилем при активной сессии; student page MUST
+  оставаться доступной без авторизации и не зависеть от teacher profile.
+- **FR-036**: Общий материал, относящийся к нескольким упражнениям группы, MUST храниться как
+  addressable `sharedResource`, а не дублироваться в каждом упражнении. Для `kind = wordBank` ресурс
+  MUST содержать стабильный ID, ordinal, отдельные provenance-bearing entries и `usagePolicy` со
+  значением `useOnce`, `reusable` или `unspecified`; extractor MUST NOT выводить политику, которой нет
+  в источнике. Каждое `wordBankGap` MUST ссылаться на group-level word bank через `sharedResourceId`,
+  иметь пустой локальный `options` и сохранять собственные prompt, answer fields и provenance. Review
+  и student UI MUST показывать банк один раз после инструкции группы и до первого использующего его
+  упражнения. Student-safe projection MUST включать display entries и usage policy, но MUST NOT
+  включать accepted answers или answer provenance.
 
 ### Key Entities
 
@@ -250,6 +317,9 @@
 - **Exercise Candidate**: Потенциальная инструкция, группа, пункт, вариант, пропуск или ключ до
   окончательного включения в урок.
 - **Exercise Draft**: Структурированное упражнение, связанное с кандидатами и доступное для review.
+- **Shared Exercise Resource**: Общий для нескольких упражнений материал группы. Первая версия
+  поддерживает `wordBank`; каждое слово остаётся отдельной адресуемой entry с provenance, а упражнения
+  хранят только ссылку на ресурс.
 - **Answer Record**: Ожидаемый ответ, допустимые варианты, происхождение и статус проверки.
 - **Validation Issue**: Машиночитаемое отклонение с уровнем важности, доказательствами и статусом.
 - **Coverage Report**: Сопоставление всех кандидатов источника с упражнениями, issues или решениями.
@@ -300,6 +370,25 @@
 - **SC-015**: В 100% failure-injection test cases временный сбой не вызывает автоматический повтор,
   а одно ручное продолжение возобновляет тот же run с последнего checkpoint без дублирования ранее
   сохранённых артефактов.
+- **SC-016**: В 100% publish-readiness regression cases статус `ready_to_publish` эквивалентен
+  пустому списку canonical block reasons; каждый `409 PUBLISH_BLOCKED` отображает все полученные
+  `reasons` без замены общим сообщением.
+- **SC-017**: Для version-pinned модели и prompt на `1_page.pdf` bounded answer-suggestion evaluation
+  MUST вернуть ровно все 34 известных answerFieldId, не вернуть неизвестных ID и не изменить ни
+  одного упражнения; после документированной trim/case/whitespace/punctuation normalization не менее
+  90% полей MUST совпасть хотя бы с одним teacher-verified golden answer. Любая смена model, prompt,
+  input/output schema или normalization policy MUST создать сравнимый baseline report и пройти этот
+  gate до изменения production baseline.
+- **SC-018**: В 100% stale-dispatch tests новый run имеет `accepted` event до dispatch; до threshold
+  recovery отсутствует, после threshold polling прекращается и owner-only idempotent redispatch
+  создаёт не более одного claim/event для одного ключа, не создавая новый run или draft.
+- **SC-019**: В 100% navigation contract tests активная teacher session заменяет вход на профиль;
+  dropdown показывает сгенерированный avatar, имя/email, ссылки на уроки и импорт и выполняет выход
+  только POST-запросом, а отсутствие session не раскрывает данные предыдущего пользователя.
+- **SC-020**: Для группы 5 в `1_page.pdf` draft, published и student-safe contracts содержат ровно
+  один `wordBank` из 7 addressable entries и 7 ссылающихся `wordBankGap` items; банк отображается
+  ровно один раз над пунктами, локальный `options` каждого пункта пуст, а правильные ответы не
+  попадают в student payload.
 
 ## Assumptions
 

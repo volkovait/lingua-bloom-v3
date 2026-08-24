@@ -8,7 +8,7 @@
 - Поддерживаемая LTS-версия Node.js
 - pnpm
 - Локальный Supabase или изолированный test project
-- Inngest dev server
+- Inngest CLI 1.43.0 (workspace dependency; запускается корневой командой)
 - Тестовые browser binaries Playwright
 
 ## 1. Install and validate contracts
@@ -91,9 +91,15 @@ Expected:
 pnpm dev
 ```
 
+Команда одновременно запускает Next.js на `http://localhost:3000` и закреплённый Inngest Dev Server
+на `http://localhost:8288`, регистрируя `/api/inngest`. Не запускайте только `dev:web`: без worker
+импорт останется `accepted`. Остановка или сбой одного процесса завершает весь local dev lifecycle.
+
 Sign in as a teacher and upload both fixtures through the shared import form. Verify run creation,
 source/draft alignment, option-level provenance, issue navigation, review decisions and publish
-blocking. Повторите import с тем же idempotency key: тот же payload должен вернуть прежний run, а
+blocking. Для группы 5 отдельно проверьте: один блок из 7 слов расположен между инструкцией и
+предложениями, показан ровно один раз, все 7 пунктов ссылаются на него и не содержат локальных копий
+банка в options. Повторите import с тем же idempotency key: тот же payload должен вернуть прежний run, а
 другой payload — `409`.
 
 ## 7. Run browser tests

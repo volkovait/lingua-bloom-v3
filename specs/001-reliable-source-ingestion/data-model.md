@@ -65,7 +65,9 @@ Required fields: `id`, `candidateKind`, `sourceRefs`, `rawValue`, `normalizedVal
 ## ExerciseDraft
 
 Teacher-reviewable structured exercise. Contains `id`, `groupId`, `ordinal`, `interactionKind`,
-`prompt`, addressable `options`, `answerFields`, provenance, `candidateIds`, and `reviewStatus`.
+`prompt`, local addressable `options`, optional `sharedResourceId`, `answerFields`, provenance,
+`candidateIds`, and `reviewStatus`. Local options belong only to this item; common material is owned by
+the containing group.
 
 The containing mutable draft has a monotonically increasing integer `revision`. Every modifying
 operation supplies `expectedRevision`; persistence compares and increments it atomically. A mismatch
@@ -74,10 +76,34 @@ returns `DRAFT_VERSION_CONFLICT` and applies no part of the attempted mutation.
 Supported initial `interactionKind` values: `singleChoice`, `wordOrder`, `bracketGap`, `oddOneOut`,
 and `wordBankGap`.
 
+Conditional invariant: `wordBankGap` requires a `sharedResourceId` resolving inside the same group to
+`kind = wordBank` and requires local `options` to be empty. Other current interaction kinds do not
+reference a word bank.
+
+## ExerciseGroupDraft
+
+Contains `id`, `ordinal`, `instruction`, provenance, ordered `sharedResources`, and ordered
+`exercises`. A resource is rendered after the group instruction and before the first exercise that
+references it. Multiple exercises may reference one resource; copying the resource entries into each
+exercise is invalid.
+
+## SharedExerciseResource
+
+Versioned discriminated union for material shared by multiple exercises. The first supported variant
+is `wordBank` with required `id`, `ordinal`, `kind`, optional source label, ordered addressable
+`entries`, `usagePolicy`, and provenance. `usagePolicy` is `useOnce`, `reusable`, or `unspecified`;
+`unspecified` is required when the source does not state whether entries may repeat. Each entry uses
+the same stable ID, ordinal, value, and ProvenanceLink rules as an option.
+
+LessonSpec and StudentLessonSpec MUST introduce this structure through schema version `1.1.0`; v1.0
+read compatibility remains required for already stored drafts and published versions. Student
+projection removes resource provenance but preserves ID, order, display value, label, and usage policy.
+
 ## OptionDraft
 
-Each option has a stable `id`, display `value`, ordinal, and ProvenanceLink. Options are never stored
-as unaddressable strings because fidelity and review operate at option level.
+Each option or shared-resource entry has a stable `id`, display `value`, ordinal, and ProvenanceLink.
+They are never stored as unaddressable strings because fidelity and review operate at entry level. A
+word-bank entry is owned by its shared resource and MUST NOT be copied into exercise-local options.
 
 ## Draft AnswerRecord
 
@@ -161,8 +187,22 @@ accepted -> processing -> awaiting_review -> processing -> ready_to_publish -> c
 or automatic failure retry. Owner-triggered resume requires an idempotency key and continues the same
 run from its last successful checkpoint.
 `blocked` carries at least one blocking issue and requires teacher action or a replacement source.
+`ready_to_publish` is not inferred from issue count alone: it means the canonical publication gate
+returned no reasons after checking blocking issues, unsupported additions, verified non-empty answers
+and repository-backed SourceRef lineage. Any non-empty reason list keeps the run in `awaiting_review`
+and is returned by publish as structured `PUBLISH_BLOCKED.reasons`.
 A run stores current step, last successful checkpoint, input/output artifact IDs, idempotency keys,
-event sequence and timestamps.
+event sequence and timestamps. Every new run has an `accepted` RunEvent committed in the same
+transaction as the run. `updatedAt` is also the worker heartbeat used only before draft creation:
+`accepted` becomes recoverable after 30 seconds and `processing` after 3 minutes.
+
+## RunDispatchRequest
+
+Append-only owner-scoped claim for transport recovery, separate from failed-run resume. Fields are
+`id`, `runId`, `ownerId`, `idempotencyKey`, `reason` (`dispatch_not_started` or
+`worker_heartbeat_expired`) and `createdAt`. An advisory lock plus the unique owner/key constraint
+ensures concurrent clicks or network retries reuse one claim. A claim is allowed only for a stale
+`accepted`/`processing` run with no draft; its ID becomes the durable external event ID.
 
 ## GenerationManifest
 
