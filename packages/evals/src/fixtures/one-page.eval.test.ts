@@ -16,6 +16,8 @@ interface GoldenManifest {
     readonly title: string;
     readonly interactionKind: string;
     readonly optionCountPerItem: number;
+    readonly sharedResourceCount?: number;
+    readonly sharedResourceEntryCount?: number;
     readonly items: readonly { readonly itemNumber: number }[];
   }[];
 }
@@ -61,6 +63,19 @@ describe("1_page.pdf golden evaluation", () => {
         )
       )
     ).toBe(true);
+    const wordBankGroup = result.groups.find((group) => group.interactionKind === "wordBankGap");
+    const wordBankGolden = golden.groups.find((group) => group.interactionKind === "wordBankGap");
+    expect(wordBankGroup?.sharedResources).toHaveLength(wordBankGolden?.sharedResourceCount ?? 0);
+    expect(wordBankGroup?.sharedResources?.[0]?.entries).toHaveLength(
+      wordBankGolden?.sharedResourceEntryCount ?? 0
+    );
+    expect(
+      wordBankGroup?.exercises.every(
+        (exercise) =>
+          exercise.options.length === 0 &&
+          exercise.sharedResourceId === wordBankGroup.sharedResources?.[0]?.id
+      )
+    ).toBe(true);
     expect(
       exercises.every(
         (exercise) =>
@@ -79,6 +94,10 @@ describe("1_page.pdf golden evaluation", () => {
 
     const refs = result.groups.flatMap((group) => [
       ...group.sourceRefs,
+      ...(group.sharedResources ?? []).flatMap((resource) => [
+        ...resource.sourceRefs,
+        ...resource.entries.flatMap((entry) => entry.sourceRefs)
+      ]),
       ...group.exercises.flatMap((exercise) => [
         ...exercise.sourceRefs,
         ...exercise.options.flatMap((option) => option.sourceRefs),

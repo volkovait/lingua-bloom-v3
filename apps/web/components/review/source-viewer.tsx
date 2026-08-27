@@ -1,54 +1,32 @@
-import type { DocumentIR, SourceRef } from "@lingua-bloom/contracts";
+import React from "react";
 
 export function SourceViewer({
+  kind,
   signedUrl,
-  document,
-  selectedRefs
+  rawText
 }: {
+  readonly kind: "pdf" | "text";
   readonly signedUrl: string | null;
-  readonly document: DocumentIR | null;
-  readonly selectedRefs: readonly SourceRef[];
+  readonly rawText: string | null;
 }) {
-  const selectedBlocks = new Set(selectedRefs.map((ref) => ref.blockId));
-  const selectedPage = selectedRefs.find((ref) => ref.pageIndex != null)?.pageIndex;
-  const pdfUrl = signedUrl
-    ? `${signedUrl}#page=${String((selectedPage ?? 0) + 1)}&view=FitH`
-    : null;
+  const pdfUrl = signedUrl ? `${signedUrl}#page=1&view=FitH` : null;
+  const isText = kind === "text";
 
   return (
     <section className="review-panel source-panel" aria-labelledby="source-title">
       <div className="panel-heading">
         <div>
           <p className="eyebrow">Оригинал</p>
-          <h2 id="source-title">PDF и исходные блоки</h2>
+          <h2 id="source-title">{isText ? "Исходный текст" : "Предпросмотр PDF"}</h2>
         </div>
-        {selectedPage != null ? (
-          <span className="provenance-badge">Страница {selectedPage + 1}</span>
-        ) : null}
       </div>
-      {pdfUrl ? (
+      {isText && rawText != null ? (
+        <pre className="text-source-frame">{rawText}</pre>
+      ) : pdfUrl ? (
         <iframe className="pdf-frame" src={pdfUrl} title="Исходный PDF" />
       ) : (
-        <p>PDF недоступен.</p>
+        <p>{isText ? "Исходный текст недоступен." : "PDF недоступен."}</p>
       )}
-      {document ? (
-        <div className="source-blocks" aria-label="Извлечённый текст">
-          {document.blocks.map((block) => (
-            <article
-              className={
-                selectedBlocks.has(block.id) ? "source-block is-highlighted" : "source-block"
-              }
-              id={`source-${block.id}`}
-              key={block.id}
-            >
-              <small>
-                Страница {(block.pageIndex ?? 0) + 1} · блок {block.order + 1}
-              </small>
-              <p>{block.rawText || "[пустой блок]"}</p>
-            </article>
-          ))}
-        </div>
-      ) : null}
     </section>
   );
 }

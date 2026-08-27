@@ -27,6 +27,10 @@ export default defineConfig({
     cwd: __dirname,
     url: baseURL,
     reuseExistingServer: false,
-    env: { ...process.env, E2E_FIXTURE_MODE: "1", NEXT_DIST_DIR: ".next-e2e" }
+    env: {
+      ...process.env,
+      E2E_FIXTURE_MODE: process.env.E2E_FIXTURE_MODE ?? "1",
+      NEXT_DIST_DIR: ".next-e2e"
+    }
   }
 });

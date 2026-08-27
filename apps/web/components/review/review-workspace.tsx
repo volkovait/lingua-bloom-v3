@@ -1,12 +1,11 @@
 "use client";
 
-import type { DocumentIR, ReviewDraft, SourceRef } from "@lingua-bloom/contracts";
+import type { ReviewDraft } from "@lingua-bloom/contracts";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-import { ExerciseDraftEditor } from "./exercise-draft-editor";
+import { ExerciseDraftEditor, type ReviewIssue } from "./exercise-draft-editor";
 import { SourceViewer } from "./source-viewer";
-import { ValidationIssues, type ReviewIssue } from "./validation-issues";
 import { WorkflowLog, type WorkflowEvent } from "./workflow-log";
 import { shouldPollForDraft } from "@/src/review/polling-policy";
 
@@ -26,20 +25,25 @@ interface ImportWorkspace {
     readonly message: string;
     readonly manualResumeAllowed: boolean;
   } | null;
-  readonly source: { readonly title: string; readonly signedUrl: string | null };
+  readonly source: {
+    readonly title: string;
+    readonly kind: "pdf" | "text";
+    readonly signedUrl: string | null;
+  };
+  readonly documentIr: {
+    readonly blocks?: readonly { readonly rawText?: string }[];
+  } | null;
   readonly draft: {
     readonly id: string;
     readonly revision: number;
     readonly payload: ReviewDraft;
   } | null;
-  readonly documentIr: DocumentIR | null;
   readonly issues: readonly ReviewIssue[];
   readonly events: readonly WorkflowEvent[];
 }
 
 export function ReviewWorkspace({ runId }: { readonly runId: string }) {
   const [workspace, setWorkspace] = useState<ImportWorkspace | null>(null);
-  const [selectedIssue, setSelectedIssue] = useState<ReviewIssue | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [resuming, setResuming] = useState(false);
   const [redispatching, setRedispatching] = useState(false);
@@ -51,11 +55,6 @@ export function ReviewWorkspace({ runId }: { readonly runId: string }) {
     if (!response.ok) throw new Error("Не удалось загрузить состояние импорта.");
     const result = (await response.json()) as ImportWorkspace;
     setWorkspace(result);
-    setSelectedIssue((current) =>
-      current
-        ? (result.issues.find((issue) => issue.id === current.id) ?? null)
-        : (result.issues.find((issue) => issue.resolution === "open") ?? null)
-    );
     return result;
   }, [runId]);
 
@@ -206,7 +205,6 @@ export function ReviewWorkspace({ runId }: { readonly runId: string }) {
       />
     );
 
-  const selectedRefs: readonly SourceRef[] = selectedIssue?.evidence ?? [];
   const openIssues = workspace.issues.filter((issue) => issue.resolution === "open");
   const openBlockingIssues = openIssues.filter((issue) => issue.severity === "blocking");
   const unverifiedAnswerCount = workspace.draft.payload.groups.reduce(
@@ -222,6 +220,9 @@ export function ReviewWorkspace({ runId }: { readonly runId: string }) {
       ),
     0
   );
+  const modelSuggestionsSkipped = workspace.events.some(
+    (event) => event.type === "model-answer-suggestions-skipped"
+  );
   return (
     <main className="review-page">
       <header className="review-header">
@@ -229,9 +230,9 @@ export function ReviewWorkspace({ runId }: { readonly runId: string }) {
           <p className="eyebrow">Проверка импорта</p>
           <h1>{workspace.source.title}</h1>
           <p>
-            {openIssues.length > 0
-              ? `Осталось решить: ${String(openIssues.length)}`
-              : "Все блокирующие вопросы решены."}
+            Сверьте распарсенные задания с{" "}
+            {workspace.source.kind === "text" ? "исходным текстом" : "оригинальным PDF"} и внесите
+            необходимые правки.
           </p>
         </div>
         <div className="review-header-actions">
@@ -262,6 +263,12 @@ export function ReviewWorkspace({ runId }: { readonly runId: string }) {
       {error ? (
         <p className="form-error" role="alert">
           {error}
+        </p>
+      ) : null}
+      {modelSuggestionsSkipped ? (
+        <p className="model-fallback-notice" role="status">
+          ИИ-подсказки ответов сейчас недоступны или пришли не полностью. Черновик сохранён без них
+          — заполните и подтвердите правильные ответы вручную.
         </p>
       ) : null}
       <section
@@ -304,23 +311,15 @@ export function ReviewWorkspace({ runId }: { readonly runId: string }) {
       </section>
       <div className="review-layout">
         <SourceViewer
+          kind={workspace.source.kind}
           signedUrl={workspace.source.signedUrl}
-          document={workspace.documentIr}
-          selectedRefs={selectedRefs}
+          rawText={workspace.documentIr?.blocks?.[0]?.rawText ?? null}
         />
         <div className="review-results">
-          <WorkflowLog events={workspace.events} currentStep={workspace.currentStep} />
-          <ValidationIssues
-            issues={workspace.issues}
-            selectedId={selectedIssue?.id ?? null}
-            onSelect={setSelectedIssue}
-          />
           <ExerciseDraftEditor
             draft={workspace.draft.payload}
             revision={workspace.draft.revision}
             issues={workspace.issues}
-            selectedIssueId={selectedIssue?.id ?? null}
-            onIssueSelect={setSelectedIssue}
             onSaved={async () => {
               await refresh();
             }}

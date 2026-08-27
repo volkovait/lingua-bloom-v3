@@ -21,13 +21,12 @@ test.describe("WCAG-oriented accessibility matrix", () => {
     await assertAccessibilityBaseline(page);
   });
 
-  test("review view exposes status, editor controls and source/issues navigation", async ({
-    page
-  }) => {
+  test("review view exposes status, PDF preview and editor controls", async ({ page }) => {
     if (!process.env.E2E_REVIEW_RUN_ID) await mockReviewWorkspace(page);
     await page.goto(`/imports/${encodeURIComponent(reviewRunId)}/review`);
     await expect(page.getByText("Проверка импорта").first()).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Проблемы и предупреждения" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Предпросмотр PDF" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Извлечённые упражнения" })).toBeVisible();
     await assertAccessibilityBaseline(page);
   });
 

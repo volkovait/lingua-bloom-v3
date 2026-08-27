@@ -118,9 +118,15 @@ importers:
       '@lingua-bloom/document-ingestion':
         specifier: workspace:*
         version: link:../document-ingestion
+      '@lingua-bloom/domain':
+        specifier: workspace:*
+        version: link:../domain
       '@lingua-bloom/exercise-extraction':
         specifier: workspace:*
         version: link:../exercise-extraction
+      '@lingua-bloom/lesson-pipeline':
+        specifier: workspace:*
+        version: link:../lesson-pipeline
       fast-check:
         specifier: ^4.3.0
         version: 4.9.0

@@ -1,13 +1,18 @@
 import { spawn } from "node:child_process";
 
+const childEnvironment = {
+  ...process.env,
+  NODE_USE_SYSTEM_CA: process.env.NODE_USE_SYSTEM_CA ?? "1"
+};
+
 const processes = [
   spawn("pnpm", ["run", "dev:web"], {
     stdio: "inherit",
-    env: process.env
+    env: childEnvironment
   }),
   spawn("pnpm", ["run", "dev:inngest"], {
     stdio: "inherit",
-    env: process.env
+    env: childEnvironment
   })
 ];
 

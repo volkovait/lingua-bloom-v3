@@ -5,6 +5,7 @@
   "references": [
     { "path": "../contracts" },
     { "path": "../document-ingestion" },
-    { "path": "../exercise-extraction" }
+    { "path": "../exercise-extraction" },
+    { "path": "../lesson-pipeline" }
   ]
 }

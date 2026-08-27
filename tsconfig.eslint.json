@@ -5,7 +5,8 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["apps/web/*"]
+      "@/*": ["apps/web/*"],
+      "@lingua-bloom/*": ["packages/*/src/index.ts"]
     }
   },
   "include": [

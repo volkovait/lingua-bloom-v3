@@ -1,6 +1,14 @@
 import { createPublicLessonId } from "@lingua-bloom/domain";
 import type { LessonSpec, StudentLessonSpec } from "@lingua-bloom/contracts";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
+
+const PublishRunRowSchema = z.object({ status: z.string(), source_document_id: z.string() });
+const DraftRevisionRowSchema = z.object({ revision: z.number().int().positive() });
+const PublishedVersionRowSchema = z.object({
+  id: z.string(),
+  version: z.number().int().positive()
+});
 
 export interface PublishReviewedDraftInput {
   readonly supabase: SupabaseClient;
@@ -37,7 +45,8 @@ export async function publishReviewedDraftFallback(
     .eq("owner_id", input.ownerId)
     .single();
   if (runResult.error) throw new Error(runResult.error.message);
-  if (runResult.data.status !== "ready_to_publish") throw new Error("PUBLISH_BLOCKED");
+  const run = PublishRunRowSchema.parse(runResult.data);
+  if (run.status !== "ready_to_publish") throw new Error("PUBLISH_BLOCKED");
 
   const draftResult = await input.supabase
     .from("lesson_drafts")
@@ -46,8 +55,9 @@ export async function publishReviewedDraftFallback(
     .eq("owner_id", input.ownerId)
     .single();
   if (draftResult.error) throw new Error(draftResult.error.message);
-  if (draftResult.data.revision !== input.expectedRevision) {
-    throw new Error(`DRAFT_VERSION_CONFLICT:${draftResult.data.revision}`);
+  const draft = DraftRevisionRowSchema.parse(draftResult.data);
+  if (draft.revision !== input.expectedRevision) {
+    throw new Error(`DRAFT_VERSION_CONFLICT:`);
   }
 
   const isFirstPublication = input.existingPublicLessonId === undefined;
@@ -87,10 +97,11 @@ export async function publishReviewedDraftFallback(
     .select("id,version")
     .single();
   if (versionInsert.error) throw new Error(versionInsert.error.message);
+  const publishedVersion = PublishedVersionRowSchema.parse(versionInsert.data);
 
   const lessonUpdate = await input.supabase
     .from("lessons")
-    .update({ current_published_version_id: versionInsert.data.id })
+    .update({ current_published_version_id: publishedVersion.id })
     .eq("id", input.lessonId)
     .eq("owner_id", input.ownerId);
   if (lessonUpdate.error) throw new Error(lessonUpdate.error.message);
@@ -110,6 +121,6 @@ export async function publishReviewedDraftFallback(
   return {
     lessonId: input.lessonId,
     publicLessonId,
-    version: versionInsert.data.version
+    version: publishedVersion.version
   };
 }

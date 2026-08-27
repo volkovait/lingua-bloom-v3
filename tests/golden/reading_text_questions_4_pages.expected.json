@@ -1,0 +1,203 @@
+{
+  "schemaVersion": "1.1.0",
+  "pdfParserVersion": "1.1.0",
+  "sourceFile": "reading_text_questions_4_pages.pdf",
+  "summary": {
+    "pageCount": 4,
+    "exerciseGroupCount": 2,
+    "completeGroupCount": 2,
+    "partialGroupCount": 0,
+    "answerableItemCount": 8,
+    "answerFieldCount": 8,
+    "referenceBlockCount": 2,
+    "unsupportedAdditionCount": 0
+  },
+  "groups": [
+    {
+      "exerciseNumber": 5,
+      "completeness": "complete",
+      "interactionKind": "inlineGap",
+      "itemCount": 4,
+      "answerFieldCount": 4,
+      "pages": [
+        0,
+        1
+      ]
+    },
+    {
+      "exerciseNumber": 6,
+      "completeness": "complete",
+      "interactionKind": "singleChoice",
+      "itemCount": 4,
+      "answerFieldCount": 4,
+      "pages": [
+        2,
+        3
+      ]
+    }
+  ],
+  "referenceBlocks": [
+    [
+      "Language school students",
+      "Here at 'English for All' Language School there are students from lots",
+      "of different countries. Let’s talk to four of them!",
+      "MOHAMMED:",
+      "Hi! I’m from Jordan. I love technology and English. I want to be a",
+      "businessman, so English is important for me. I can speak English",
+      "and Arabic, but I can’t speak Spanish.",
+      "TERESA:",
+      "Hello. I come from Argentina in South America. I can play the piano and I",
+      "can sing. I want to be an actor. I think it’s good to study English – lots",
+      "of songs are in English and I can sing them well.",
+      "NING:",
+      "Hello everyone. I'm from China. I can remember a lot of words in English,",
+      "but sometimes I can’t remember people’s names in my class! I can’t",
+      "play football – I don’t like sports, but I can dance salsa. I love it!",
+      "ADAM:",
+      "Hi. I’m Nigerian. I am really good at sports. I can throw, catch and run ten",
+      "kilometres. I also love technology. I use apps to make video calls on",
+      "my phone every day – I call my parents."
+    ],
+    [
+      "My favourite place",
+      "I’m Ginny. I live in a big city, but my favourite place is a small town two hours",
+      "from my house. It’s called Aubrey and my grandparents live there. I",
+      "visit them about once a month and we do lots of things together. For",
+      "example, there are two nice parks in the town. We often walk there in",
+      "the afternoons.",
+      "My grandmother likes to cook, but my grandfather enjoys restaurants.",
+      "There is a great Italian restaurant in Aubrey – we usually go there on Friday",
+      "evenings. My grandfather also likes Japanese food.",
+      "It's easy to live in Aubrey because there are many good places in the town.",
+      "There is a big supermarket, two shopping centres, a post office and",
+      "a bank. There aren’t any swimming pools, but that’s OK because you can",
+      "swim in the river!"
+    ]
+  ],
+  "items": [
+    {
+      "group": 5,
+      "ordinal": 1,
+      "prompt": "Mohammed doesn’t speak _______________.",
+      "options": []
+    },
+    {
+      "group": 5,
+      "ordinal": 2,
+      "prompt": "Teresa wants to be an ______________.",
+      "options": []
+    },
+    {
+      "group": 5,
+      "ordinal": 3,
+      "prompt": "Ning ______________ always remembers people’s names.",
+      "options": []
+    },
+    {
+      "group": 5,
+      "ordinal": 4,
+      "prompt": "Adam video calls his ______________ on his phone.",
+      "options": []
+    },
+    {
+      "group": 6,
+      "ordinal": 1,
+      "prompt": "How often does she visit her grandparents?",
+      "options": [
+        "once a week",
+        "once a month"
+      ]
+    },
+    {
+      "group": 6,
+      "ordinal": 2,
+      "prompt": "Who likes going to restaurants?",
+      "options": [
+        "Ginny’s grandfather",
+        "Ginny’s grandmother"
+      ]
+    },
+    {
+      "group": 6,
+      "ordinal": 3,
+      "prompt": "What type of restaurant do they go to on Fridays?",
+      "options": [
+        "Japanese",
+        "Italian"
+      ]
+    },
+    {
+      "group": 6,
+      "ordinal": 4,
+      "prompt": "How many shopping centres are there in the town?",
+      "options": [
+        "two",
+        "one"
+      ]
+    }
+  ],
+  "answerKey": [
+    {
+      "group": 5,
+      "ordinal": 1,
+      "acceptedValues": [
+        "Spanish"
+      ],
+      "modelSuggestionPolicy": "allowed"
+    },
+    {
+      "group": 5,
+      "ordinal": 2,
+      "acceptedValues": [
+        "actor"
+      ],
+      "modelSuggestionPolicy": "allowed"
+    },
+    {
+      "group": 5,
+      "ordinal": 3,
+      "acceptedValues": [],
+      "modelSuggestionPolicy": "teacherOnly"
+    },
+    {
+      "group": 5,
+      "ordinal": 4,
+      "acceptedValues": [
+        "parents"
+      ],
+      "modelSuggestionPolicy": "allowed"
+    },
+    {
+      "group": 6,
+      "ordinal": 1,
+      "acceptedValues": [
+        "once a month"
+      ],
+      "modelSuggestionPolicy": "allowed"
+    },
+    {
+      "group": 6,
+      "ordinal": 2,
+      "acceptedValues": [
+        "Ginny’s grandfather"
+      ],
+      "modelSuggestionPolicy": "allowed"
+    },
+    {
+      "group": 6,
+      "ordinal": 3,
+      "acceptedValues": [
+        "Italian"
+      ],
+      "modelSuggestionPolicy": "allowed"
+    },
+    {
+      "group": 6,
+      "ordinal": 4,
+      "acceptedValues": [
+        "two"
+      ],
+      "modelSuggestionPolicy": "allowed"
+    }
+  ]
+}

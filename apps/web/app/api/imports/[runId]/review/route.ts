@@ -1,4 +1,9 @@
-import { DocumentIRSchema, ReviewDraftSchema, type ReviewDraft } from "@lingua-bloom/contracts";
+import {
+  DocumentIRSchema,
+  InteractionKindSchema,
+  ReviewDraftSchema,
+  type ReviewDraft
+} from "@lingua-bloom/contracts";
 import { getPublicationBlockReasons } from "@lingua-bloom/lesson-pipeline";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -8,6 +13,11 @@ import { requireTeacher, UnauthenticatedError } from "@/src/auth/require-teacher
 import { inngest } from "@/src/inngest/client";
 import { INGESTION_REVIEW_SUBMITTED } from "@/src/inngest/events";
 import { applyTeacherAnswerReview } from "@/src/review/apply-answer-review";
+import {
+  applyExerciseCreate,
+  applyExerciseDelete,
+  getIssueIdsResolvedByExerciseEdit
+} from "@/src/review/apply-exercise-mutations";
 import { isMissingRpcFunction } from "@/src/supabase/rpc-compat";
 
 const SubmissionSchema = z
@@ -49,11 +59,41 @@ const SubmissionSchema = z
           })
           .strict()
       )
+      .default([]),
+    exerciseCreates: z
+      .array(
+        z
+          .object({
+            groupId: z.string().min(1),
+            prompt: z.string().min(1),
+            interactionKind: InteractionKindSchema,
+            options: z.array(z.string()),
+            answerValues: z.array(z.string().min(1)).min(1)
+          })
+          .strict()
+      )
+      .default([]),
+    exerciseDeletes: z
+      .array(
+        z
+          .object({
+            exerciseId: z.string().min(1),
+            reason: z.string().min(1)
+          })
+          .strict()
+      )
       .default([])
   })
   .strict()
   .superRefine((input, context) => {
-    if (input.decisions.length + input.answerReviews.length + input.exerciseEdits.length === 0) {
+    if (
+      input.decisions.length +
+        input.answerReviews.length +
+        input.exerciseEdits.length +
+        input.exerciseCreates.length +
+        input.exerciseDeletes.length ===
+      0
+    ) {
       context.addIssue({ code: "custom", message: "At least one review action is required" });
     }
   });
@@ -172,10 +212,59 @@ export async function POST(
         reason: "Формулировка задания проверена преподавателем",
         beforeValue: result.beforeValue,
         afterValue: { prompt: edit.prompt, options: edit.options },
+        resolvedIssueIds: getIssueIdsResolvedByExerciseEdit(
+          [...issueRows.values()],
+          edit.exerciseId
+        )
+      };
+    });
+    const createDecisions = input.exerciseCreates.map((creation) => {
+      const decisionId = crypto.randomUUID();
+      const result = applyExerciseCreate(nextDraft, creation, decisionId);
+      nextDraft = result.draft;
+      return {
+        id: decisionId,
+        issueId: null,
+        actorId: teacher.id,
+        createdAt: new Date().toISOString(),
+        decision: "edit" as const,
+        reason: "Задание добавлено преподавателем",
+        beforeValue: null,
+        afterValue: result.afterValue,
         resolvedIssueIds: []
       };
     });
-    const decisions = [...legacyAnswerDecisions, ...answerReviewDecisions, ...editDecisions];
+    const deleteDecisions = input.exerciseDeletes.map((deletion) => {
+      const decisionId = crypto.randomUUID();
+      const result = applyExerciseDelete(nextDraft, deletion, decisionId);
+      nextDraft = result.draft;
+      const removed = new Set(result.removedEntityIds);
+      const resolvedIssueIds = [...issueRows.values()]
+        .filter(
+          (issue) =>
+            issue.resolution === "open" &&
+            readEntityIds(issue.payload).some((id) => removed.has(id))
+        )
+        .map((issue) => issue.id);
+      return {
+        id: decisionId,
+        issueId: null,
+        actorId: teacher.id,
+        createdAt: new Date().toISOString(),
+        decision: "exclude" as const,
+        reason: deletion.reason,
+        beforeValue: result.beforeValue,
+        afterValue: null,
+        resolvedIssueIds
+      };
+    });
+    const decisions = [
+      ...legacyAnswerDecisions,
+      ...answerReviewDecisions,
+      ...editDecisions,
+      ...createDecisions,
+      ...deleteDecisions
+    ];
     const resolvedIssueIds = new Set(decisions.flatMap((decision) => decision.resolvedIssueIds));
     const publicationReasons = getPublicationBlockReasons({
       draft: nextDraft,

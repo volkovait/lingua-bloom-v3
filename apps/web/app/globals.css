@@ -849,6 +849,16 @@ p {
   margin: 0;
 }
 
+.model-fallback-notice {
+  margin: 0;
+  border: 1px solid #e8bd68;
+  border-radius: 14px;
+  background: #fff8e8;
+  color: #6e4b08;
+  padding: 0.85rem 1rem;
+  line-height: 1.5;
+}
+
 .review-layout {
   display: grid;
   grid-template-columns: minmax(360px, 0.85fr) minmax(520px, 1.15fr);
@@ -899,74 +909,31 @@ p {
   background: #e7e7e7;
 }
 
-.source-blocks {
-  display: grid;
-  gap: 0.55rem;
-  max-height: 25vh;
-  overflow: auto;
-  padding: 1rem;
-  border-top: 1px solid #e1e4f1;
-}
-
-.source-block {
-  border-left: 3px solid transparent;
-  border-radius: 0.45rem;
-  padding: 0.55rem 0.7rem;
-  background: #f7f7fb;
-}
-
-.source-block.is-highlighted {
-  border-color: var(--bloom-terracotta);
-  background: #fff1ed;
-}
-
-.source-block p,
-.source-block small {
+.text-source-frame {
+  box-sizing: border-box;
+  width: 100%;
+  height: min(63vh, 720px);
   margin: 0;
-  font-size: 0.78rem;
-  line-height: 1.45;
+  overflow: auto;
+  padding: 1.25rem 1.35rem;
+  background: #fbfbfd;
+  color: var(--bloom-ink);
+  font:
+    0.92rem/1.65 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
-.source-block small {
-  color: #707070;
-}
-
-.issue-list,
 .draft-groups {
   display: grid;
   gap: 0.8rem;
   padding: 1rem;
 }
-
-.issue-card {
-  display: grid;
-  gap: 0.25rem;
-  width: 100%;
-  border: 1px solid #dedfeb;
-  border-left: 4px solid var(--bloom-gold);
-  border-radius: 0.75rem;
-  padding: 0.8rem 0.9rem;
-  background: #fff;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.issue-card.severity-blocking {
-  border-left-color: var(--bloom-terracotta);
-}
-
-.issue-card.is-selected {
-  outline: 3px solid rgb(64 86 161 / 15%);
-}
-
-.issue-card span,
-.issue-card small {
-  color: #686868;
-  font-size: 0.72rem;
-}
-
-.issue-count,
 .provenance-badge {
   border-radius: 999px;
   padding: 0.35rem 0.65rem;
@@ -974,11 +941,6 @@ p {
   color: var(--bloom-navy);
   font-size: 0.72rem;
   font-weight: 700;
-}
-
-.issue-count.has-open {
-  background: #fff0ed;
-  color: #9b2d1c;
 }
 
 .exercise-group h3 {
@@ -1473,6 +1435,68 @@ p {
   box-shadow: 0 12px 30px rgb(64 86 161 / 10%);
 }
 
+.exercise-card.has-validation-issue {
+  border-width: 2px;
+}
+
+.exercise-card.has-validation-issue.issue-blocking {
+  border-color: #c5483a;
+  background: #fff4f1;
+  box-shadow: 0 0 0 3px rgb(197 72 58 / 10%);
+}
+
+.exercise-card.has-validation-issue.issue-warning {
+  border-color: #c98516;
+  background: #fff9e8;
+}
+
+.exercise-card.has-validation-issue.issue-info {
+  border-color: #5874ba;
+  background: #f3f6ff;
+}
+
+.inline-validation-message {
+  margin-bottom: 0.9rem;
+  border: 1px solid;
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  font-size: 0.82rem;
+}
+
+.inline-validation-message strong,
+.inline-validation-message ul {
+  margin: 0;
+}
+
+.inline-validation-message ul {
+  margin-top: 0.35rem;
+  padding-left: 1.2rem;
+}
+
+.inline-validation-message.issue-blocking,
+.invalid-option.issue-blocking input,
+.answer-editor.issue-blocking input {
+  border-color: #c5483a;
+  background: #fff4f1;
+  color: #7f241a;
+}
+
+.inline-validation-message.issue-warning,
+.invalid-option.issue-warning input,
+.answer-editor.issue-warning input {
+  border-color: #c98516;
+  background: #fff9e8;
+  color: #714805;
+}
+
+.inline-validation-message.issue-info,
+.invalid-option.issue-info input,
+.answer-editor.issue-info input {
+  border-color: #5874ba;
+  background: #f3f6ff;
+  color: #263f7d;
+}
+
 .exercise-card-toggle {
   display: grid;
   grid-template-columns: 2rem minmax(0, 1fr) 1.5rem;
@@ -1562,4 +1586,50 @@ p {
   .draft-heading-actions {
     justify-content: flex-start;
   }
+}
+
+.student-reference-block {
+  margin: 1.25rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid var(--accent, #4f7c6b);
+  border-radius: 0.75rem;
+  background: #f4f8f5;
+}
+.student-reference-block p {
+  margin: 0.2rem 0;
+  white-space: pre-wrap;
+}
+.student-group.is-partial {
+  border: 1px dashed #c57a36;
+}
+.student-partial-notice {
+  color: #8a4f19;
+  font-weight: 600;
+}
+.exercise-delete {
+  color: #9b2c2c;
+}
+.exercise-create-form {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px dashed var(--line, #cad5cf);
+  border-radius: 0.75rem;
+}
+.shared-word-bank {
+  margin: 1rem 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border, #c9c2ae);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--surface, #fff) 88%, #efe2ba);
+}
+
+.shared-word-bank ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }

@@ -23,6 +23,7 @@ const PREVIOUS_BASELINE = {
   correctAnswerFields: 28,
   answerAccuracy: 28 / 34
 } as const;
+let passingOnePageReport: Record<string, unknown> | undefined;
 
 interface GoldenItem {
   readonly itemNumber: number;
@@ -68,13 +69,23 @@ test.skipIf(!liveEnabled)(
       )
     );
 
-    const suggestions = await suggestUnverifiedAnswers({
-      apiKey,
-      baseUrl: process.env.OPENAI_BASE_URL ?? "https://polza.ai/api/v1",
-      model: process.env.OPENAI_MODEL ?? "openai/gpt-5.4-mini",
-      draft,
-      document
-    });
+    let suggestions;
+    try {
+      suggestions = await suggestUnverifiedAnswers({
+        apiKey,
+        baseUrl: process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1",
+        model: process.env.OPENAI_MODEL ?? "gpt-5.4-mini",
+        draft,
+        document
+      });
+    } catch (error) {
+      await writeLatestLiveReport(root, "1_page", {
+        passed: false,
+        expectedAnswerFields: knownAnswerFields.size,
+        failure: serializeLiveFailure(error)
+      });
+      throw error;
+    }
 
     expect(suggestions.length).toBe(knownAnswerFields.size);
     expect(suggestions.every((suggestion) => knownAnswerFields.has(suggestion.answerFieldId))).toBe(
@@ -118,39 +129,32 @@ test.skipIf(!liveEnabled)(
       return count;
     }, 0);
     const accuracy = correctCount / golden.summary.answerableItemCount;
+
     const baselinePassed = accuracy >= MIN_ANSWER_ACCURACY;
-    if (process.env.UPDATE_EVAL_BASELINE === "1") {
-      await writeFile(
-        resolve(root, "tests/golden/baseline-report.json"),
-        JSON.stringify(
-          {
-            schemaVersion: "1.0.0",
-            fixture: "1_page.pdf",
-            model: process.env.OPENAI_MODEL ?? "openai/gpt-5.4-mini",
-            promptVersion: ANSWER_SUGGESTION_PROMPT_VERSION,
-            normalizationPolicy:
-              "NFKC+smart-apostrophe+lowercase-en+terminal-punctuation+whitespace+trim/1.1.0",
-            expectedAnswerFields: golden.summary.answerableItemCount,
-            returnedAnswerFields: suggestions.length,
-            knownIdRate: 1,
-            correctAnswerFields: correctCount,
-            answerAccuracy: accuracy,
-            minimumAnswerAccuracy: MIN_ANSWER_ACCURACY,
-            unsupportedExerciseCount: 0,
-            passed: baselinePassed,
-            comparisonToPreviousBaseline: {
-              ...PREVIOUS_BASELINE,
-              correctAnswerFieldsDelta: correctCount - PREVIOUS_BASELINE.correctAnswerFields,
-              answerAccuracyDelta: accuracy - PREVIOUS_BASELINE.answerAccuracy
-            },
-            mismatches
-          },
-          null,
-          2
-        ) + "\n",
-        "utf8"
-      );
-    }
+    const report = {
+      schemaVersion: "1.0.0",
+      fixture: "1_page.pdf",
+      model: process.env.OPENAI_MODEL ?? "gpt-5.4-mini",
+      promptVersion: ANSWER_SUGGESTION_PROMPT_VERSION,
+      normalizationPolicy:
+        "NFKC+smart-apostrophe+lowercase-en+terminal-punctuation+whitespace+trim/1.1.0",
+      expectedAnswerFields: golden.summary.answerableItemCount,
+      returnedAnswerFields: suggestions.length,
+      knownIdRate: 1,
+      correctAnswerFields: correctCount,
+      answerAccuracy: accuracy,
+      minimumAnswerAccuracy: MIN_ANSWER_ACCURACY,
+      unsupportedExerciseCount: 0,
+      passed: baselinePassed,
+      comparisonToPreviousBaseline: {
+        ...PREVIOUS_BASELINE,
+        correctAnswerFieldsDelta: correctCount - PREVIOUS_BASELINE.correctAnswerFields,
+        answerAccuracyDelta: accuracy - PREVIOUS_BASELINE.answerAccuracy
+      },
+      mismatches
+    };
+    await writeLatestLiveReport(root, "1_page", report);
+    if (baselinePassed) passingOnePageReport = report;
     expect(accuracy).toBeGreaterThanOrEqual(MIN_ANSWER_ACCURACY);
     const suggestedDraft = applyAnswerSuggestions(draft, suggestions);
     const reviewedDraft = {
@@ -187,6 +191,143 @@ test.skipIf(!liveEnabled)(
   },
   90_000
 );
+
+test.skipIf(!liveEnabled)(
+  "meets the reading fixture gate without suggesting the ambiguous field",
+  async () => {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) throw new Error("OPENAI_API_KEY is required for the live eval");
+    const root = resolve(import.meta.dirname, "../../../..");
+    const documentIrId = "ir:reading-live-openai";
+    const sourceDocumentId = "source:reading-live-openai";
+    const bytes = new Uint8Array(
+      await readFile(resolve(root, "tests/fixtures/sources/reading_text_questions_4_pages.pdf"))
+    );
+    const golden = JSON.parse(
+      await readFile(
+        resolve(root, "tests/golden/reading_text_questions_4_pages.expected.json"),
+        "utf8"
+      )
+    ) as {
+      answerKey: {
+        group: number;
+        ordinal: number;
+        acceptedValues: string[];
+        modelSuggestionPolicy: "allowed" | "teacherOnly";
+      }[];
+    };
+    const document = await buildPdfDocumentIr(bytes, { id: documentIrId, sourceDocumentId });
+    const extraction = extractPdfExercises(document, { documentIrId });
+    const draft = buildReviewDraft(
+      "Reading golden live model eval",
+      sourceDocumentId,
+      documentIrId,
+      extraction,
+      extraction.issues
+    );
+    const keyedFields = golden.answerKey.map((key) => {
+      const group = draft.groups.find((candidate) => candidate.ordinal === key.group);
+      const exercise = group?.exercises.find((candidate) => candidate.ordinal === key.ordinal);
+      const answerFieldId = exercise?.answerFields[0]?.id;
+      if (!answerFieldId) throw new Error("Golden answer field is missing from the draft");
+      return { ...key, answerFieldId };
+    });
+    const excludedAnswerFieldIds = [
+      ...keyedFields
+        .filter((key) => key.modelSuggestionPolicy === "teacherOnly")
+        .map((key) => key.answerFieldId),
+      ...draft.groups
+        .filter((group) => group.completeness === "partial")
+        .flatMap((group) =>
+          group.exercises.flatMap((exercise) => exercise.answerFields.map((answer) => answer.id))
+        )
+    ];
+    const eligible = keyedFields.filter((key) => key.modelSuggestionPolicy === "allowed");
+
+    let suggestions;
+    try {
+      suggestions = await suggestUnverifiedAnswers({
+        apiKey,
+        baseUrl: process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1",
+        model: process.env.OPENAI_MODEL ?? "gpt-5.4-mini",
+        draft,
+        document,
+        excludedAnswerFieldIds
+      });
+    } catch (error) {
+      await writeLatestLiveReport(root, "reading_text_questions_4_pages", {
+        passed: false,
+        expectedAnswerFields: eligible.length,
+        failure: serializeLiveFailure(error)
+      });
+      throw error;
+    }
+
+    const suggestionsById = new Map(
+      suggestions.map((suggestion) => [suggestion.answerFieldId, suggestion.acceptedValues])
+    );
+    const ambiguousExcluded = !suggestionsById.has("group:5:item:3:answer:1");
+    const correct = eligible.filter((key) =>
+      matchesAnyExpected(suggestionsById.get(key.answerFieldId) ?? [], key.acceptedValues)
+    );
+    const readingPassed =
+      suggestions.length === eligible.length &&
+      ambiguousExcluded &&
+      correct.length === eligible.length;
+    const report = {
+      schemaVersion: "1.0.0",
+      fixture: "reading_text_questions_4_pages.pdf",
+      expectedAnswerFields: eligible.length,
+      returnedAnswerFields: suggestions.length,
+      correctAnswerFields: correct.length,
+      answerAccuracy: correct.length / eligible.length,
+      minimumAnswerAccuracy: 1,
+      ambiguousFieldExcluded: ambiguousExcluded,
+      passed: readingPassed
+    };
+    await writeLatestLiveReport(root, "reading_text_questions_4_pages", report);
+    if (process.env.UPDATE_EVAL_BASELINE === "1" && readingPassed && passingOnePageReport) {
+      await writeJson(resolve(root, "tests/golden/baseline-report.json"), {
+        ...passingOnePageReport,
+        schemaVersion: "1.1.0",
+        allFixtureGatesPassed: true,
+        supplementalFixtures: [report]
+      });
+    }
+    expect(suggestions).toHaveLength(eligible.length);
+    expect(ambiguousExcluded).toBe(true);
+    expect(correct).toHaveLength(eligible.length);
+  },
+  90_000
+);
+
+async function writeLatestLiveReport(
+  root: string,
+  fixture: string,
+  report: Record<string, unknown>
+) {
+  await writeJson(resolve(root, "tests/golden/live-eval-" + fixture + ".latest.json"), {
+    ...report,
+    model: process.env.OPENAI_MODEL ?? "gpt-5.4-mini",
+    promptVersion: ANSWER_SUGGESTION_PROMPT_VERSION,
+    completedAt: new Date().toISOString()
+  });
+}
+
+async function writeJson(filePath: string, value: unknown) {
+  await writeFile(filePath, JSON.stringify(value, null, 2) + "\n", "utf8");
+}
+
+function serializeLiveFailure(error: unknown) {
+  return error instanceof Error
+    ? {
+        name: error.name,
+        message: error.message,
+        ...("code" in error && typeof error.code === "string" ? { code: error.code } : {}),
+        ...("kind" in error && typeof error.kind === "string" ? { kind: error.kind } : {})
+      }
+    : { name: "UnknownError", message: String(error) };
+}
 
 function matchesAnyExpected(actual: readonly string[], expected: readonly string[]) {
   const normalizedExpected = new Set(expected.map(normalizeAnswer));

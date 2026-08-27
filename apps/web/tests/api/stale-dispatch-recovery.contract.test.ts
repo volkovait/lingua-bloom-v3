@@ -56,6 +56,8 @@ describe("stale dispatch recovery contract", () => {
     expect(polling).toContain("!state.recovery");
     expect(openapi).toContain("/api/imports/{runId}/dispatch:");
     expect(openapi).toContain("StaleRunRecovery:");
-    expect(openapi).toContain("required: [runId, status, updatedAt, recovery, events, issues, failure]");
+    expect(openapi).toContain(
+      "required: [runId, status, currentStep, lastSuccessfulCheckpoint, updatedAt, recovery, failure, source, draft, documentIr, issues, events]"
+    );
   });
 });

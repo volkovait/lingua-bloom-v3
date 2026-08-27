@@ -19,6 +19,7 @@ export const ValidationIssueSchema = z
       "CANDIDATE_UNMAPPED",
       "UNSUPPORTED_ADDITION",
       "ANSWER_UNVERIFIED",
+      "ANSWER_AMBIGUOUS",
       "READING_ORDER_UNCERTAIN",
       "SOURCE_REF_MISSING",
       "OCR_REQUIRED",

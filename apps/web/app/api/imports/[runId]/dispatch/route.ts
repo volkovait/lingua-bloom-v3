@@ -9,6 +9,13 @@ import { INGESTION_IMPORT_REQUESTED } from "@/src/inngest/events";
 import { isMissingRpcFunction } from "@/src/supabase/rpc-compat";
 
 const RedispatchSchema = z.object({ idempotencyKey: z.string().min(16).max(128) }).strict();
+const FallbackRunSchema = z.object({
+  status: z.string(),
+  updated_at: z.string(),
+  source_document_id: z.string().min(1),
+  request_fingerprint: z.string().min(1)
+});
+
 const RedispatchClaimSchema = z.object({
   dispatch_request_id: z.string().min(1),
   run_id: z.string().min(1),
@@ -141,15 +148,21 @@ async function claimStaleImportDispatchFallback(
       .eq("id", runId)
       .eq("owner_id", ownerId)
       .single(),
-    supabase.from("lesson_drafts").select("id").eq("run_id", runId).eq("owner_id", ownerId).maybeSingle()
+    supabase
+      .from("lesson_drafts")
+      .select("id")
+      .eq("run_id", runId)
+      .eq("owner_id", ownerId)
+      .maybeSingle()
   ]);
   if (runResult.error) throw new Error(runResult.error.message);
   if (draftResult.error) throw new Error(draftResult.error.message);
   if (draftResult.data) throw new Error("DISPATCH_NOT_ALLOWED");
 
+  const run = FallbackRunSchema.parse(runResult.data);
   const recovery = getStaleRunRecovery({
-    status: runResult.data.status,
-    updatedAt: runResult.data.updated_at,
+    status: run.status,
+    updatedAt: run.updated_at,
     draftExists: false
   });
   if (!recovery) throw new Error("DISPATCH_NOT_STALE");
@@ -157,7 +170,7 @@ async function claimStaleImportDispatchFallback(
   const sourceResult = await supabase
     .from("source_documents")
     .select("kind")
-    .eq("id", runResult.data.source_document_id)
+    .eq("id", run.source_document_id)
     .eq("owner_id", ownerId)
     .single();
   if (sourceResult.error) throw new Error(sourceResult.error.message);
@@ -165,8 +178,8 @@ async function claimStaleImportDispatchFallback(
 
   return {
     dispatchRequestId: `${runId}:${idempotencyKey}`,
-    sourceDocumentId: runResult.data.source_document_id,
-    requestFingerprint: runResult.data.request_fingerprint,
+    sourceDocumentId: run.source_document_id,
+    requestFingerprint: run.request_fingerprint,
     sourceKind,
     reason: recovery.kind
   };

@@ -1,6 +1,11 @@
 import { DocumentIRSchema } from "@lingua-bloom/contracts";
-import { buildPdfDocumentIr, SupabaseSourceRepository } from "@lingua-bloom/document-ingestion";
-import { extractPdfExercises } from "@lingua-bloom/exercise-extraction";
+import {
+  buildPdfDocumentIr,
+  buildTextDocumentIr,
+  SupabaseSourceRepository
+} from "@lingua-bloom/document-ingestion";
+import { ARTIFACT_VERSIONS } from "@lingua-bloom/domain";
+import { extractPdfExercises, extractTextExercises } from "@lingua-bloom/exercise-extraction";
 import {
   evaluateAnswerFieldLimit,
   getPublicationBlockReasons
@@ -59,17 +64,6 @@ export const reliableIngestion = inngest.createFunction(
       });
       await appendRunEvent(supabase, ownerId, runId, "processing", "build-document-ir");
 
-      if (kind !== "pdf") {
-        await failRun(
-          supabase,
-          ownerId,
-          runId,
-          "TEXT_PIPELINE_NOT_IMPLEMENTED",
-          "Text extraction will be enabled in Phase 4"
-        );
-        return { status: "failed" as const };
-      }
-
       try {
         const sources = new SupabaseSourceRepository(supabase);
         const [source, bytes] = await Promise.all([
@@ -96,7 +90,12 @@ export const reliableIngestion = inngest.createFunction(
         const documentIrId = irCheckpoint?.id ?? crypto.randomUUID();
         const document = irCheckpoint
           ? DocumentIRSchema.parse(irCheckpoint.payload)
-          : await buildPdfDocumentIr(bytes, { id: documentIrId, sourceDocumentId });
+          : kind === "pdf"
+            ? await buildPdfDocumentIr(bytes, { id: documentIrId, sourceDocumentId })
+            : buildTextDocumentIr(new TextDecoder("utf-8", { fatal: true }).decode(bytes), {
+                id: documentIrId,
+                sourceDocumentId
+              });
         if (!irCheckpoint) {
           const { error: irError } = await supabase.from("document_irs").insert({
             id: documentIrId,
@@ -108,7 +107,10 @@ export const reliableIngestion = inngest.createFunction(
           if (irError) throw new Error(`Failed to persist DocumentIR: ${irError.message}`);
         }
 
-        const extraction = extractPdfExercises(document, { documentIrId });
+        const extraction =
+          kind === "pdf"
+            ? extractPdfExercises(document, { documentIrId })
+            : extractTextExercises(document, { documentIrId });
         const answerFieldCount = extraction.groups.reduce(
           (total, group) =>
             total +
@@ -143,6 +145,10 @@ export const reliableIngestion = inngest.createFunction(
         let draft = baseDraft;
         let modelSuggestionCount = 0;
         let modelWarning: string | null = null;
+        let modelOutcome: "succeeded" | "failed" | "skipped" = environment.OPENAI_API_KEY
+          ? "failed"
+          : "skipped";
+        let modelLatencyMs: number | undefined;
         let modelTelemetry:
           | {
               latencyMs: number;
@@ -162,10 +168,15 @@ export const reliableIngestion = inngest.createFunction(
               baseUrl: environment.OPENAI_BASE_URL,
               model: environment.OPENAI_MODEL,
               draft: baseDraft,
-              document
+              document,
+              excludedAnswerFieldIds: issues
+                .filter((issue) => issue.code === "ANSWER_AMBIGUOUS")
+                .flatMap((issue) => issue.entityIds)
             });
             draft = applyAnswerSuggestions(baseDraft, result.suggestions);
             modelSuggestionCount = result.suggestions.length;
+            modelOutcome = "succeeded";
+            modelLatencyMs = result.telemetry.latencyMs;
             modelTelemetry = result.telemetry;
             await appendRunEvent(
               supabase,
@@ -195,12 +206,15 @@ export const reliableIngestion = inngest.createFunction(
                     error instanceof Error ? error.message : "Model suggestions failed",
                     0
                   );
+            modelOutcome = "failed";
+            modelLatencyMs = failure.latencyMs;
+            modelWarning = `Answer suggestions were skipped (${failure.code}); teacher review is required`;
             await appendRunEvent(
               supabase,
               ownerId,
               runId,
               "processing",
-              "model-answer-suggestions",
+              "model-answer-suggestions-skipped",
               {
                 model: environment.OPENAI_MODEL,
                 promptVersion: ANSWER_SUGGESTION_PROMPT_VERSION,
@@ -212,16 +226,6 @@ export const reliableIngestion = inngest.createFunction(
                 failureCode: failure.code
               }
             );
-            await failRun(
-              supabase,
-              ownerId,
-              runId,
-              failure.code,
-              failure.message,
-              failure.kind,
-              "model-answer-suggestions-failed"
-            );
-            return { status: "failed" as const };
           }
         } else {
           modelWarning = "OPENAI_API_KEY is not configured; answer suggestions were skipped";
@@ -280,37 +284,38 @@ export const reliableIngestion = inngest.createFunction(
             pipelineVersion: "1.0.0",
             schemaVersions: { documentIr: "1.0.0", reviewDraft: "1.0.0" },
             parserVersions: {
-              pdf: "1.0.0",
+              [kind]: kind === "pdf" ? ARTIFACT_VERSIONS.pdfParser : ARTIFACT_VERSIONS.textParser,
               answerSuggestionInput: ANSWER_SUGGESTION_INPUT_SCHEMA_VERSION,
               answerSuggestionOutput: ANSWER_SUGGESTION_OUTPUT_SCHEMA_VERSION
             },
             ...(environment.OPENAI_API_KEY
               ? {
                   model: {
-                    provider: "polza-ai-openai-compatible",
+                    provider: "openai",
                     endpointFamily: "responses",
                     model: environment.OPENAI_MODEL,
                     promptVersion: ANSWER_SUGGESTION_PROMPT_VERSION,
                     inputSchemaVersion: ANSWER_SUGGESTION_INPUT_SCHEMA_VERSION,
                     outputSchemaVersion: ANSWER_SUGGESTION_OUTPUT_SCHEMA_VERSION,
-                    outcome: "succeeded"
+                    outcome: modelOutcome
                   }
                 }
               : {}),
             stepTimingsMs: {
-              ...(modelTelemetry ? { suggestUnresolvedAnswers: modelTelemetry.latencyMs } : {})
+              ...(modelLatencyMs == null ? {} : { suggestUnresolvedAnswers: modelLatencyMs })
             },
             ...(modelTelemetry?.totalTokens == null
               ? {}
               : { tokenUsage: modelTelemetry.totalTokens }),
             ...(modelTelemetry
               ? { costUsd: modelTelemetry.costUsd, costStatus: modelTelemetry.costStatus }
-              : { costStatus: "notApplicable" }),
+              : { costStatus: environment.OPENAI_API_KEY ? "unavailable" : "notApplicable" }),
             warnings: [...document.warnings, ...(modelWarning ? [modelWarning] : [])],
             validationSummary: {
               issueCount: issues.length,
               unsupportedAdditionCount: extraction.coverage.unsupportedAdditionCount,
               modelSuggestionCount,
+              modelSuggestionOutcome: modelOutcome,
               publicationReasons
             },
             finalizedAt: new Date().toISOString()
@@ -325,7 +330,7 @@ export const reliableIngestion = inngest.createFunction(
           ownerId,
           runId,
           "INGESTION_FAILED",
-          error instanceof Error ? error.message : "PDF ingestion failed"
+          error instanceof Error ? error.message : "Source ingestion failed"
         );
         return { status: "failed" as const };
       }

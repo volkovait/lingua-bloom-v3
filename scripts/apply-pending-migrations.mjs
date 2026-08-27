@@ -8,7 +8,8 @@ const migrationsDir = resolve(projectRoot, "supabase/migrations");
 const pendingMigrationNames = [
   "0011_publish_readiness_gate.sql",
   "0012_stale_dispatch_recovery.sql",
-  "0013_publish_public_id_gen_random_bytes_repair.sql"
+  "0013_publish_public_id_gen_random_bytes_repair.sql",
+  "0014_review_decision_issue_resolution.sql"
 ];
 
 const databaseUrl = process.env.SUPABASE_DB_URL ?? process.env.DATABASE_URL;
@@ -60,9 +61,12 @@ try {
     }
   }
 
-  const allMigrations = (await readdir(migrationsDir)).filter((name) => name.endsWith(".sql")).sort();
+  const allMigrations = (await readdir(migrationsDir))
+    .filter((name) => name.endsWith(".sql"))
+    .sort();
   const stillPending = allMigrations.filter(
-    (name) => !appliedVersions.has(name.replace(/_.+$/, "")) && !pendingMigrationNames.includes(name)
+    (name) =>
+      !appliedVersions.has(name.replace(/_.+$/, "")) && !pendingMigrationNames.includes(name)
   );
   if (stillPending.length > 0) {
     console.log("Other local migrations not checked by this script:", stillPending.join(", "));

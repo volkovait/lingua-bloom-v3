@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.1.0",
+  "sourceFile": "articles_4_pages.pdf",
+  "summary": {
+    "pageCount": 4,
+    "exerciseGroupCount": 11,
+    "completeGroupCount": 10,
+    "partialGroupCount": 1,
+    "answerableItemCount": 36,
+    "answerFieldCount": 369,
+    "referenceBlockCount": 6,
+    "unsupportedAdditionCount": 0
+  },
+  "groups": [
+    { "exerciseNumber": 48, "completeness": "partial", "missingBoundary": "start", "itemCount": 1, "answerFieldCount": 14, "pages": [0] },
+    { "exerciseNumber": 49, "completeness": "complete", "itemCount": 11, "answerFieldCount": 39, "pages": [0] },
+    { "exerciseNumber": 50, "completeness": "complete", "itemCount": 1, "answerFieldCount": 33, "pages": [0] },
+    { "exerciseNumber": 51, "completeness": "complete", "itemCount": 1, "answerFieldCount": 30, "pages": [1] },
+    { "exerciseNumber": 52, "completeness": "complete", "itemCount": 1, "answerFieldCount": 34, "pages": [1] },
+    { "exerciseNumber": 53, "completeness": "complete", "itemCount": 1, "answerFieldCount": 24, "pages": [1, 2] },
+    { "exerciseNumber": 54, "completeness": "complete", "itemCount": 11, "answerFieldCount": 33, "pages": [2] },
+    { "exerciseNumber": 55, "completeness": "complete", "itemCount": 1, "answerFieldCount": 58, "pages": [2] },
+    { "exerciseNumber": 56, "completeness": "complete", "itemCount": 6, "answerFieldCount": 34, "pages": [2, 3] },
+    { "exerciseNumber": 57, "completeness": "complete", "itemCount": 1, "answerFieldCount": 36, "pages": [3] },
+    { "exerciseNumber": 58, "completeness": "complete", "itemCount": 1, "answerFieldCount": 34, "pages": [3] }
+  ],
+  "referenceBlocks": [
+    ["Запомните следующее устойчивое", "словосочетание:", "The fact is (was) that ..."],
+    ["Обратите внимание на употребление артикля со", "словом other (другой):", "another — другой (неопределенный), какой-то дру-", "гой, еще один (во множественном числе или перед", "неисчиспяемым существительным — other); the", "other — другой (определенный), тот другой,", "другой из двух."],
+    ["Запомните следующие устойчивые", "словосочетания:", "at • sunrise at • sunset", "in the country\tin s town to the country", "to s town", "by s bus\tby •{_ tram by ± train by • car"],
+    ["Запомните следующие устойчивые", "словосочетания:", "in *f spring\tin s autumn in S", "summer\tin £ winter"],
+    ["Запомните следующие устойчивые", "словосочетания:", "It was • morning.\tIt was • evening. It was •", "daytime.\tIt was s night."],
+    ["Запомните следующие устойчивые", "словосочетания: after a", "while from • place to ^ place"]
+  ]
+}

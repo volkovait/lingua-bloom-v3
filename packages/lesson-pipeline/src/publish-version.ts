@@ -54,13 +54,14 @@ export function createPublishedLessonSpec(input: PublicationInput): LessonSpec {
   if (reasons.length > 0) throw new PublicationBlockedError(reasons);
 
   return LessonSpecSchema.parse({
-    schemaVersion: "1.0.0",
+    schemaVersion: "1.1.0",
     lessonId: input.lessonId,
     version: input.version,
     title: draft.title,
     sourceDocumentId: draft.sourceDocumentId,
     documentIrId: draft.documentIrId,
     groups: draft.groups,
+    referenceBlocks: draft.referenceBlocks,
     validation: {
       status: "passed",
       blockingIssueCount: 0,
@@ -106,6 +107,10 @@ function collectRefs(draft: ReviewDraft): SourceRef[] {
   };
   for (const group of draft.groups) {
     collect(group.provenance);
+    for (const resource of group.sharedResources ?? []) {
+      collect(resource.provenance);
+      for (const entry of resource.entries) collect(entry.provenance);
+    }
     for (const exercise of group.exercises) {
       collect(exercise.provenance);
       exercise.options.forEach((option) => {
@@ -115,6 +120,9 @@ function collectRefs(draft: ReviewDraft): SourceRef[] {
         collect(answer.evidence);
       });
     }
+  }
+  for (const referenceBlock of draft.referenceBlocks ?? []) {
+    for (const line of referenceBlock.lines) collect(line.provenance);
   }
   return refs;
 }

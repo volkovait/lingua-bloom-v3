@@ -13,16 +13,53 @@
       }
     },
     {
+      "id": "articles_4_pages",
+      "path": "sources/articles_4_pages.pdf",
+      "kind": "pdf",
+      "expected": {
+        "pageCount": 4,
+        "exerciseGroupCount": 11,
+        "completeGroupCount": 10,
+        "partialGroupCount": 1,
+        "answerableItemCount": 36,
+        "answerFieldCount": 369,
+        "referenceBlockCount": 6,
+        "unsupportedAdditionCount": 0,
+        "answersRequireReview": true,
+        "requiredWarnings": [
+          "SOURCE_TRUNCATED"
+        ]
+      }
+    },
+    {
+      "id": "reading_text_questions_4_pages",
+      "path": "sources/reading_text_questions_4_pages.pdf",
+      "kind": "pdf",
+      "expected": {
+        "pageCount": 4,
+        "exerciseGroupCount": 2,
+        "completeGroupCount": 2,
+        "partialGroupCount": 0,
+        "answerableItemCount": 8,
+        "answerFieldCount": 8,
+        "referenceBlockCount": 2,
+        "unsupportedAdditionCount": 0,
+        "answersRequireReview": true
+      }
+    },
+    {
       "id": "raw",
       "path": "sources/raw.txt",
       "kind": "text",
       "expected": {
         "numberedItemCount": 18,
         "bracketExpressionCount": 29,
-        "explicitShortAnswerCount": 4,
-        "answerFieldCount": 33,
+        "contextualDialogueEllipsisCount": 4,
+        "answerFieldCount": 29,
         "answersRequireReview": true,
-        "requiredWarnings": ["SOURCE_TRUNCATED"],
+        "requiredWarnings": [
+          "SOURCE_TRUNCATED"
+        ],
         "generatedContinuationCount": 0
       }
     }

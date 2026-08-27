@@ -1,23 +1,48 @@
 "use client";
 
 import type { ReviewDraft } from "@lingua-bloom/contracts";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
-import type { ReviewIssue } from "./validation-issues";
+import {
+  getEntityIssueState,
+  getVisibleReviewIssues,
+  issueMessage
+} from "@/src/review/issue-highlighting";
+
+export interface ReviewIssue {
+  readonly id: string;
+  readonly code: string;
+  readonly severity: "info" | "warning" | "blocking";
+  readonly resolution: "open" | "resolved" | "acceptedRisk";
+  readonly message: string;
+  readonly entityIds: readonly string[];
+}
+
+interface ExerciseCreateDraft {
+  prompt: string;
+  interactionKind: ReviewDraft["groups"][number]["exercises"][number]["interactionKind"];
+  options: string;
+  answers: string;
+}
+
+function emptyExerciseCreate(): ExerciseCreateDraft {
+  return {
+    prompt: "",
+    interactionKind: "inlineGap",
+    options: "",
+    answers: ""
+  };
+}
 
 export function ExerciseDraftEditor({
   draft,
   revision,
   issues,
-  selectedIssueId,
-  onIssueSelect,
   onSaved
 }: {
   readonly draft: ReviewDraft;
   readonly revision: number;
   readonly issues: readonly ReviewIssue[];
-  readonly selectedIssueId: string | null;
-  readonly onIssueSelect: (issue: ReviewIssue) => void;
   readonly onSaved: () => Promise<void>;
 }) {
   const openIssues = useMemo(() => issues.filter((issue) => issue.resolution === "open"), [issues]);
@@ -26,6 +51,7 @@ export function ExerciseDraftEditor({
     () =>
       exercises.flatMap((exercise) =>
         exercise.answerFields.map((field) => ({
+          exerciseId: exercise.id,
           field,
           issue: openIssues.find((issue) => issue.entityIds.includes(field.id))
         }))
@@ -46,23 +72,27 @@ export function ExerciseDraftEditor({
   const [exerciseEdits, setExerciseEdits] = useState<
     Record<string, { prompt: string; options: Record<string, string> }>
   >({});
+  const [exerciseCreates, setExerciseCreates] = useState<Record<string, ExerciseCreateDraft>>({});
+  const [exerciseDeletes, setExerciseDeletes] = useState<string[]>([]);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const visibleIssues = useMemo(
+    () =>
+      getVisibleReviewIssues(
+        openIssues,
+        new Set(
+          Object.entries(confirmedSuggestions)
+            .filter(([, confirmed]) => confirmed)
+            .map(([fieldId]) => fieldId)
+        )
+      ),
+    [confirmedSuggestions, openIssues]
+  );
 
   const modelSuggestionIds = answerEntries
     .filter(({ field }) => field.provenance === "modelInferred")
     .map(({ field }) => field.id);
   const confirmedModelCount = modelSuggestionIds.filter((id) => confirmedSuggestions[id]).length;
-
-  useEffect(() => {
-    if (!selectedIssueId) return;
-    const issue = openIssues.find((candidate) => candidate.id === selectedIssueId);
-    if (!issue) return;
-    const exercise = exercises.find((candidate) =>
-      candidate.answerFields.some((field) => issue.entityIds.includes(field.id))
-    );
-    if (exercise) setSelectedExerciseId(exercise.id);
-  }, [exercises, openIssues, selectedIssueId]);
 
   function confirmSuggestions(ids: readonly string[]) {
     setConfirmedSuggestions((current) => ({
@@ -73,9 +103,11 @@ export function ExerciseDraftEditor({
   }
 
   async function saveReview() {
-    const unconfirmedSuggestions = answerEntries.filter(
-      ({ field }) => field.provenance === "modelInferred" && !confirmedSuggestions[field.id]
-    );
+    const unconfirmedSuggestions = answerEntries
+      .filter(({ exerciseId }) => !exerciseDeletes.includes(exerciseId))
+      .filter(
+        ({ field }) => field.provenance === "modelInferred" && !confirmedSuggestions[field.id]
+      );
     if (unconfirmedSuggestions.length > 0) {
       setMessage(
         `Подтвердите все ответы, предложенные ИИ: осталось ${String(unconfirmedSuggestions.length)}.`
@@ -84,30 +116,32 @@ export function ExerciseDraftEditor({
     }
 
     const missingAnswers: string[] = [];
-    const answerReviews = answerEntries.flatMap(({ field, issue }) => {
-      const original = field.acceptedValues.join(" | ").trim();
-      const value = (answers[field.id] ?? original).trim();
-      const changed = value !== original;
-      const requiresReview = field.reviewStatus !== "verified" || issue != null;
-      const confirmedModelSuggestion =
-        field.provenance === "modelInferred" && confirmedSuggestions[field.id];
-      if (!value && (changed || requiresReview || confirmedModelSuggestion)) {
-        missingAnswers.push(field.id);
-        return [];
-      }
-      if (!changed && !requiresReview && !confirmedModelSuggestion) return [];
-      return [
-        {
-          answerFieldId: field.id,
-          issueId: issue?.id ?? null,
-          decision: changed ? ("edit" as const) : ("confirm" as const),
-          reason: changed
-            ? "Правильный ответ исправлен преподавателем"
-            : "Правильный ответ подтверждён преподавателем",
-          replacementValue: value
+    const answerReviews = answerEntries
+      .filter(({ exerciseId }) => !exerciseDeletes.includes(exerciseId))
+      .flatMap(({ field, issue }) => {
+        const original = field.acceptedValues.join(" | ").trim();
+        const value = (answers[field.id] ?? original).trim();
+        const changed = value !== original;
+        const requiresReview = field.reviewStatus !== "verified" || issue != null;
+        const confirmedModelSuggestion =
+          field.provenance === "modelInferred" && confirmedSuggestions[field.id];
+        if (!value && (changed || requiresReview || confirmedModelSuggestion)) {
+          missingAnswers.push(field.id);
+          return [];
         }
-      ];
-    });
+        if (!changed && !requiresReview && !confirmedModelSuggestion) return [];
+        return [
+          {
+            answerFieldId: field.id,
+            issueId: issue?.id ?? null,
+            decision: changed ? ("edit" as const) : ("confirm" as const),
+            reason: changed
+              ? "Правильный ответ исправлен преподавателем"
+              : "Правильный ответ подтверждён преподавателем",
+            replacementValue: value
+          }
+        ];
+      });
     if (missingAnswers.length > 0) {
       setMessage("Заполните все ответы, требующие проверки.");
       return;
@@ -118,7 +152,31 @@ export function ExerciseDraftEditor({
       prompt: edit.prompt.trim(),
       options: Object.entries(edit.options).map(([id, value]) => ({ id, value }))
     }));
-    if (answerReviews.length + edits.length === 0) {
+    const creates = Object.entries(exerciseCreates).flatMap(([groupId, creation]) => {
+      const prompt = creation.prompt.trim();
+      const answerValues = creation.answers
+        .split("\n")
+        .map((value) => value.trim())
+        .filter(Boolean);
+      if (!prompt || answerValues.length === 0) return [];
+      return [
+        {
+          groupId,
+          prompt,
+          interactionKind: creation.interactionKind,
+          options: creation.options
+            .split("\n")
+            .map((value) => value.trim())
+            .filter(Boolean),
+          answerValues
+        }
+      ];
+    });
+    const deletes = exerciseDeletes.map((exerciseId) => ({
+      exerciseId,
+      reason: "Задание удалено преподавателем"
+    }));
+    if (answerReviews.length + edits.length + creates.length + deletes.length === 0) {
       setMessage("Нет новых изменений для сохранения.");
       return;
     }
@@ -133,7 +191,9 @@ export function ExerciseDraftEditor({
           idempotencyKey: crypto.randomUUID(),
           decisions: [],
           answerReviews,
-          exerciseEdits: edits
+          exerciseEdits: edits,
+          exerciseCreates: creates,
+          exerciseDeletes: deletes
         })
       });
       const result = (await response.json()) as { code?: string; message?: string };
@@ -145,6 +205,8 @@ export function ExerciseDraftEditor({
       setAnswers({});
       setConfirmedSuggestions({});
       setExerciseEdits({});
+      setExerciseCreates({});
+      setExerciseDeletes([]);
       setMessage("Решения сохранены как ответы преподавателя.");
       await onSaved();
     } catch (error) {
@@ -184,21 +246,144 @@ export function ExerciseDraftEditor({
       <div className="draft-groups">
         {draft.groups.map((group) => (
           <section className="exercise-group" key={group.id}>
-            <h3>
-              {group.ordinal}. {group.instruction}
-            </h3>
+            <div className="panel-heading">
+              <div>
+                <h3>
+                  {group.ordinal}. {group.instruction}
+                </h3>
+                {group.completeness === "partial" ? (
+                  <small>Неполная группа: начало задания отсутствует</small>
+                ) : null}
+              </div>
+              <button
+                className="secondary-link compact-action"
+                type="button"
+                onClick={() => {
+                  setExerciseCreates((current) =>
+                    current[group.id]
+                      ? Object.fromEntries(
+                          Object.entries(current).filter(([id]) => id !== group.id)
+                        )
+                      : {
+                          ...current,
+                          [group.id]: {
+                            prompt: "",
+                            interactionKind: "inlineGap",
+                            options: "",
+                            answers: ""
+                          }
+                        }
+                  );
+                }}
+              >
+                {exerciseCreates[group.id] ? "Отменить добавление" : "Добавить задание"}
+              </button>
+            </div>
+            {(group.sharedResources ?? []).map((resource) => (
+              <aside
+                aria-label={resource.label ?? "Слова для заданий"}
+                className="shared-word-bank"
+                key={resource.id}
+              >
+                {resource.label ? <strong>{resource.label}</strong> : null}
+                <ul>
+                  {resource.entries.map((entry) => (
+                    <li key={entry.id}>{entry.value}</li>
+                  ))}
+                </ul>
+              </aside>
+            ))}
+            {exerciseCreates[group.id] ? (
+              <div className="exercise-create-form">
+                <label>
+                  <span>Формулировка нового задания</span>
+                  <textarea
+                    value={exerciseCreates[group.id]?.prompt ?? ""}
+                    onChange={(event) => {
+                      setExerciseCreates((current) => ({
+                        ...current,
+                        [group.id]: {
+                          ...(current[group.id] ?? emptyExerciseCreate()),
+                          prompt: event.target.value
+                        }
+                      }));
+                    }}
+                  />
+                </label>
+                <label>
+                  <span>Тип задания</span>
+                  <select
+                    value={exerciseCreates[group.id]?.interactionKind ?? "inlineGap"}
+                    onChange={(event) => {
+                      setExerciseCreates((current) => ({
+                        ...current,
+                        [group.id]: {
+                          ...(current[group.id] ?? emptyExerciseCreate()),
+                          interactionKind: event.target
+                            .value as ExerciseCreateDraft["interactionKind"]
+                        }
+                      }));
+                    }}
+                  >
+                    <option value="inlineGap">Пропуски в тексте</option>
+                    <option value="singleChoice">Один вариант</option>
+                    <option value="wordOrder">Порядок слов</option>
+                    <option value="bracketGap">Пропуск со словом в скобках</option>
+                    <option value="oddOneOut">Лишнее слово</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Варианты, по одному на строку (необязательно)</span>
+                  <textarea
+                    value={exerciseCreates[group.id]?.options ?? ""}
+                    onChange={(event) => {
+                      setExerciseCreates((current) => ({
+                        ...current,
+                        [group.id]: {
+                          ...(current[group.id] ?? emptyExerciseCreate()),
+                          options: event.target.value
+                        }
+                      }));
+                    }}
+                  />
+                </label>
+                <label>
+                  <span>Правильные ответы, по одному полю на строку</span>
+                  <textarea
+                    value={exerciseCreates[group.id]?.answers ?? ""}
+                    onChange={(event) => {
+                      setExerciseCreates((current) => ({
+                        ...current,
+                        [group.id]: {
+                          ...(current[group.id] ?? emptyExerciseCreate()),
+                          answers: event.target.value
+                        }
+                      }));
+                    }}
+                  />
+                </label>
+                <small>Новое задание и ответы сохранятся с provenance teacherSupplied.</small>
+              </div>
+            ) : null}
             {group.exercises.map((exercise) => {
-              const exerciseIssues = openIssues.filter((issue) =>
-                issue.entityIds.some((id) => exercise.answerFields.some((field) => field.id === id))
-              );
               const isExpanded = exercise.id === selectedExerciseId;
+              const exerciseIssueState = getEntityIssueState(visibleIssues, [
+                exercise.id,
+                ...exercise.options.map((option) => option.id),
+                ...exercise.answerFields.map((field) => field.id)
+              ]);
               const suggestionIds = exercise.answerFields
                 .filter((field) => field.provenance === "modelInferred")
                 .map((field) => field.id);
               const confirmedCount = suggestionIds.filter((id) => confirmedSuggestions[id]).length;
               return (
                 <article
-                  className={`exercise-card clickable-exercise${isExpanded ? " is-expanded" : ""}${exerciseIssues.some((issue) => issue.id === selectedIssueId) ? " is-selected" : ""}`}
+                  className={`exercise-card clickable-exercise${isExpanded ? " is-expanded" : ""}${
+                    exerciseIssueState.severity
+                      ? ` has-validation-issue issue-${exerciseIssueState.severity}`
+                      : ""
+                  }`}
+                  data-validation-severity={exerciseIssueState.severity ?? undefined}
                   id={`exercise-${exercise.id}`}
                   key={exercise.id}
                 >
@@ -209,21 +394,21 @@ export function ExerciseDraftEditor({
                     aria-controls={`exercise-body-${exercise.id}`}
                     onClick={() => {
                       setSelectedExerciseId(isExpanded ? null : exercise.id);
-                      const issue = exerciseIssues[0];
-                      if (issue) onIssueSelect(issue);
                     }}
                   >
                     <span className="exercise-number">{exercise.ordinal}</span>
                     <span className="exercise-toggle-copy">
                       <strong>{exercise.prompt || "Задание без формулировки"}</strong>
                       <small>
-                        {suggestionIds.length > 0
-                          ? `ИИ-ответы: ${String(confirmedCount)}/${String(suggestionIds.length)}`
-                          : exercise.answerFields.every(
-                                (field) => field.reviewStatus === "verified"
-                              )
-                            ? "Ответ проверен"
-                            : "Требует ответа"}
+                        {exerciseIssueState.issues[0]
+                          ? `Проблема: ${issueMessage(exerciseIssueState.issues[0])}`
+                          : suggestionIds.length > 0
+                            ? `ИИ-ответы: ${String(confirmedCount)}/${String(suggestionIds.length)}`
+                            : exercise.answerFields.every(
+                                  (field) => field.reviewStatus === "verified"
+                                )
+                              ? "Ответ проверен"
+                              : "Требует ответа"}
                       </small>
                     </span>
                     <span className="exercise-toggle-icon" aria-hidden="true">
@@ -232,6 +417,23 @@ export function ExerciseDraftEditor({
                   </button>
                   {isExpanded ? (
                     <div className="exercise-card-body" id={`exercise-body-${exercise.id}`}>
+                      {exerciseIssueState.issues.length > 0 ? (
+                        <div
+                          className={`inline-validation-message issue-${exerciseIssueState.severity ?? "info"}`}
+                          role={exerciseIssueState.severity === "blocking" ? "alert" : "status"}
+                        >
+                          <strong>
+                            {exerciseIssueState.severity === "blocking"
+                              ? "Нужно исправить перед публикацией"
+                              : "Проверьте этот элемент"}
+                          </strong>
+                          <ul>
+                            {exerciseIssueState.issues.map((issue) => (
+                              <li key={issue.id}>{issueMessage(issue)}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
                       <label className="exercise-text-editor">
                         <span>Формулировка</span>
                         <textarea
@@ -253,87 +455,126 @@ export function ExerciseDraftEditor({
                       </label>
                       {exercise.options.length > 0 ? (
                         <div className="exercise-options-editor">
-                          {exercise.options.map((option) => (
-                            <label key={option.id}>
-                              <span>{option.ordinal}</span>
-                              <input
-                                value={
-                                  exerciseEdits[exercise.id]?.options[option.id] ?? option.value
+                          {exercise.options.map((option) => {
+                            const optionIssueState = getEntityIssueState(visibleIssues, [
+                              option.id
+                            ]);
+                            return (
+                              <label
+                                className={
+                                  optionIssueState.severity
+                                    ? `invalid-option issue-${optionIssueState.severity}`
+                                    : undefined
                                 }
-                                onChange={(event) => {
-                                  setExerciseEdits((current) => ({
-                                    ...current,
-                                    [exercise.id]: {
-                                      prompt: current[exercise.id]?.prompt ?? exercise.prompt,
-                                      options: {
-                                        ...Object.fromEntries(
-                                          exercise.options.map((item) => [item.id, item.value])
-                                        ),
-                                        ...current[exercise.id]?.options,
-                                        [option.id]: event.target.value
+                                key={option.id}
+                              >
+                                <span>{option.ordinal}</span>
+                                <input
+                                  aria-invalid={optionIssueState.severity === "blocking"}
+                                  value={
+                                    exerciseEdits[exercise.id]?.options[option.id] ?? option.value
+                                  }
+                                  onChange={(event) => {
+                                    setExerciseEdits((current) => ({
+                                      ...current,
+                                      [exercise.id]: {
+                                        prompt: current[exercise.id]?.prompt ?? exercise.prompt,
+                                        options: {
+                                          ...Object.fromEntries(
+                                            exercise.options.map((item) => [item.id, item.value])
+                                          ),
+                                          ...current[exercise.id]?.options,
+                                          [option.id]: event.target.value
+                                        }
                                       }
-                                    }
-                                  }));
-                                }}
-                              />
-                            </label>
-                          ))}
+                                    }));
+                                  }}
+                                />
+                              </label>
+                            );
+                          })}
                         </div>
                       ) : null}
                       <div className="exercise-meta">
                         <span className="provenance-badge">Источник привязан</span>
                         <span>{interactionLabel(exercise.interactionKind)}</span>
                       </div>
+                      <button
+                        className="secondary-link compact-action exercise-delete"
+                        type="button"
+                        onClick={() => {
+                          setExerciseDeletes((current) =>
+                            current.includes(exercise.id)
+                              ? current.filter((id) => id !== exercise.id)
+                              : [...current, exercise.id]
+                          );
+                        }}
+                      >
+                        {exerciseDeletes.includes(exercise.id)
+                          ? "Отменить удаление"
+                          : "Удалить задание"}
+                      </button>
                       <div className="answer-fields">
-                        {exercise.answerFields.map((field, index) => (
-                          <div className="answer-editor" key={field.id}>
-                            <label>
-                              <span>
-                                Правильный ответ
-                                {exercise.answerFields.length > 1 ? ` ${String(index + 1)}` : ""}
-                                {field.provenance === "modelInferred" ? (
-                                  <em className="model-suggestion-badge">
-                                    ИИ-подсказка
-                                    {field.confidence != null
-                                      ? ` · ${String(Math.round(field.confidence * 100))}%`
-                                      : ""}
-                                  </em>
-                                ) : null}
-                              </span>
-                              <input
-                                value={answers[field.id] ?? field.acceptedValues.join(" | ")}
-                                placeholder="Введите проверенный ответ"
-                                onChange={(event) => {
-                                  setAnswers((current) => ({
-                                    ...current,
-                                    [field.id]: event.target.value
-                                  }));
-                                }}
-                              />
-                            </label>
-                            {field.provenance === "modelInferred" ? (
-                              <label className="answer-confirmation">
+                        {exercise.answerFields.map((field, index) => {
+                          const fieldIssueState = getEntityIssueState(visibleIssues, [field.id]);
+                          return (
+                            <div
+                              className={`answer-editor${
+                                fieldIssueState.severity
+                                  ? ` has-validation-issue issue-${fieldIssueState.severity}`
+                                  : ""
+                              }`}
+                              key={field.id}
+                            >
+                              <label>
+                                <span>
+                                  Правильный ответ
+                                  {exercise.answerFields.length > 1 ? ` ${String(index + 1)}` : ""}
+                                  {field.provenance === "modelInferred" ? (
+                                    <em className="model-suggestion-badge">
+                                      ИИ-подсказка
+                                      {field.confidence != null
+                                        ? ` · ${String(Math.round(field.confidence * 100))}%`
+                                        : ""}
+                                    </em>
+                                  ) : null}
+                                </span>
                                 <input
-                                  type="checkbox"
-                                  checked={confirmedSuggestions[field.id] ?? false}
+                                  aria-invalid={fieldIssueState.severity === "blocking"}
+                                  value={answers[field.id] ?? field.acceptedValues.join(" | ")}
+                                  placeholder="Введите проверенный ответ"
                                   onChange={(event) => {
-                                    setConfirmedSuggestions((current) => ({
+                                    setAnswers((current) => ({
                                       ...current,
-                                      [field.id]: event.target.checked
+                                      [field.id]: event.target.value
                                     }));
                                   }}
                                 />
-                                Подтверждаю предложенный правильный ответ
                               </label>
-                            ) : (
-                              <small>
-                                {field.provenance === "teacherSupplied"
-                                  ? "Сохранено как ответ преподавателя"
-                                  : "Можно исправить; изменение сохранится как teacherSupplied"}
-                              </small>
-                            )}
-                          </div>
-                        ))}
+                              {field.provenance === "modelInferred" ? (
+                                <label className="answer-confirmation">
+                                  <input
+                                    type="checkbox"
+                                    checked={confirmedSuggestions[field.id] ?? false}
+                                    onChange={(event) => {
+                                      setConfirmedSuggestions((current) => ({
+                                        ...current,
+                                        [field.id]: event.target.checked
+                                      }));
+                                    }}
+                                  />
+                                  Подтверждаю предложенный правильный ответ
+                                </label>
+                              ) : (
+                                <small>
+                                  {field.provenance === "teacherSupplied"
+                                    ? "Сохранено как ответ преподавателя"
+                                    : "Можно исправить; изменение сохранится как teacherSupplied"}
+                                </small>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                       {suggestionIds.length > confirmedCount ? (
                         <button
@@ -387,6 +628,7 @@ function interactionLabel(
     wordOrder: "Порядок слов",
     bracketGap: "Заполнение пропуска",
     oddOneOut: "Лишнее слово",
-    wordBankGap: "Банк слов"
+    wordBankGap: "Банк слов",
+    inlineGap: "Пропуски в тексте"
   }[kind];
 }

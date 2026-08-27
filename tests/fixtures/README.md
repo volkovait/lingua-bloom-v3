@@ -12,12 +12,39 @@ NOT normalize or overwrite the source files in this directory.
 - No publisher answer key is present on the supplied page. `tests/golden/1_page.expected.json`
   contains answers curated from standard English norms, marked `needsReview` until human approval.
 
+## `sources/articles_4_pages.pdf`
+
+- Four landscape pages with article-insertion exercises 48-58.
+- Exercise 48 begins before the supplied pages and is expected as a separate partial group.
+- Exercises 52, 53, 56 and 57 test cross-column or cross-page continuation stitching.
+- Six reference-information blocks must preserve every source text-layer line without normalization.
+- The golden manifest fixes 11 groups, 36 answerable items and 369 answer fields.
+
+## `sources/reading_text_questions_4_pages.pdf`
+
+- Four portrait pages with two reading passages, a linked one-word gap exercise and a separate
+  multiple-choice exercise.
+- Both reading passages are preserved line-for-line as reference blocks and linked as evidence for
+  exercises 5 and 6, including the passage that follows its questions on the next PDF page.
+- Both exercise groups are complete and must not produce `SOURCE_TRUNCATED`.
+- Worked examples numbered 0 are preserved in the source PDF but are not student answer fields.
+- The golden manifest fixes 2 groups, 8 answerable items, 8 answer fields and 2 reference blocks.
+
+## `sources/reading_text_questions_missing_passage_3_pages.pdf`
+
+- Negative edge fixture derived from the previously incomplete reading upload; it is not a release
+  golden and is intentionally absent from `fixtures.json`.
+- Exercise 6 questions are present, but their `My favourite place` passage is absent.
+- Extraction must retain the source questions only in a `partial` group, emit a blocking
+  `SOURCE_TRUNCATED`, and prevent the group from becoming publishable until it is excluded.
+
 ## `sources/raw.txt`
 
 - Pasted text with line wraps and split words.
 - 18 numbered items.
 - 29 verb expressions in parentheses, including two expressions split across line breaks.
-- 4 explicit short-answer ellipses, for 33 answer fields in total.
+- Dialogue ellipses remain source context and do not become answer fields in a `bracketGap` group;
+  the fixture therefore has 29 answer fields in total.
 - `tests/golden/raw.expected.json` contains grammar-based answers marked `needsReview` until human
   approval.
 - Item 18 is intentionally truncated and must produce `SOURCE_TRUNCATED`; the pipeline must not

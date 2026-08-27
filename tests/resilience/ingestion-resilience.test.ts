@@ -19,6 +19,23 @@ describe("ingestion resilience release matrix", () => {
     expect(workflow).toContain('last_successful_checkpoint: "assemble-draft"');
   });
 
+  test("treats the optional model step as atomic best-effort enrichment", async () => {
+    const workflow = await read("apps/web/src/inngest/reliable-ingestion.ts");
+    expect(workflow).toContain("Answer suggestions were skipped");
+    expect(workflow).toContain("modelSuggestionOutcome: modelOutcome");
+    expect(workflow).toContain("outcome: modelOutcome");
+    expect(workflow).toContain('"model-answer-suggestions-skipped"');
+    const modelCall = workflow.indexOf("suggestUnverifiedAnswersWithTelemetry({");
+    const fallbackStart = workflow.indexOf("} catch (error) {", modelCall);
+    const fallbackEnd = workflow.indexOf("} else {", fallbackStart);
+    const fallback = workflow.slice(fallbackStart, fallbackEnd);
+    const draftInsert = workflow.indexOf('.from("lesson_drafts").insert');
+    expect(fallbackStart).toBeGreaterThan(modelCall);
+    expect(fallback).not.toContain("await failRun");
+    expect(fallback).not.toContain('return { status: "failed"');
+    expect(draftInsert).toBeGreaterThan(fallbackEnd);
+  });
+
   test("duplicate events are harmless and event order remains monotonic", async () => {
     const workflow = await read("apps/web/src/inngest/reliable-ingestion.ts");
     expect(workflow).toContain('order("sequence", { ascending: false })');

@@ -86,7 +86,9 @@
       "exerciseNumber": 5,
       "title": "Complete the sentences with the words in the box.",
       "interactionKind": "wordBankGap",
-      "optionCountPerItem": 7,
+      "optionCountPerItem": 0,
+      "sharedResourceCount": 1,
+      "sharedResourceEntryCount": 7,
       "items": [
         { "itemNumber": 1, "acceptedValues": ["oranges"] },
         { "itemNumber": 2, "acceptedValues": ["rice"] },

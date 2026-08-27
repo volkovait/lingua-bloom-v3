@@ -7,8 +7,10 @@ import { describe, expect, test } from "vitest";
 import { LessonSpecSchema } from "./lesson-spec";
 
 describe("schema 1.0.0 compatibility", () => {
-  test("continues to parse the committed baseline", () => {
-    expect(LessonSpecSchema.parse(fixture).schemaVersion).toBe("1.0.0");
+  test("continues to read the committed baseline and normalizes it in memory", () => {
+    const parsed = LessonSpecSchema.parse(fixture);
+    expect(parsed.schemaVersion).toBe("1.1.0");
+    expect(parsed.groups.every((group) => group.sharedResources != null)).toBe(true);
   });
 });
 

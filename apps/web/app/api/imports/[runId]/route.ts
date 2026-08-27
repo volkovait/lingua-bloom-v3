@@ -93,7 +93,10 @@ export async function GET(
       throw new Error("Failed to load import workspace");
     }
     const source = SourceRowSchema.parse(sourceResult.data);
-    const signed = await supabase.storage.from("sources").createSignedUrl(source.storage_ref, 3600);
+    const signed =
+      source.kind === "pdf"
+        ? await supabase.storage.from("sources").createSignedUrl(source.storage_ref, 3600)
+        : null;
     const draftRow = DraftRowSchema.parse(draftResult.data);
     const recovery = getStaleRunRecovery({
       status: run.status,
@@ -128,7 +131,7 @@ export async function GET(
         id: source.id,
         title: source.title,
         kind: source.kind,
-        signedUrl: signed.data?.signedUrl ?? null
+        signedUrl: signed?.data?.signedUrl ?? null
       },
       draft: draftRow
         ? {

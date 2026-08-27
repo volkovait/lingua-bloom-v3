@@ -12,8 +12,8 @@
   "summary": {
     "numberedItemCount": 18,
     "bracketExpressionCount": 29,
-    "explicitShortAnswerCount": 4,
-    "answerFieldCount": 33,
+    "contextualDialogueEllipsisCount": 4,
+    "answerFieldCount": 29,
     "requiredWarnings": ["SOURCE_TRUNCATED"],
     "generatedContinuationCount": 0
   },
@@ -39,7 +39,6 @@
       "itemNumber": 3,
       "answerFields": [
         { "kind": "bracket", "sourceVerb": "to come", "acceptedValues": ["Did you come"] },
-        { "kind": "bracket", "sourceMarker": "No, I ... .", "acceptedValues": ["didn't", "did not"] },
         { "kind": "bracket", "sourceVerb": "to come", "acceptedValues": ["came"] },
         { "kind": "bracket", "sourceVerb": "to be", "acceptedValues": ["was"] },
         { "kind": "bracket", "sourceVerb": "to have", "acceptedValues": ["had"] },
@@ -107,7 +106,6 @@
       "itemNumber": 12,
       "answerFields": [
         { "kind": "bracket", "sourceVerb": "to talk", "acceptedValues": ["Do you talk"] },
-        { "kind": "bracket", "sourceMarker": "Yes, I ... .", "acceptedValues": ["do"] },
         { "kind": "bracket", "sourceVerb": "not to talk", "acceptedValues": ["didn't talk", "did not talk"] },
         { "kind": "bracket", "sourceVerb": "to be", "acceptedValues": ["was"] }
       ]
@@ -115,8 +113,7 @@
     {
       "itemNumber": 13,
       "answerFields": [
-        { "kind": "bracket", "sourceVerb": "to go", "acceptedValues": ["Does your sister go"] },
-        { "kind": "bracket", "sourceMarker": "Yes, she ... .", "acceptedValues": ["does"] }
+        { "kind": "bracket", "sourceVerb": "to go", "acceptedValues": ["Does your sister go"] }
       ]
     },
     {
@@ -145,8 +142,7 @@
     {
       "itemNumber": 17,
       "answerFields": [
-        { "kind": "bracket", "sourceVerb": "to wear", "acceptedValues": ["Did you wear"] },
-        { "kind": "bracket", "sourceMarker": "Yes, I ... .", "acceptedValues": ["did"] },
+        { "kind": "bracket", "sourceVerb": "to wear", "acceptedValues": ["Do you wear"] },
         { "kind": "bracket", "sourceVerb": "to wear", "acceptedValues": ["wore"] }
       ]
     },

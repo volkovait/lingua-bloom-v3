@@ -6,6 +6,11 @@ import { expect, test } from "@playwright/test";
 
 const projectRoot = resolve(process.cwd(), "../..");
 
+test.skip(
+  process.env.AUTH_E2E_LIVE !== "1",
+  "Auth E2E requires an isolated server without fixture-mode auth bypass"
+);
+
 test("an unauthenticated teacher is redirected to the login page", async ({ page }) => {
   await page.goto("/imports/new");
   await expect(page).toHaveURL(/\/auth\/login\?next=%2Fimports%2Fnew$/);

@@ -4,6 +4,11 @@ export default defineConfig({
   test: {
     name: "web",
     environment: "node",
-    include: ["src/**/*.test.ts", "app/**/*.test.ts", "tests/api/**/*.test.ts"]
+    include: [
+      "src/**/*.test.ts",
+      "app/**/*.test.ts",
+      "components/**/*.test.tsx",
+      "tests/api/**/*.test.ts"
+    ]
   }
 });

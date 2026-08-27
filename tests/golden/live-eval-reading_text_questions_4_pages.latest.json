@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0.0",
+  "fixture": "reading_text_questions_4_pages.pdf",
+  "expectedAnswerFields": 7,
+  "returnedAnswerFields": 7,
+  "correctAnswerFields": 7,
+  "answerAccuracy": 1,
+  "minimumAnswerAccuracy": 1,
+  "ambiguousFieldExcluded": true,
+  "passed": true,
+  "model": "gpt-5.4-mini",
+  "promptVersion": "answer-suggestions/1.2.0",
+  "completedAt": "2026-08-27T09:21:14.211Z"
+}

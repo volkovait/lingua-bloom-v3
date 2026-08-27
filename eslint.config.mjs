@@ -2,7 +2,7 @@ import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["**/.next/**", "**/dist/**", "**/coverage/**", "**/*.d.ts"] },
+  { ignores: ["**/.next/**", "**/.next-e2e/**", "**/dist/**", "**/coverage/**", "**/*.d.ts"] },
   eslint.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   {

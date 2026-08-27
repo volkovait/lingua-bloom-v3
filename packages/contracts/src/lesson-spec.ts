@@ -54,13 +54,48 @@ export const OptionSpecSchema = z
   })
   .strict();
 
+export const WordBankResourceSpecSchema = z
+  .object({
+    id: IdSchema,
+    ordinal: z.number().int().positive(),
+    kind: z.literal("wordBank"),
+    label: z.string().optional(),
+    entries: z.array(OptionSpecSchema).min(1),
+    usagePolicy: z.enum(["useOnce", "reusable", "unspecified"]),
+    provenance: ProvenanceLinkSchema
+  })
+  .strict();
+
+export const SharedExerciseResourceSpecSchema = z.discriminatedUnion("kind", [
+  WordBankResourceSpecSchema
+]);
+
 export const InteractionKindSchema = z.enum([
   "singleChoice",
   "wordOrder",
   "bracketGap",
   "oddOneOut",
-  "wordBankGap"
+  "wordBankGap",
+  "inlineGap"
 ]);
+
+export const ReferenceLineSpecSchema = z
+  .object({
+    id: IdSchema,
+    ordinal: z.number().int().positive(),
+    rawText: z.string(),
+    provenance: ProvenanceLinkSchema
+  })
+  .strict();
+
+export const ReferenceBlockSpecSchema = z
+  .object({
+    id: IdSchema,
+    ordinal: z.number().int().positive(),
+    sourceOrder: z.number().int().nonnegative(),
+    lines: z.array(ReferenceLineSpecSchema).min(1)
+  })
+  .strict();
 
 export const ExerciseSpecSchema = z
   .object({
@@ -69,16 +104,13 @@ export const ExerciseSpecSchema = z
     interactionKind: InteractionKindSchema,
     prompt: z.string(),
     provenance: ProvenanceLinkSchema,
+    sharedResourceId: IdSchema.optional(),
     options: z.array(OptionSpecSchema),
     answerFields: z.array(AnswerSpecSchema).min(1)
   })
   .strict()
   .superRefine((exercise, context) => {
-    const optionMinimum = ["singleChoice", "oddOneOut"].includes(exercise.interactionKind)
-      ? 2
-      : exercise.interactionKind === "wordBankGap"
-        ? 1
-        : 0;
+    const optionMinimum = ["singleChoice", "oddOneOut"].includes(exercise.interactionKind) ? 2 : 0;
     if (exercise.options.length < optionMinimum) {
       context.addIssue({
         code: "custom",
@@ -92,11 +124,31 @@ export const ExerciseGroupSchema = z
   .object({
     id: IdSchema,
     ordinal: z.number().int().positive(),
+    sourceOrder: z.number().int().nonnegative().optional(),
+    completeness: z.enum(["complete", "partial"]).optional(),
+    missingBoundary: z.enum(["start", "end", "both"]).optional(),
     instruction: z.string(),
     provenance: ProvenanceLinkSchema,
+    sharedResources: z.array(SharedExerciseResourceSpecSchema).optional(),
     exercises: z.array(ExerciseSpecSchema).min(1)
   })
-  .strict();
+  .strict()
+  .superRefine((group, context) => {
+    if (group.completeness === "partial" && group.missingBoundary == null) {
+      context.addIssue({
+        code: "custom",
+        path: ["missingBoundary"],
+        message: "partial groups require a missing boundary"
+      });
+    }
+    if (group.completeness !== "partial" && group.missingBoundary != null) {
+      context.addIssue({
+        code: "custom",
+        path: ["missingBoundary"],
+        message: "only partial groups may declare a missing boundary"
+      });
+    }
+  });
 
 export const PublishedValidationSchema = z
   .object({
@@ -107,19 +159,32 @@ export const PublishedValidationSchema = z
   })
   .strict();
 
-export const LessonSpecSchema = z
+const LessonSpecBaseSchema = z
   .object({
-    schemaVersion: z.literal("1.0.0"),
+    schemaVersion: z.enum(["1.0.0", "1.1.0"]),
     lessonId: IdSchema,
     version: z.number().int().positive(),
     title: z.string().min(1),
     sourceDocumentId: IdSchema,
     documentIrId: IdSchema,
     groups: z.array(ExerciseGroupSchema).min(1),
+    referenceBlocks: z.array(ReferenceBlockSpecSchema).optional(),
     validation: PublishedValidationSchema
   })
   .strict()
   .superRefine((lesson, context) => {
+    if (lesson.schemaVersion === "1.1.0") {
+      lesson.groups.forEach((group, index) => {
+        if (group.sharedResources == null) {
+          context.addIssue({
+            code: "custom",
+            path: ["groups", index, "sharedResources"],
+            message: "v1.1 groups require sharedResources"
+          });
+        }
+        validateV11WordBankGroup(group, index, context);
+      });
+    }
     for (const ref of collectSourceRefs(lesson)) {
       if (
         ref.sourceDocumentId !== lesson.sourceDocumentId ||
@@ -134,6 +199,107 @@ export const LessonSpecSchema = z
     }
   });
 
+function validateV11WordBankGroup(
+  group: z.infer<typeof ExerciseGroupSchema>,
+  groupIndex: number,
+  context: z.RefinementCtx
+) {
+  const resources = new Map(
+    (group.sharedResources ?? []).map((resource) => [resource.id, resource])
+  );
+  if (resources.size !== (group.sharedResources ?? []).length) {
+    context.addIssue({
+      code: "custom",
+      path: ["groups", groupIndex, "sharedResources"],
+      message: "resource IDs must be unique"
+    });
+  }
+  group.exercises.forEach((exercise, exerciseIndex) => {
+    const path = ["groups", groupIndex, "exercises", exerciseIndex] as const;
+    if (exercise.interactionKind === "wordBankGap") {
+      if (exercise.options.length > 0)
+        context.addIssue({
+          code: "custom",
+          path: [...path, "options"],
+          message: "wordBankGap local options must be empty"
+        });
+      if (
+        !exercise.sharedResourceId ||
+        resources.get(exercise.sharedResourceId)?.kind !== "wordBank"
+      )
+        context.addIssue({
+          code: "custom",
+          path: [...path, "sharedResourceId"],
+          message: "wordBankGap requires a group wordBank resource"
+        });
+    } else if (exercise.sharedResourceId != null)
+      context.addIssue({
+        code: "custom",
+        path: [...path, "sharedResourceId"],
+        message: "only wordBankGap may reference a word bank"
+      });
+  });
+}
+
+export const LessonSpecSchema = LessonSpecBaseSchema.transform((lesson) =>
+  lesson.schemaVersion === "1.0.0" ? normalizeLegacyLesson(lesson) : lesson
+);
+
+function normalizeLegacyLesson(lesson: z.infer<typeof LessonSpecBaseSchema>) {
+  return {
+    ...lesson,
+    schemaVersion: "1.1.0" as const,
+    groups: lesson.groups.map(normalizeLegacyGroup)
+  };
+}
+
+export function normalizeLegacyGroup(group: z.infer<typeof ExerciseGroupSchema>) {
+  const wordBankExercises = group.exercises.filter(
+    (exercise) => exercise.interactionKind === "wordBankGap"
+  );
+  if (wordBankExercises.length === 0)
+    return { ...group, sharedResources: group.sharedResources ?? [] };
+  const existing = group.sharedResources?.[0];
+  const resourceId = existing?.id ?? `${group.id}:shared:word-bank`;
+  const entries = existing?.entries ?? mergeLegacyWordBankEntries(wordBankExercises, resourceId);
+  return {
+    ...group,
+    sharedResources: existing
+      ? group.sharedResources
+      : [
+          {
+            id: resourceId,
+            ordinal: 1,
+            kind: "wordBank" as const,
+            label: "",
+            entries,
+            usagePolicy: "unspecified" as const,
+            provenance: group.provenance
+          }
+        ],
+    exercises: group.exercises.map((exercise) =>
+      exercise.interactionKind === "wordBankGap"
+        ? { ...exercise, sharedResourceId: resourceId, options: [] }
+        : exercise
+    )
+  };
+}
+
+export function mergeLegacyWordBankEntries(
+  exercises: readonly { readonly options: readonly z.infer<typeof OptionSpecSchema>[] }[],
+  resourceId: string
+) {
+  const entries = new Map<string, z.infer<typeof OptionSpecSchema>>();
+  for (const exercise of exercises)
+    for (const option of exercise.options)
+      if (!entries.has(option.value)) entries.set(option.value, option);
+  return [...entries.values()].map((option, entryIndex) => ({
+    ...option,
+    id: resourceId + ":entry:" + String(entryIndex + 1),
+    ordinal: entryIndex + 1
+  }));
+}
+
 function collectSourceRefs(lesson: z.infer<typeof LessonSpecSchema>): SourceRef[] {
   const refs: SourceRef[] = [];
   const add = (provenance: z.infer<typeof ProvenanceLinkSchema>) => {
@@ -141,11 +307,18 @@ function collectSourceRefs(lesson: z.infer<typeof LessonSpecSchema>): SourceRef[
   };
   for (const group of lesson.groups) {
     add(group.provenance);
+    for (const resource of group.sharedResources ?? []) {
+      add(resource.provenance);
+      for (const entry of resource.entries) add(entry.provenance);
+    }
     for (const exercise of group.exercises) {
       add(exercise.provenance);
       for (const option of exercise.options) add(option.provenance);
       for (const answer of exercise.answerFields) add(answer.evidence);
     }
+  }
+  for (const referenceBlock of lesson.referenceBlocks ?? []) {
+    for (const line of referenceBlock.lines) add(line.provenance);
   }
   return refs;
 }
@@ -153,3 +326,4 @@ function collectSourceRefs(lesson: z.infer<typeof LessonSpecSchema>): SourceRef[
 export type DraftAnswerRecord = z.infer<typeof DraftAnswerRecordSchema>;
 export type LessonSpec = z.infer<typeof LessonSpecSchema>;
 export type OptionSpec = z.infer<typeof OptionSpecSchema>;
+export type SharedExerciseResourceSpec = z.infer<typeof SharedExerciseResourceSpecSchema>;

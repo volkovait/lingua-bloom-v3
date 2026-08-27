@@ -42,4 +42,22 @@ describe("publish readiness gate migration", () => {
     expect(sql).toContain("v_reasons := v_reasons || '[\"answers remain unverified\"]'::jsonb");
     expect(sql).toContain("when jsonb_array_length(v_reasons) = 0 then 'ready_to_publish'");
   });
+
+  test("exercise exclusions resolve every linked issue before readiness is calculated", async () => {
+    const [sql, migrationRunner] = await Promise.all([
+      readFile(
+        resolve(process.cwd(), "supabase/migrations/0014_review_decision_issue_resolution.sql"),
+        "utf8"
+      ),
+      readFile(resolve(process.cwd(), "scripts/apply-pending-migrations.mjs"), "utf8")
+    ]);
+
+    expect(sql).toContain("new.payload->'resolvedIssueIds'");
+    expect(sql).toContain("vi.run_id = new.run_id");
+    expect(sql).toContain("vi.owner_id = new.owner_id");
+    expect(sql).toContain("vi.resolution = 'open'");
+    expect(sql).toContain("when new.payload->>'decision' = 'exclude' then 'acceptedRisk'");
+    expect(sql).toContain("after insert on public.review_decisions");
+    expect(migrationRunner).toContain("0014_review_decision_issue_resolution.sql");
+  });
 });

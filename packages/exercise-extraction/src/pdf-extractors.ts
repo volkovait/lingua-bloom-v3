@@ -1,3 +1,9 @@
+import { extractArticleInsertionPdf, isArticleInsertionDocument } from "./article-pdf-extractor";
+import {
+  extractReadingComprehensionPdf,
+  isReadingComprehensionDocument
+} from "./reading-comprehension-pdf-extractor";
+
 import type {
   CoverageReport,
   DocumentIR,
@@ -7,7 +13,7 @@ import type {
 } from "@lingua-bloom/contracts";
 
 export type PdfInteractionKind =
-  "singleChoice" | "wordOrder" | "bracketGap" | "oddOneOut" | "wordBankGap";
+  "singleChoice" | "wordOrder" | "bracketGap" | "oddOneOut" | "wordBankGap" | "inlineGap";
 
 export interface ExtractedPdfOption {
   readonly id: string;
@@ -31,21 +37,48 @@ export interface ExtractedPdfExercise {
   readonly prompt: string;
   readonly interactionKind: PdfInteractionKind;
   readonly sourceRefs: readonly SourceRef[];
+  readonly sharedResourceId?: string;
   readonly options: readonly ExtractedPdfOption[];
   readonly answerFields: readonly ExtractedPdfAnswerField[];
+}
+
+export interface ExtractedPdfSharedResource {
+  readonly id: string;
+  readonly ordinal: number;
+  readonly kind: "wordBank";
+  readonly entries: readonly ExtractedPdfOption[];
+  readonly usagePolicy: "useOnce" | "reusable" | "unspecified";
+  readonly sourceRefs: readonly SourceRef[];
 }
 
 export interface ExtractedPdfGroup {
   readonly id: string;
   readonly ordinal: number;
+  readonly sourceOrder?: number;
+  readonly completeness?: "complete" | "partial";
+  readonly missingBoundary?: "start" | "end" | "both";
   readonly instruction: string;
   readonly interactionKind: PdfInteractionKind;
   readonly sourceRefs: readonly SourceRef[];
+  readonly sharedResources?: readonly ExtractedPdfSharedResource[];
   readonly exercises: readonly ExtractedPdfExercise[];
+}
+
+export interface ExtractedPdfReferenceBlock {
+  readonly id: string;
+  readonly ordinal: number;
+  readonly sourceOrder: number;
+  readonly lines: readonly {
+    readonly id: string;
+    readonly ordinal: number;
+    readonly rawText: string;
+    readonly sourceRefs: readonly SourceRef[];
+  }[];
 }
 
 export interface PdfExtractionResult {
   readonly groups: readonly ExtractedPdfGroup[];
+  readonly referenceBlocks?: readonly ExtractedPdfReferenceBlock[];
   readonly issues: readonly ValidationIssue[];
   readonly coverage: CoverageReport;
 }
@@ -73,11 +106,16 @@ export function extractPdfExercises(
   document: DocumentIR,
   input: PdfExtractionInput
 ): PdfExtractionResult {
+  if (isReadingComprehensionDocument(document))
+    return extractReadingComprehensionPdf(document, input);
+  if (isArticleInsertionDocument(document)) return extractArticleInsertionPdf(document, input);
   const slices = sliceExerciseGroups(document.blocks);
   const groups = slices.flatMap((slice) => {
     const interactionKind = GROUP_KIND[slice.ordinal];
     if (!interactionKind) return [];
     const exercises = extractGroupExercises(document, input.documentIrId, slice, interactionKind);
+    const wordBankEntries = interactionKind === "wordBankGap" ? (exercises[0]?.options ?? []) : [];
+    const sharedResourceId = `group:${String(slice.ordinal)}:shared:word-bank`;
     return [
       {
         id: `group:${String(slice.ordinal)}`,
@@ -87,7 +125,24 @@ export function extractPdfExercises(
         sourceRefs: slice.instructionBlocks.map((block) =>
           makeSourceRef(document, input.documentIrId, block)
         ),
-        exercises
+        sharedResources:
+          wordBankEntries.length > 0
+            ? [
+                {
+                  id: sharedResourceId,
+                  ordinal: 1,
+                  kind: "wordBank" as const,
+                  entries: wordBankEntries,
+                  usagePolicy: "unspecified" as const,
+                  sourceRefs: wordBankEntries.flatMap((entry) => entry.sourceRefs)
+                }
+              ]
+            : [],
+        exercises: exercises.map((exercise) =>
+          exercise.interactionKind === "wordBankGap"
+            ? { ...exercise, sharedResourceId, options: [] }
+            : exercise
+        )
       }
     ];
   });
@@ -174,6 +229,8 @@ function extractGroupExercises(
       return extractOddOneOut(document, documentIrId, slice);
     case "wordBankGap":
       return extractWordBankGaps(document, documentIrId, slice);
+    case "inlineGap":
+      return [];
   }
 }
 
