@@ -1,79 +1,433 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://lingua-bloom.local/schemas/student-lesson-spec/1-0-0",
+  "$id": "https://lingua-bloom.local/schemas/student-lesson-spec/1-1-0",
   "title": "StudentLessonSpec",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "publicLessonId", "version", "title", "groups"],
+  "required": [
+    "schemaVersion",
+    "publicLessonId",
+    "version",
+    "title",
+    "groups"
+  ],
   "properties": {
-    "schemaVersion": { "const": "1.0.0" },
+    "schemaVersion": {
+      "enum": [
+        "1.0.0",
+        "1.1.0"
+      ]
+    },
     "publicLessonId": {
       "type": "string",
       "minLength": 22,
       "pattern": "^[A-Za-z0-9_-]+$",
       "description": "URL-safe capability ID generated from at least 128 bits of CSPRNG entropy"
     },
-    "version": { "type": "integer", "minimum": 1 },
-    "title": { "type": "string", "minLength": 1 },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
     "groups": {
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/$defs/group" }
+      "items": {
+        "$ref": "#/$defs/group"
+      }
+    },
+    "referenceBlocks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/referenceBlock"
+      }
     }
   },
   "$defs": {
     "option": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "ordinal", "value"],
+      "required": [
+        "id",
+        "ordinal",
+        "value"
+      ],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "ordinal": { "type": "integer", "minimum": 1 },
-        "value": { "type": "string" }
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "value": {
+          "type": "string"
+        }
       }
     },
     "responseField": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "responseKind"],
+      "required": [
+        "id",
+        "responseKind"
+      ],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "responseKind": { "enum": ["choice", "text", "orderedTokens"] }
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "responseKind": {
+          "enum": [
+            "choice",
+            "text",
+            "orderedTokens"
+          ]
+        }
       }
     },
     "exercise": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "ordinal", "interactionKind", "prompt", "options", "responseFields"],
+      "required": [
+        "id",
+        "ordinal",
+        "interactionKind",
+        "prompt",
+        "options",
+        "responseFields"
+      ],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "ordinal": { "type": "integer", "minimum": 1 },
-        "interactionKind": {
-          "enum": ["singleChoice", "wordOrder", "bracketGap", "oddOneOut", "wordBankGap"]
+        "id": {
+          "type": "string",
+          "minLength": 1
         },
-        "prompt": { "type": "string" },
-        "options": { "type": "array", "items": { "$ref": "#/$defs/option" } },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "interactionKind": {
+          "enum": [
+            "singleChoice",
+            "wordOrder",
+            "bracketGap",
+            "oddOneOut",
+            "wordBankGap",
+            "inlineGap"
+          ]
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/option"
+          }
+        },
         "responseFields": {
           "type": "array",
           "minItems": 1,
-          "items": { "$ref": "#/$defs/responseField" }
+          "items": {
+            "$ref": "#/$defs/responseField"
+          }
+        },
+        "sharedResourceId": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
     "group": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "ordinal", "instruction", "exercises"],
+      "required": [
+        "id",
+        "ordinal",
+        "instruction",
+        "exercises"
+      ],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "ordinal": { "type": "integer", "minimum": 1 },
-        "instruction": { "type": "string" },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "instruction": {
+          "type": "string"
+        },
         "exercises": {
           "type": "array",
           "minItems": 1,
-          "items": { "$ref": "#/$defs/exercise" }
+          "items": {
+            "$ref": "#/$defs/exercise"
+          }
+        },
+        "sourceOrder": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "completeness": {
+          "enum": [
+            "complete",
+            "partial"
+          ]
+        },
+        "sharedResources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sharedResource"
+          }
+        },
+        "missingBoundary": {
+          "enum": [
+            "start",
+            "end",
+            "both"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "completeness": {
+                "const": "partial"
+              }
+            },
+            "required": [
+              "completeness"
+            ]
+          },
+          "then": {
+            "required": [
+              "missingBoundary"
+            ]
+          }
+        }
+      ]
+    },
+    "referenceLine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "ordinal",
+        "rawText"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "rawText": {
+          "type": "string"
+        }
+      }
+    },
+    "referenceBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "ordinal",
+        "sourceOrder",
+        "lines"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sourceOrder": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lines": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/referenceLine"
+          }
+        }
+      }
+    },
+    "sharedResource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "ordinal",
+        "kind",
+        "entries",
+        "usagePolicy"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "kind": {
+          "const": "wordBank"
+        },
+        "label": {
+          "type": "string"
+        },
+        "entries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/option"
+          }
+        },
+        "usagePolicy": {
+          "enum": [
+            "useOnce",
+            "reusable",
+            "unspecified"
+          ]
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "schemaVersion": {
+            "const": "1.1.0"
+          }
+        },
+        "required": [
+          "schemaVersion"
+        ]
+      },
+      "then": {
+        "properties": {
+          "groups": {
+            "items": {
+              "required": [
+                "sharedResources"
+              ],
+              "properties": {
+                "exercises": {
+                  "items": {
+                    "allOf": [
+                      {
+                        "if": {
+                          "properties": {
+                            "interactionKind": {
+                              "const": "wordBankGap"
+                            }
+                          },
+                          "required": [
+                            "interactionKind"
+                          ]
+                        },
+                        "then": {
+                          "required": [
+                            "sharedResourceId"
+                          ],
+                          "properties": {
+                            "options": {
+                              "maxItems": 0
+                            }
+                          }
+                        },
+                        "else": {
+                          "not": {
+                            "required": [
+                              "sharedResourceId"
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "schemaVersion": {
+            "const": "1.0.0"
+          }
+        },
+        "required": [
+          "schemaVersion"
+        ]
+      },
+      "then": {
+        "properties": {
+          "groups": {
+            "items": {
+              "not": {
+                "required": [
+                  "sharedResources"
+                ]
+              },
+              "properties": {
+                "exercises": {
+                  "items": {
+                    "allOf": [
+                      {
+                        "if": {
+                          "properties": {
+                            "interactionKind": {
+                              "const": "wordBankGap"
+                            }
+                          },
+                          "required": [
+                            "interactionKind"
+                          ]
+                        },
+                        "then": {
+                          "properties": {
+                            "options": {
+                              "minItems": 1
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "not": {
+                          "required": [
+                            "sharedResourceId"
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

@@ -73,8 +73,7 @@ The containing mutable draft has a monotonically increasing integer `revision`. 
 operation supplies `expectedRevision`; persistence compares and increments it atomically. A mismatch
 returns `DRAFT_VERSION_CONFLICT` and applies no part of the attempted mutation.
 
-Supported initial `interactionKind` values: `singleChoice`, `wordOrder`, `bracketGap`, `oddOneOut`,
-and `wordBankGap`.
+Supported interactionKind values include `singleChoice`, `wordOrder`, `bracketGap`, `oddOneOut`, `wordBankGap`, and `inlineGap`. `inlineGap` owns one ordered answer field per source ellipsis and is language-agnostic.
 
 Conditional invariant: `wordBankGap` requires a `sharedResourceId` resolving inside the same group to
 `kind = wordBank` and requires local `options` to be empty. Other current interaction kinds do not
@@ -86,6 +85,16 @@ Contains `id`, `ordinal`, `instruction`, provenance, ordered `sharedResources`, 
 `exercises`. A resource is rendered after the group instruction and before the first exercise that
 references it. Multiple exercises may reference one resource; copying the resource entries into each
 exercise is invalid.
+
+Exercise groups MAY also contain `sourceOrder`, `completeness = complete | partial`, and `missingBoundary = start | end | both`. `missingBoundary` is required only for partial groups. A continuation over page or column boundaries stays in one complete group when both logical boundaries are present.
+
+## ReferenceBlock
+
+A non-answerable ordered source component with `id`, `ordinal`, `sourceOrder`, and ordered lines. Every line contains stable `id`, `ordinal`, exact `rawText`, and source provenance in teacher and published contracts. Student projection retains only IDs, order, and exact raw text. Reference lines are never converted into exercises or counted as answer fields.
+
+## Teacher Exercise Mutations
+
+`exerciseCreates` targets an existing group and provides interaction kind, prompt, local options, and one or more answer values. The server generates stable IDs; prompt and options use the created ReviewDecision as provenance and answers are immediately `teacherSupplied` plus `verified`. `exerciseDeletes` targets an existing exercise, emits an `exclude` ReviewDecision, changes each covered candidate outcome from exercise to decision, resolves issues whose entity IDs were removed, and removes an empty group. A draft must retain at least one exercise. Both mutations are atomic under expected draft revision.
 
 ## SharedExerciseResource
 
@@ -120,6 +129,11 @@ word-bank entry is owned by its shared resource and MUST NOT be copied into exer
 Invariant: `verified` requires at least one accepted value. `sourceKey` requires `sourceRefs`;
 `teacherSupplied` requires `reviewDecisionIds`; `modelInferred` is never represented as a source fact.
 
+Text-entry grading сравнивает ввод со всеми `acceptedValues` через versioned subject adapter.
+English v1 нормализует Unicode/apostrophes, регистр, повторные пробелы, необязательную завершающую
+пунктуацию и документированные отрицательные contractions, но не меняет auxiliary, tense или word
+order. Версия policy фиксируется на уровне grading manifest, а не дублируется в каждом AnswerRecord.
+
 ## Published AnswerSpec
 
 Strict projection used only inside an immutable LessonSpec. `reviewStatus` is always `verified`,
@@ -133,7 +147,7 @@ Has stable `code`, severity (`info`, `warning`, `blocking`), affected entity IDs
 human-readable message, and resolution state. A blocking issue prevents publish.
 
 Initial codes include `SOURCE_TRUNCATED`, `CANDIDATE_UNMAPPED`, `UNSUPPORTED_ADDITION`,
-`ANSWER_UNVERIFIED`, `READING_ORDER_UNCERTAIN`, and `SOURCE_REF_MISSING`.
+`ANSWER_UNVERIFIED`, `ANSWER_AMBIGUOUS`, `READING_ORDER_UNCERTAIN`, and `SOURCE_REF_MISSING`.
 
 ## CoverageReport
 
@@ -249,6 +263,8 @@ DocumentIR 1 -> n SourceBlock
 DocumentIR 1 -> n ExerciseCandidate
 ExerciseCandidate n -> n ExerciseDraft
 ExerciseDraft 1 -> n AnswerRecord
+DocumentIR 1 -> n ReferenceBlock
+ExerciseGroup 0 -> n ReferenceBlock (ordered alongside by sourceOrder)
 PipelineRun 1 -> 1 CoverageReport
 PipelineRun 1 -> n ValidationIssue
 PipelineRun 1 -> n ReviewDecision

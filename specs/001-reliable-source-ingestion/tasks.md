@@ -12,6 +12,9 @@
 - **[Story]**: связь с US1–US4 из `spec.md`
 - **Stable IDs**: remediation tasks T093–T122 размещены в требуемых фазах без перенумерации уже
   существующих T001–T092; порядок выполнения определяется положением и зависимостями, а не номером.
+- **Roadmap rebaseline (2026-08-26)**: расширенная Phase 3 досрочно закрыла US3, US4 и release
+  hardening. Phase 5–7 ниже сохранены как исторический журнал выполненных задач; активная работа
+  feature 001 теперь состоит только из Phase 4A–4C для text import.
 
 ## Phase 1: Setup
 
@@ -94,7 +97,7 @@
 - [x] T100 [P] Добавить domain/OpenAPI contract tests для `failed/retriable`, `failed/terminal`, `manualResumeAllowed`, отсутствия `retrying`/`nextAttemptAt` и запрета resume для terminal failure в packages/domain/src/errors.test.ts и apps/web/tests/api/import-status.contract.test.ts
 - [x] T115 Реализовать `updatedAt`/structured recovery в status API, остановку stale polling, last-update/event-log UI и owner-only `POST /api/imports/{runId}/dispatch` с durable claim event ID
 - [x] T116 Добавить pinned Inngest CLI 1.43.0 и единый process-supervised `pnpm dev` для Next.js + Inngest
-- [ ] T117 Повторно выполнить `$speckit-analyze` для constitution → spec → plan → data model → OpenAPI → tasks → regression tests и устранить critical/high findings
+- [x] T117 Повторно выполнить `$speckit-analyze` для constitution → spec → plan → data model → OpenAPI → tasks → regression tests и устранить critical/high findings
 
 **Checkpoint**: Contracts запрещают unsafe states; auth/RLS/Storage изолируют teacher data; public
 lesson capability IDs, source persistence, assembly, coverage, observability и import endpoint готовы.
@@ -117,7 +120,7 @@ lesson capability IDs, source persistence, assembly, coverage, observability и 
 - [x] T044 [P] [US1] Добавить five-interaction extractor tests в packages/exercise-extraction/src/pdf-extractors.test.ts
 - [x] T045 [P] [US1] Добавить mixed-section, answer-key reconciliation и no-text-layer tests в packages/exercise-extraction/src/pdf-edge-cases.test.ts
 - [x] T046 [US1] Добавить full golden evaluation для `1_page.pdf` в packages/evals/src/fixtures/one-page.eval.test.ts
-- [ ] T119 [P] [US1] Добавить failing contract/golden/student-renderer tests для одного group-level wordBank
+- [x] T119 [P] [US1] Добавить failing contract/golden/student-renderer tests для одного group-level wordBank
   из 7 entries, 7 resource references, пустых item-local options, single render и отсутствия answer leakage
 
 ### Implementation for User Story 1
@@ -128,12 +131,37 @@ lesson capability IDs, source persistence, assembly, coverage, observability и 
 - [x] T050 [US1] Реализовать column-aware reading order в packages/document-ingestion/src/reading-order.ts
 - [x] T051 [US1] Реализовать PDF section classifier для instructions, exercises, examples и answer keys в packages/document-ingestion/src/pdf-section-classifier.ts
 - [x] T052 [US1] Реализовать five-interaction PDF extractors с addressable options в packages/exercise-extraction/src/pdf-extractors.ts
-- [ ] T120 [US1] Версионировать LessonSpec, ReviewDraft и StudentLessonSpec до 1.1.0: добавить
+- [x] T120 [US1] Версионировать LessonSpec, ReviewDraft и StudentLessonSpec до 1.1.0: добавить
   group.sharedResources discriminated union, wordBank entries/usagePolicy, sharedResourceId и v1.0 read compatibility
-- [ ] T121 [US1] Изменить PDF extraction, assembly и student projection: создавать один wordBank на
+- [x] T121 [US1] Изменить PDF extraction, assembly и student projection: создавать один wordBank на
   группу, сохранять provenance каждой entry и не копировать банк в options каждого wordBankGap item
-- [ ] T122 [US1] Обновить review editor и student renderer: показывать общий word bank один раз после
+- [x] T122 [US1] Обновить review editor и student renderer: показывать общий word bank один раз после
   инструкции и перед первым использующим item, сохраняя keyboard/mobile accessibility
+- [x] T123 [P] [US1] Добавить immutable `articles_4_pages.pdf`, human-labeled manifest и deterministic eval для 4 страниц, 11 групп, 36 items, 369 gaps, 6 reference blocks и partial boundary
+- [x] T124 [US1] Расширить v1.1 contracts: language-neutral `inlineGap`, ordered exact-raw `referenceBlocks`, group sourceOrder/completeness/missingBoundary и v1.0 read compatibility
+- [x] T125 [US1] Реализовать article-insertion extractor с section-aware reference classification, cross-column/cross-page continuation stitching и отдельной SOURCE_TRUNCATED partial group
+- [x] T126 [US4] Провести referenceBlocks через draft, lineage validation, immutable LessonSpec, student-safe projection и interleaved renderer без answer/provenance leakage
+- [x] T127 [US3] Добавить atomic exerciseCreates/exerciseDeletes review mutations с optimistic revision, append-only ReviewDecision, teacherSupplied answers, coverage decision outcome и final-item guard
+- [x] T128 [US3] Сохранить exact reference blocks во внутреннем draft/student flow без отдельной review-секции; добавить partial label и доступных add/delete exercise controls
+- [x] T129 [P] Выполнить full regression, typecheck, lint и build для multipage fixture и teacher mutations
+- [x] T130 [P] [US1] Добавить immutable `reading_text_questions_4_pages.pdf`, human-labeled manifest
+  и deterministic eval для 2 reading passages, 2 complete-групп, 8 items, 8 answer fields и example ordinal 0
+- [x] T131 [US1] Реализовать reading-comprehension extractor с exact passage references,
+  question-to-passage lineage в обоих направлениях по страницам, tab/column-aware A/B options и
+  blocking `SOURCE_TRUNCATED` только для вопросов без исходного текста во всём документе
+- [x] T132 [US3] Добавить migration 0014: атомарно закрывать принадлежащие текущему run
+  `resolvedIssueIds` из add/delete review decisions до вычисления publication readiness
+- [x] T133 [US3] Разбить model suggestions на bounded requests максимум по 64 answer fields с timeout 60 секунд, concurrency 2, aggregate telemetry и исключением `ANSWER_AMBIGUOUS`; покрыть oversized и teacher-only regression tests
+- [x] T134 [US1] Нормализовать несовпадающие legacy 1.0 local word-bank options в стабильное объединение с exact-value deduplication и проверить framed single rendering перед группой
+- [x] T135 [US3] Сделать optional model suggestions атомарным best-effort enrichment: при 402/HTTP, timeout или incomplete/invalid output отбрасывать весь набор, сохранять deterministic draft с `needsReview` и записывать redacted failed outcome без перевода run в `failed`
+- [x] T136 [P] [US1] Повысить versioned PDF parser до 1.1.0, записывать эту версию в GenerationManifest и зафиксировать version-pinned deterministic regression после изменения reading association
+- [x] T137 [P] [US1] Сохранить прежний неполный 3-page reading PDF как отдельный negative fixture и доказать regression-тестом partial group, blocking `SOURCE_TRUNCATED` и отсутствие произвольной passage association
+- [x] T141 [P] [US1] Добавить deterministic ambiguous-passage regression: при нескольких
+  совместимых reading headings не выбирать первый, создать blocking `READING_ORDER_UNCERTAIN` и
+  оставить question group partial без произвольного reference link
+- [x] T138 [US3] Повторно выполнить independent live gates SC-017 и SC-023; для reading получить 7/7 model-eligible answers, исключить ambiguous teacherOnly field и только после PASS продвинуть baseline
+- [x] T139 [US1] Через реальный upload UI импортировать и опубликовать `reading_text_questions_4_pages.pdf`, зафиксировать fresh run/public URL и обновить browser validation evidence без fixture-mode подмены
+- [x] T140 Повторно выполнить quickstart и `$speckit-analyze`; закрыть T117 только при отсутствии CRITICAL/HIGH и успешных T138–T139
 - [x] T053 [US1] Реализовать answer-key extractor, mapping и conflict issues в packages/exercise-extraction/src/answer-key-extractor.ts
 - [x] T054 [US1] Реализовать `OCR_REQUIRED` и low-confidence review issues в packages/document-ingestion/src/pdf-text-layer-policy.ts
 - [x] T105 [US1] Закрыть auth UI gap: добавить email/password и Google login, sign-up, callback,
@@ -149,9 +177,10 @@ lesson capability IDs, source persistence, assembly, coverage, observability и 
 
 ---
 
-## Phase 4: User Story 2 — Точный перенос вставленного текста (Priority: P1)
+## Phase 4A: User Story 2 — Deterministic text core (Priority: P4 — follow-up)
 
-**Goal**: Из `raw.txt` получить 18 numbered items, 29 bracket gaps, 4 short answers и `SOURCE_TRUNCATED` без
+**Goal**: Из `raw.txt` получить 18 numbered items, ровно 29 bracket gaps, 0 полей из контекстных
+диалоговых многоточий и `SOURCE_TRUNCATED` без
 дописывания исходника.
 
 **Independent Test**: Текст отправляется через тот же import UI/API; golden eval подтверждает counts,
@@ -159,56 +188,115 @@ raw/normalized links и warning для оборванного пункта 18.
 
 ### Tests for User Story 2
 
-- [ ] T055 [P] [US2] Проверить golden manifest для 18 пунктов, 29 gaps, 4 short answers и truncation в tests/golden/raw.expected.json
-- [ ] T056 [P] [US2] Добавить authenticated text import browser test в apps/web/tests/e2e/create-text-import.spec.ts
-- [ ] T057 [P] [US2] Добавить whitespace, line-break и split-word property tests в packages/document-ingestion/src/text-normalizer.property.test.ts
-- [ ] T058 [P] [US2] Добавить truncation, multi-gap и text-section tests в packages/exercise-extraction/src/bracket-gap-extractor.test.ts
+- [x] T055 [P] [US2] Проверить golden manifest для 18 пунктов, 29 bracket gaps, 0 полей из
+  контекстных диалоговых многоточий и truncation в tests/golden/raw.expected.json
+- [x] T057 [P] [US2] Добавить whitespace, line-break и split-word property tests в packages/document-ingestion/src/text-normalizer.property.test.ts
+- [x] T058 [P] [US2] Добавить truncation, multi-gap и text-section tests в packages/exercise-extraction/src/bracket-gap-extractor.test.ts
 
 ### Implementation for User Story 2
 
-- [ ] T059 [US2] Реализовать raw-preserving text DocumentIR builder в packages/document-ingestion/src/text-to-ir.ts
-- [ ] T060 [US2] Реализовать reversible normalization spans в packages/document-ingestion/src/text-normalizer.ts
-- [ ] T061 [US2] Реализовать text section classification в packages/document-ingestion/src/text-section-classifier.ts
-- [ ] T062 [US2] Реализовать numbering и multi-gap extraction в packages/exercise-extraction/src/bracket-gap-extractor.ts
-- [ ] T063 [US2] Реализовать deterministic truncation detector в packages/exercise-extraction/src/truncation-detector.ts
-- [ ] T064 [US2] Добавить full golden evaluation для `raw.txt` в packages/evals/src/fixtures/raw-text.eval.test.ts
+- [x] T059 [US2] Реализовать raw-preserving text DocumentIR builder в packages/document-ingestion/src/text-to-ir.ts
+- [x] T060 [US2] Реализовать reversible normalization spans в packages/document-ingestion/src/text-normalizer.ts
+- [x] T061 [US2] Реализовать text section classification в packages/document-ingestion/src/text-section-classifier.ts
+- [x] T062 [US2] Реализовать numbering и multi-gap extraction в packages/exercise-extraction/src/bracket-gap-extractor.ts
+- [x] T063 [US2] Реализовать deterministic truncation detector в packages/exercise-extraction/src/truncation-detector.ts
+- [x] T064 [US2] Добавить full golden evaluation для `raw.txt` в packages/evals/src/fixtures/raw-text.eval.test.ts
 
 **Checkpoint**: Text fixture проходит offline; shared SourceRepository/assembler/coverage services не
 зависят от US1; обрыв не восстанавливается.
 
 ---
 
-## Phase 5: User Story 3 — Проверка спорных элементов учителем (Priority: P2)
+## Phase 4B: User Story 2 — Text workflow and review integration
 
-**Goal**: Учитель видит source/draft/issues, подтверждает ответы и не может обойти blocking gate.
+**Goal**: Провести text source через уже реализованные ingestion, review и publish capabilities без
+отдельного workflow и без PDF-specific предположений в общем коде.
 
-**Independent Test**: Playwright journey открывает issue не более чем за два действия, подсвечивает
-source ref, сохраняет teacher decision, возобновляет run и блокирует publish при оставшейся ошибке.
+- [x] T142 [P] [US2] Добавить integration contract для полного text artifact lifecycle до
+  draft/review/publish в tests/integration/text-import-workflow.test.ts, включая provenance,
+  canonical readiness и отсутствие второго workflow engine
+- [x] T143 [US2] Подключить text DocumentIR builder, classifier и extractors к существующей ветке
+  apps/web/src/inngest/reliable-ingestion.ts; переиспользовать import limits, assembler, coverage,
+  optional best-effort suggestions, checkpoints и manifest с version-pinned text parser
+- [x] T144 [P] [US2] Добавить raw-text mode и tests в apps/web/components/review/source-viewer.tsx:
+  показывать неизменённый вставленный текст рядом с editor, не создавать PDF URL и не выводить
+  отдельные внутренние blocks/issues/workflow panels
+- [x] T150 [P] [US3] Добавить entity-scoped severity highlighting для open issues в review editor:
+  exercise/option/answer styles, inline teacher-facing explanation, `aria-invalid`, resolved-after-
+  reload behavior и component/browser regression без отдельной issue-list панели
+- [x] T151 [P] [US2] Исправить teacher-verified answer задания 17 (`Do you wear`) и добавить
+  versioned English text-answer normalizer с unit/golden regressions для case-insensitive question
+  forms, whitespace, terminal punctuation, contractions и отрицательных tense/order cases
+- [x] T153 [P] [US2] Не создавать short-answer fields из контекстных диалоговых многоточий в
+  `bracketGap`; зафиксировать 29 total fields и ровно 2 fields задания 17 в extractor/golden tests
+- [x] T152 [P] [US3] Немедленно снимать `ANSWER_UNVERIFIED` severity highlighting с answer field и
+  exercise card после локального подтверждения, восстанавливать при отмене и не скрывать другие
+  blocking issues; покрыть policy unit regression
+- [x] T154 [US2] Закрывать привязанный `SOURCE_TRUNCATED` при сохранении дополненной учителем
+  формулировки упражнения, не закрывая остальные issues; покрыть regression unit test
+**Checkpoint**: Text source проходит тот же durable lifecycle и тот же canonical publish gate, что
+PDF; различаются только source adapter/extractors и режим source preview.
+
+---
+
+## Phase 4C: User Story 2 — Text release validation
+
+**Goal**: Закрыть US2 доказательствами совместимости, безопасности и эксплуатационной готовности.
+
+- [x] T145 [US2] Проверить text add/edit/delete, teacherSupplied answers, optimistic revision,
+  reload persistence и publish readiness в apps/web/tests/e2e/review-text-import.spec.ts
+- [x] T056 [US2] Добавить authenticated browser journey paste → processing → draft → review →
+  publish → anonymous public lesson в apps/web/tests/e2e/create-text-import.spec.ts
+- [x] T146 [P] [US2] Добавить text failure/recovery regression для stale dispatch, manual resume,
+  duplicate event и no-auto-retry в tests/resilience/text-ingestion-resilience.test.ts
+- [x] T147 [P] [US2] Добавить text tenant-isolation, input-boundary, prompt-injection и student answer
+  leakage cases в tests/security/text-import-security.test.ts
+- [x] T148 [US2] Запустить full unit/contract/integration/e2e suite и обновить
+  specs/001-reliable-source-ingestion/validation-report.md свежими `raw.txt` golden, real browser
+  publication и public-page evidence
+- [x] T149 [US2] Повторно выполнить specs/001-reliable-source-ingestion/quickstart.md и
+  `$speckit-analyze`; закрыть US2 только при отсутствии CRITICAL/HIGH и прохождении T055–T064,
+  T142–T148 и T150–T154
+
+**Checkpoint**: PDF regression остаётся зелёной, text import опубликован через реальный UI, а
+feature 001 полностью закрывает оба заявленных source kind.
+
+---
+
+## Historical delivery ledger: User Story 3 — Проверка спорных элементов учителем (delivered in Phase 3)
+
+**Goal**: Учитель видит PDF preview и редактор распарсенных заданий, подтверждает ответы и не может
+обойти blocking gate; внутренние blocks/issues не занимают отдельные панели review UI.
+
+**Independent Test**: Playwright journey подтверждает двухпанельный PDF/editor layout без списков
+blocks/issues/workflow, сохраняет edit/add/delete teacher decisions, возобновляет run и блокирует
+publish при оставшейся внутренней ошибке.
 
 ### Tests for User Story 3
 
 - [x] T065 [P] [US3] Добавить exhaustive blocked, failed/retriable и failed/terminal status, exact `DRAFT_VERSION_CONFLICT`, review и ownership API contract tests без `retrying` в apps/web/tests/api/import-review.contract.test.ts
 - [x] T066 [P] [US3] Добавить wait-for-review, manual failure resume, ordered-events, stale concurrent write и duplicate-review tests в tests/integration/review-workflow.test.ts
-- [x] T067 [P] [US3] Добавить two-action navigation, keyboard, mobile и recovery Playwright tests в apps/web/tests/e2e/review-import.spec.ts
+- [x] T067 [P] [US3] Добавить PDF/editor-only layout, отсутствие blocks/issues/workflow listings, keyboard, mobile и recovery Playwright tests в apps/web/tests/e2e/review-import.spec.ts
 
 ### Implementation for User Story 3
 
 - [x] T068 [US3] Реализовать durable ingestion workflow с explicit blocked, failed/retriable и failed/terminal transitions, persisted checkpoints/events, manifest, wait-for-review и без automatic retry в apps/web/src/inngest/reliable-ingestion.ts
 - [x] T069 [US3] Реализовать owned `GET /api/imports/{runId}` со structured FailureInfo и `manualResumeAllowed` без `nextAttemptAt` в apps/web/app/api/imports/[runId]/route.ts
 - [x] T070 [US3] Реализовать owned idempotent review handler с atomic expected draft revision check и exact `409 DRAFT_VERSION_CONFLICT` в apps/web/app/api/imports/[runId]/review/route.ts
-- [x] T071 [P] [US3] Создать source viewer с block highlighting в apps/web/components/review/source-viewer.tsx
+- [x] T071 [P] [US3] Создать PDF-only source viewer без перечисления и подсветки внутренних DocumentIR blocks в apps/web/components/review/source-viewer.tsx
 - [x] T072 [P] [US3] Создать structured draft editor с expected revision и reload guidance после `DRAFT_VERSION_CONFLICT` в apps/web/components/review/exercise-draft-editor.tsx
-- [x] T073 [P] [US3] Создать issue list и provenance badges в apps/web/components/review/validation-issues.tsx
-- [x] T074 [US3] Собрать accessible responsive review workspace с отдельными blocked, manually retriable failure и terminal failure states без automatic-retry UI в apps/web/app/imports/[runId]/review/page.tsx
+- [x] T073 [P] [US3] Сохранить issues и provenance как внутреннее состояние editor/API без отдельной issue-list панели после появления draft
+- [x] T074 [US3] Собрать accessible responsive PDF/editor review workspace без blocks/issues/workflow listings после появления draft, сохранив отдельные blocked, manually retriable failure и terminal failure states без automatic-retry UI в apps/web/app/imports/[runId]/review/page.tsx
 - [x] T097 [P] [US3] Добавить owner, idempotency, same-run checkpoint, terminal rejection и no-auto-retry contract tests для `POST /api/imports/{runId}/resume` в apps/web/tests/api/resume-import.contract.test.ts
 - [x] T098 [US3] Реализовать owner-only idempotent `POST /api/imports/{runId}/resume`, продолжающий retriable run с последнего checkpoint, в apps/web/app/api/imports/[runId]/resume/route.ts
 - [x] T102 [US3] Остановить review polling сразу после появления draft и покрыть policy unit tests в apps/web/src/review/polling-policy.ts
 - [x] T103 [US3] Сделать все answer fields редактируемыми, потребовать подтверждение modelInferred answers и сохранять confirm/edit как teacherSupplied ReviewDecision в review UI/API
-- [x] T104 [US3] Настроить bounded Responses adapter через OPENAI_BASE_URL=https://polza.ai/api/v1 и OPENAI_MODEL=openai/gpt-5.4-mini с endpoint contract test
+- [x] T104 [US3] Настроить bounded Responses adapter через официальный
+  `OPENAI_BASE_URL=https://api.openai.com/v1` и `OPENAI_MODEL=gpt-5.4-mini` с endpoint contract test
 - [x] T109 [US4] Сделать публикацию доступной из review workspace и библиотеки преподавателя: показывать ready-to-publish drafts, прямой publish CTA и причины закрытого gate; добавить navigation contract test
 - [x] T110 [US4] Унифицировать publish-readiness для ingestion, review и publish через canonical validator, добавить migration 0011 с persistence recheck и показывать structured PUBLISH_BLOCKED.reasons в confirmation UI
 - [x] T106 [P] [US3] Версионировать answer-suggestion prompt/input/output contracts и записывать model, prompt, schema versions, latency, token usage/cost и outcome в redacted GenerationManifest
-- [x] T107 [P] [US3] Добавить независимый golden/regression evaluation bounded answer suggestions по SC-017 в apps/web/src/ai/openai-answer-suggester.live.test.ts и edge/adversarial checks в apps/web/src/ai/openai-answer-suggester.test.ts и tests/security/untrusted-source.test.ts; всегда записывать tests/golden/baseline-report.json с pass/fail, mismatches и version pins до assertion
+- [x] T107 [P] [US3] Добавить независимый golden/regression evaluation bounded answer suggestions по SC-017 в apps/web/src/ai/openai-answer-suggester.live.test.ts и edge/adversarial checks в apps/web/src/ai/openai-answer-suggester.test.ts и tests/security/untrusted-source.test.ts; всегда записывать fixture-specific tests/golden/live-eval-*.latest.json с pass/fail, mismatches и version pins до assertion; production baseline-report.json обновлять только при UPDATE_EVAL_BASELINE=1 и успешном gate
 - [x] T108 [US3] Реализовать checkpoint и `failed/retriable`/`failed/terminal` transitions bounded model step без partial draft и automatic retry, с manual resume от последнего успешного checkpoint
 - [x] T111 [P] [US4] Добавить exhaustive canonical readiness regression matrix для empty reasons, каждого blocker, их комбинаций, SourceRef lineage, ingestion/review/publish equivalence и persistence recheck в packages/lesson-pipeline/src/publish-readiness.regression.test.ts и tests/integration/publish-readiness-gate.test.ts
 - [x] T112 [US3] Довести version-pinned live answer-suggestion baseline до SC-017 без ослабления golden answers или порога; обновить prompt version и зафиксировать сравнение с предыдущим baseline
@@ -218,7 +306,7 @@ source ref, сохраняет teacher decision, возобновляет run и
 
 ---
 
-## Phase 6: User Story 4 — Проверяемая публикация версии (Priority: P3)
+## Historical delivery ledger: User Story 4 — Проверяемая публикация версии (delivered in Phase 3)
 
 **Goal**: Проверенный draft создаёт immutable LessonVersion; student получает только safe projection;
 правки создают новую версию с diff.
@@ -250,7 +338,7 @@ source ref, сохраняет teacher decision, возобновляет run и
 
 ---
 
-## Phase 7: Polish & Cross-Cutting Concerns
+## Historical delivery ledger: Release hardening (delivered in Phase 3)
 
 **Purpose**: Release hardening перед следующей feature.
 
@@ -258,8 +346,9 @@ source ref, сохраняет teacher decision, возобновляет run и
 - [x] T088 [P] Добавить prompt-injection, malformed PDF, MIME, exact/above every input limit, 501 answer fields и two-parts-create-independent-imports cases в tests/security/untrusted-source.test.ts
 - [x] T089 [P] Добавить full accessibility matrix для upload, review и student views в apps/web/tests/e2e/accessibility.spec.ts
 - [x] T090 Запустить и зафиксировать baseline metrics в tests/golden/baseline-report.json
-- [ ] T091 Проверить import acceptance p95 и exact boundary behavior для 1, 5, 20/21 страниц, 52,428,800 bytes, 500,000 Unicode code points и 500/501 answer fields в packages/evals/src/performance.eval.test.ts
-- [ ] T092 Выполнить specs/001-reliable-source-ingestion/quickstart.md и записать результат в specs/001-reliable-source-ingestion/validation-report.md
+- [x] T091 Проверить import acceptance p95 и exact boundary behavior для 1, 5, 20/21 страниц, 52,428,800 bytes, 500,000 Unicode code points и 500/501 answer fields в packages/evals/src/performance.eval.test.ts
+- [x] T092 Выполнить актуальную specs/001-reliable-source-ingestion/quickstart.md и записать fresh
+  parser 1.1.0, live SC-017/SC-023 и real browser-upload evidence в validation-report.md
 
 ---
 
@@ -267,41 +356,47 @@ source ref, сохраняет teacher decision, возобновляет run и
 
 ### Phase Dependencies
 
-- Phase 1 не имеет зависимостей.
-- Phase 2 зависит от Phase 1 и блокирует все user stories.
-- US1 и US2 используют только Foundation и могут выполняться параллельно.
-- US3 зависит от готового draft/issues из US1 или US2.
-- US4 зависит от review lifecycle US3.
-- Phase 7 зависит от выбранного release scope.
+- Phase 1–3 завершены; US3, US4 и release hardening уже являются общей платформой.
+- Phase 4A зависит от завершённой Foundation и не зависит от model API.
+- Phase 4B зависит от Phase 4A и переиспользует готовые review/publish capabilities Phase 3.
+- Phase 4C зависит от Phase 4B и является единственным оставшимся gate полного закрытия feature 001.
+- Feature 002+ не входят в этот task list и требуют отдельной спецификации и clarification.
 
 ### User Story Dependencies
 
 ```text
-Foundation -> US1 (PDF) -----+
-           -> US2 (Text) ----+-> US3 (Review) -> US4 (Versions + Student-safe) -> Polish
+Completed platform: Foundation -> PDF + Review + Publish + Student + Hardening
+                                      |
+Active follow-up:                     +-> Text core -> Text integration -> Text release gates
 ```
 
 ### Parallel Opportunities
 
-- T003–T008 выполняются параллельно после T001.
-- Contracts, public-ID domain и observability contracts с `[P]` выполняются параллельно.
-- После Foundation отдельные исполнители ведут US1 и US2 без shared незавершённых задач.
-- В US3 source viewer, editor и issue list независимы до сборки workspace.
-- В US4 projection/security tests и versioning tests независимы до реализации publish endpoints.
+- T055, T057 и T058 можно выполнить параллельно до реализации text core.
+- После T059–T063 golden T064 и integration contract T142 проверяют разные уровни и могут идти
+  параллельно.
+- После T143 raw-text viewer T144 и resilience/security suites T146–T147 независимы.
+- T056, T145, T148 и T149 выполняются последовательно как финальный product/release gate.
 
 ## Implementation Strategy
 
-### MVP First
+### Active follow-up first
 
-1. Выполнить Setup и Foundation целиком, включая security gates.
-2. Выполнить US1 для PDF.
-3. Остановиться и проверить exact golden gate без LLM.
-4. Параллельно или следом выполнить US2 и повторить coverage/security gates.
-5. Только затем строить review UI и publication/student surfaces.
+1. Зафиксировать `raw.txt` expectations и failing tests T055, T057–T058.
+2. Реализовать deterministic text core T059–T063 и закрыть offline golden T064.
+3. Подключить text branch к существующему workflow T142–T143; не создавать отдельные persistence,
+   review или publish paths.
+4. Добавить raw-text review mode и проверить teacher mutations/reload T144–T145.
+5. Пройти реальный browser journey T056, затем resilience/security gates T146–T147.
+6. Обновить validation evidence и закрыть feature через T148–T149.
+
+Следующий продуктовый этап после T149 начинается с отдельной feature specification. Приоритетный
+кандидат — subject profiles/adapters; generation from free-form material остаётся отдельным режимом и
+не добавляется в reproduce pipeline.
 
 ## Notes
 
-- Не добавлять LLM или generation-from-content в feature 001.
-- Не использовать модель в supplied golden paths.
+- Не использовать LLM для extraction, assembly, coverage или generation-from-content в feature 001; единственное разрешённое применение — bounded suggestions для существующих answerFieldId.
+- Deterministic golden extraction paths не вызывают модель. Version-pinned live answer-suggestion eval является отдельным release gate и MAY вызывать Responses API.
 - Изменение expected counts требует изменения spec и объяснения, не обновления snapshot под результат.
 - `$speckit-analyze` выполняется до `$speckit-implement`; после production defect добавляется fixture.

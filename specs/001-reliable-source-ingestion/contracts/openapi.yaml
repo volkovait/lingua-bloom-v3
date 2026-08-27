@@ -231,23 +231,58 @@ components:
     ImportStatus:
       type: object
       additionalProperties: false
-      required: [runId, status, updatedAt, recovery, events, issues, failure]
+      required: [runId, status, currentStep, lastSuccessfulCheckpoint, updatedAt, recovery, failure, source, draft, documentIr, issues, events]
       properties:
         runId: { type: string }
         status:
           enum: [accepted, processing, awaiting_review, blocked, ready_to_publish, completed, cancelled, failed]
+        currentStep: { type: [string, "null"] }
+        lastSuccessfulCheckpoint: { type: [string, "null"] }
         updatedAt: { type: string, format: date-time }
         recovery:
           oneOf:
             - type: "null"
             - $ref: "#/components/schemas/StaleRunRecovery"
-        events: { type: array, items: { type: object } }
-        issues: { type: array, items: { type: object } }
-        draftId: { type: [string, 'null'] }
         failure:
           oneOf:
             - type: 'null'
             - $ref: '#/components/schemas/FailureInfo'
+        source:
+          type: object
+          additionalProperties: false
+          required: [id, title, kind, signedUrl]
+          properties:
+            id: { type: string, minLength: 1 }
+            title: { type: string }
+            kind: { enum: [pdf, text] }
+            signedUrl: { type: [string, "null"] }
+        draft:
+          oneOf:
+            - type: "null"
+            - type: object
+              additionalProperties: false
+              required: [id, revision, payload]
+              properties:
+                id: { type: string, minLength: 1 }
+                revision: { type: integer, minimum: 1 }
+                payload: { type: object, additionalProperties: true }
+        documentIr:
+          oneOf:
+            - type: "null"
+            - type: object
+              additionalProperties: true
+        issues:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            required: [id, code, severity, resolution, createdAt]
+        events:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            required: [sequence, type, status, step, occurredAt]
       allOf:
         - if:
             properties: { status: { const: failed } }
@@ -350,9 +385,16 @@ components:
       additionalProperties: false
       required: [draftVersion, idempotencyKey]
       anyOf:
-        - properties: { decisions: { minItems: 1 } }
-        - properties: { answerReviews: { minItems: 1 } }
-        - properties: { exerciseEdits: { minItems: 1 } }
+        - required: [decisions]
+          properties: { decisions: { minItems: 1 } }
+        - required: [answerReviews]
+          properties: { answerReviews: { minItems: 1 } }
+        - required: [exerciseEdits]
+          properties: { exerciseEdits: { minItems: 1 } }
+        - required: [exerciseCreates]
+          properties: { exerciseCreates: { minItems: 1 } }
+        - required: [exerciseDeletes]
+          properties: { exerciseDeletes: { minItems: 1 } }
       properties:
         draftVersion: { type: integer, minimum: 1 }
         idempotencyKey: { type: string, minLength: 16, maxLength: 128 }
@@ -400,6 +442,29 @@ components:
                   properties:
                     id: { type: string, minLength: 1 }
                     value: { type: string }
+        exerciseCreates:
+          type: array
+          default: []
+          items:
+            type: object
+            additionalProperties: false
+            required: [groupId, prompt, interactionKind, options, answerValues]
+            properties:
+              groupId: { type: string, minLength: 1 }
+              prompt: { type: string, minLength: 1 }
+              interactionKind: { enum: [singleChoice, wordOrder, bracketGap, oddOneOut, wordBankGap, inlineGap] }
+              options: { type: array, items: { type: string } }
+              answerValues: { type: array, minItems: 1, items: { type: string, minLength: 1 } }
+        exerciseDeletes:
+          type: array
+          default: []
+          items:
+            type: object
+            additionalProperties: false
+            required: [exerciseId, reason]
+            properties:
+              exerciseId: { type: string, minLength: 1 }
+              reason: { type: string, minLength: 1 }
     PublishSubmission:
       type: object
       additionalProperties: false

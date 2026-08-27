@@ -31,7 +31,9 @@
 
 ## Notes
 
-- Validation completed on 2026-08-21.
+- Validation completed on 2026-08-21 and revalidated after clarification on 2026-08-25.
 - The supplied PDF establishes an exact baseline of 5 groups and 34 answerable items.
-- The supplied text establishes 18 numbered items, 29 bracket expressions, 4 short answers, and one intentionally
+- The supplied text establishes 18 numbered items, 29 bracket answer fields, contextual dialogue
+  ellipses that are not answer fields, and one intentionally
   truncated final item that must produce a warning rather than invented content.
+- Legacy word-bank conflicts are resolved by stable union with exact-value deduplication and one framed group-level rendering.
