@@ -3,9 +3,9 @@ packages:
   - packages/*
 
 allowBuilds:
-  esbuild: set this to true or false
+  esbuild: true
   inngest-cli: true
-  protobufjs: set this to true or false
+  protobufjs: true
 
 onlyBuiltDependencies:
   - esbuild
