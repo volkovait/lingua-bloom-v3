@@ -1,4 +1,4 @@
-import { ReviewDraftSchema } from "@lingua-bloom/contracts";
+import { ReviewDraftSchema, UnknownLayoutReviewSchema } from "@lingua-bloom/contracts";
 import { redactSensitive } from "@lingua-bloom/lesson-pipeline";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -32,6 +32,9 @@ const DraftRowSchema = z
     document_ir_id: z.string(),
     payload: z.unknown()
   })
+  .nullable();
+const UnknownReviewRowSchema = z
+  .object({ document_ir_id: z.string(), payload: z.unknown() })
   .nullable();
 const IssueRowSchema = z.object({
   id: z.string(),
@@ -67,29 +70,42 @@ export async function GET(
       .single();
     if (runResult.error) throw new Error(runResult.error.message);
     const run = RunRowSchema.parse(runResult.data);
-    const [sourceResult, draftResult, issueResult, eventResult] = await Promise.all([
-      supabase
-        .from("source_documents")
-        .select("id,title,kind,storage_ref")
-        .eq("id", run.source_document_id)
-        .single(),
-      supabase
-        .from("lesson_drafts")
-        .select("id,revision,document_ir_id,payload")
-        .eq("run_id", runId)
-        .maybeSingle(),
-      supabase
-        .from("validation_issues")
-        .select("id,code,severity,resolution,payload,created_at")
-        .eq("run_id", runId)
-        .order("created_at", { ascending: true }),
-      supabase
-        .from("run_events")
-        .select("sequence,event_type,payload,created_at")
-        .eq("run_id", runId)
-        .order("sequence", { ascending: true })
-    ]);
-    if (sourceResult.error || draftResult.error || issueResult.error || eventResult.error) {
+    const [sourceResult, draftResult, unknownReviewResult, issueResult, eventResult] =
+      await Promise.all([
+        supabase
+          .from("source_documents")
+          .select("id,title,kind,storage_ref")
+          .eq("id", run.source_document_id)
+          .single(),
+        supabase
+          .from("lesson_drafts")
+          .select("id,revision,document_ir_id,payload")
+          .eq("run_id", runId)
+          .maybeSingle(),
+        supabase
+          .from("unknown_layout_reviews")
+          .select("document_ir_id,payload")
+          .eq("run_id", runId)
+          .eq("status", "active")
+          .maybeSingle(),
+        supabase
+          .from("validation_issues")
+          .select("id,code,severity,resolution,payload,created_at")
+          .eq("run_id", runId)
+          .order("created_at", { ascending: true }),
+        supabase
+          .from("run_events")
+          .select("sequence,event_type,payload,created_at")
+          .eq("run_id", runId)
+          .order("sequence", { ascending: true })
+      ]);
+    if (
+      sourceResult.error ||
+      draftResult.error ||
+      unknownReviewResult.error ||
+      issueResult.error ||
+      eventResult.error
+    ) {
       throw new Error("Failed to load import workspace");
     }
     const source = SourceRowSchema.parse(sourceResult.data);
@@ -98,17 +114,15 @@ export async function GET(
         ? await supabase.storage.from("sources").createSignedUrl(source.storage_ref, 3600)
         : null;
     const draftRow = DraftRowSchema.parse(draftResult.data);
+    const unknownReviewRow = UnknownReviewRowSchema.parse(unknownReviewResult.data);
     const recovery = getStaleRunRecovery({
       status: run.status,
       updatedAt: run.updated_at,
       draftExists: draftRow !== null
     });
-    const documentIr = draftRow
-      ? await supabase
-          .from("document_irs")
-          .select("payload")
-          .eq("id", draftRow.document_ir_id)
-          .single()
+    const documentIrId = draftRow?.document_ir_id ?? unknownReviewRow?.document_ir_id;
+    const documentIr = documentIrId
+      ? await supabase.from("document_irs").select("payload").eq("id", documentIrId).single()
       : null;
 
     return NextResponse.json({
@@ -139,6 +153,9 @@ export async function GET(
             revision: draftRow.revision,
             payload: ReviewDraftSchema.parse(draftRow.payload)
           }
+        : null,
+      unknownLayoutReview: unknownReviewRow
+        ? UnknownLayoutReviewSchema.parse(unknownReviewRow.payload)
         : null,
       documentIr: documentIr?.data ? DocumentIrRowSchema.parse(documentIr.data).payload : null,
       issues: z

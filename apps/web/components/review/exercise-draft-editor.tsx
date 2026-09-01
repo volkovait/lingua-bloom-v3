@@ -8,6 +8,7 @@ import {
   getVisibleReviewIssues,
   issueMessage
 } from "@/src/review/issue-highlighting";
+import { splitInlineChoicePrompt } from "@/src/lesson/inline-choice";
 
 export interface ReviewIssue {
   readonly id: string;
@@ -75,6 +76,7 @@ export function ExerciseDraftEditor({
   const [exerciseCreates, setExerciseCreates] = useState<Record<string, ExerciseCreateDraft>>({});
   const [exerciseDeletes, setExerciseDeletes] = useState<string[]>([]);
   const [pending, setPending] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const visibleIssues = useMemo(
     () =>
@@ -93,6 +95,37 @@ export function ExerciseDraftEditor({
     .filter(({ field }) => field.provenance === "modelInferred")
     .map(({ field }) => field.id);
   const confirmedModelCount = modelSuggestionIds.filter((id) => confirmedSuggestions[id]).length;
+  const unresolvedWithoutSuggestion = answerEntries.filter(
+    ({ field }) => field.reviewStatus !== "verified" && field.provenance !== "modelInferred"
+  ).length;
+
+  async function requestAiSuggestions() {
+    setSuggesting(true);
+    setMessage(null);
+    try {
+      const response = await fetch(
+        `/api/imports/${encodeURIComponent(readRunId())}/suggest-answers`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ expectedRevision: revision, idempotencyKey: crypto.randomUUID() })
+        }
+      );
+      const result = (await response.json().catch(() => null)) as {
+        readonly message?: string;
+        readonly suggestionCount?: number;
+      } | null;
+      if (!response.ok) throw new Error(result?.message ?? "Не удалось получить ИИ-подсказки.");
+      setMessage(
+        `ИИ предложил ответы: ${String(result?.suggestionCount ?? 0)}. Проверьте каждый ответ.`
+      );
+      await onSaved();
+    } catch (cause) {
+      setMessage(cause instanceof Error ? cause.message : "Не удалось получить ИИ-подсказки.");
+    } finally {
+      setSuggesting(false);
+    }
+  }
 
   function confirmSuggestions(ids: readonly string[]) {
     setConfirmedSuggestions((current) => ({
@@ -230,6 +263,18 @@ export function ExerciseDraftEditor({
         </div>
         <div className="draft-heading-actions">
           <span className="provenance-badge">{exercises.length} заданий</span>
+          {unresolvedWithoutSuggestion > 0 ? (
+            <button
+              className="secondary-link compact-action"
+              type="button"
+              disabled={suggesting}
+              onClick={() => {
+                void requestAiSuggestions();
+              }}
+            >
+              {suggesting ? "ИИ подбирает ответы…" : "Предложить ответы с ИИ"}
+            </button>
+          ) : null}
           {modelSuggestionIds.length > confirmedModelCount ? (
             <button
               className="secondary-link compact-action"
@@ -376,6 +421,10 @@ export function ExerciseDraftEditor({
                 .filter((field) => field.provenance === "modelInferred")
                 .map((field) => field.id);
               const confirmedCount = suggestionIds.filter((id) => confirmedSuggestions[id]).length;
+              const inlineChoice =
+                exercise.interactionKind === "singleChoice" && exercise.options.length > 0
+                  ? splitInlineChoicePrompt(exerciseEdits[exercise.id]?.prompt ?? exercise.prompt)
+                  : null;
               return (
                 <article
                   className={`exercise-card clickable-exercise${isExpanded ? " is-expanded" : ""}${
@@ -453,47 +502,68 @@ export function ExerciseDraftEditor({
                           }}
                         />
                       </label>
+                      {inlineChoice ? (
+                        <p className="teacher-inline-choice-preview">
+                          {inlineChoice.before}
+                          <select
+                            className="teacher-inline-choice"
+                            aria-label={`Варианты задания ${String(exercise.ordinal)}`}
+                            defaultValue=""
+                          >
+                            <option value="">Выберите…</option>
+                            {exercise.options.map((option) => (
+                              <option key={option.id} value={option.id}>
+                                {exerciseEdits[exercise.id]?.options[option.id] ?? option.value}
+                              </option>
+                            ))}
+                          </select>
+                          {inlineChoice.after}
+                        </p>
+                      ) : null}
                       {exercise.options.length > 0 ? (
-                        <div className="exercise-options-editor">
-                          {exercise.options.map((option) => {
-                            const optionIssueState = getEntityIssueState(visibleIssues, [
-                              option.id
-                            ]);
-                            return (
-                              <label
-                                className={
-                                  optionIssueState.severity
-                                    ? `invalid-option issue-${optionIssueState.severity}`
-                                    : undefined
-                                }
-                                key={option.id}
-                              >
-                                <span>{option.ordinal}</span>
-                                <input
-                                  aria-invalid={optionIssueState.severity === "blocking"}
-                                  value={
-                                    exerciseEdits[exercise.id]?.options[option.id] ?? option.value
+                        <details className="exercise-options-details">
+                          <summary>Редактировать варианты ответа</summary>
+                          <div className="exercise-options-editor">
+                            {exercise.options.map((option) => {
+                              const optionIssueState = getEntityIssueState(visibleIssues, [
+                                option.id
+                              ]);
+                              return (
+                                <label
+                                  className={
+                                    optionIssueState.severity
+                                      ? `invalid-option issue-${optionIssueState.severity}`
+                                      : undefined
                                   }
-                                  onChange={(event) => {
-                                    setExerciseEdits((current) => ({
-                                      ...current,
-                                      [exercise.id]: {
-                                        prompt: current[exercise.id]?.prompt ?? exercise.prompt,
-                                        options: {
-                                          ...Object.fromEntries(
-                                            exercise.options.map((item) => [item.id, item.value])
-                                          ),
-                                          ...current[exercise.id]?.options,
-                                          [option.id]: event.target.value
+                                  key={option.id}
+                                >
+                                  <span>{option.ordinal}</span>
+                                  <input
+                                    aria-invalid={optionIssueState.severity === "blocking"}
+                                    value={
+                                      exerciseEdits[exercise.id]?.options[option.id] ?? option.value
+                                    }
+                                    onChange={(event) => {
+                                      setExerciseEdits((current) => ({
+                                        ...current,
+                                        [exercise.id]: {
+                                          prompt: current[exercise.id]?.prompt ?? exercise.prompt,
+                                          options: {
+                                            ...Object.fromEntries(
+                                              exercise.options.map((item) => [item.id, item.value])
+                                            ),
+                                            ...current[exercise.id]?.options,
+                                            [option.id]: event.target.value
+                                          }
                                         }
-                                      }
-                                    }));
-                                  }}
-                                />
-                              </label>
-                            );
-                          })}
-                        </div>
+                                      }));
+                                    }}
+                                  />
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </details>
                       ) : null}
                       <div className="exercise-meta">
                         <span className="provenance-badge">Источник привязан</span>

@@ -3,6 +3,8 @@
 import type { StudentLessonSpec } from "@lingua-bloom/contracts";
 import * as React from "react";
 
+import { splitInlineChoicePrompt } from "../../src/lesson/inline-choice";
+
 export function LessonRenderer({ lesson }: { readonly lesson: StudentLessonSpec }) {
   const [responses, setResponses] = React.useState<Record<string, string>>({});
   const [submitted, setSubmitted] = React.useState(false);
@@ -66,51 +68,89 @@ export function LessonRenderer({ lesson }: { readonly lesson: StudentLessonSpec 
                   </ul>
                 </aside>
               ))}
-              {entry.value.exercises.map((exercise) => (
-                <article className="student-exercise" key={exercise.id}>
-                  <h3>
-                    <span>{exercise.ordinal}</span>
-                    {exercise.prompt}
-                  </h3>
-                  {exercise.responseFields.map((field, index) =>
-                    field.responseKind === "choice" ? (
-                      <fieldset key={field.id}>
-                        <legend className="sr-only">Выберите ответ</legend>
-                        {exercise.options.map((option) => (
-                          <label className="student-choice" key={option.id}>
-                            <input
-                              type="radio"
-                              name={field.id}
-                              value={option.id}
-                              checked={responses[field.id] === option.id}
-                              onChange={() => {
-                                setResponses((current) => ({ ...current, [field.id]: option.id }));
-                              }}
-                            />
-                            {option.value}
-                          </label>
-                        ))}
-                      </fieldset>
-                    ) : (
-                      <label className="student-answer" key={field.id}>
-                        <span>
-                          Ваш ответ
-                          {exercise.responseFields.length > 1 ? ` ${String(index + 1)}` : ""}
-                        </span>
-                        <input
-                          value={responses[field.id] ?? ""}
-                          onChange={(event) => {
-                            setResponses((current) => ({
-                              ...current,
-                              [field.id]: event.target.value
-                            }));
-                          }}
-                        />
-                      </label>
-                    )
-                  )}
-                </article>
-              ))}
+              {entry.value.exercises.map((exercise) => {
+                const inlineField =
+                  exercise.interactionKind === "singleChoice" &&
+                  exercise.responseFields.length === 1 &&
+                  exercise.responseFields[0]?.responseKind === "choice"
+                    ? exercise.responseFields[0]
+                    : null;
+                const inlinePrompt = inlineField ? splitInlineChoicePrompt(exercise.prompt) : null;
+                return (
+                  <article className="student-exercise" key={exercise.id}>
+                    <h3>
+                      <span>{exercise.ordinal}</span>
+                      {inlinePrompt && inlineField ? (
+                        <>
+                          {inlinePrompt.before}
+                          <select
+                            className={`student-inline-choice${responses[inlineField.id] ? " has-value" : ""}`}
+                            aria-label={`Ответ на задание ${String(exercise.ordinal)}`}
+                            value={responses[inlineField.id] ?? ""}
+                            onChange={(event) => {
+                              setResponses((current) => ({
+                                ...current,
+                                [inlineField.id]: event.target.value
+                              }));
+                            }}
+                          >
+                            <option value="">Выберите…</option>
+                            {exercise.options.map((option) => (
+                              <option key={option.id} value={option.id}>
+                                {option.value}
+                              </option>
+                            ))}
+                          </select>
+                          {inlinePrompt.after}
+                        </>
+                      ) : (
+                        exercise.prompt
+                      )}
+                    </h3>
+                    {exercise.responseFields.map((field, index) =>
+                      inlineField?.id === field.id && inlinePrompt ? null : field.responseKind ===
+                        "choice" ? (
+                        <fieldset key={field.id}>
+                          <legend className="sr-only">Выберите ответ</legend>
+                          {exercise.options.map((option) => (
+                            <label className="student-choice" key={option.id}>
+                              <input
+                                type="radio"
+                                name={field.id}
+                                value={option.id}
+                                checked={responses[field.id] === option.id}
+                                onChange={() => {
+                                  setResponses((current) => ({
+                                    ...current,
+                                    [field.id]: option.id
+                                  }));
+                                }}
+                              />
+                              {option.value}
+                            </label>
+                          ))}
+                        </fieldset>
+                      ) : (
+                        <label className="student-answer" key={field.id}>
+                          <span>
+                            Ваш ответ
+                            {exercise.responseFields.length > 1 ? ` ${String(index + 1)}` : ""}
+                          </span>
+                          <input
+                            value={responses[field.id] ?? ""}
+                            onChange={(event) => {
+                              setResponses((current) => ({
+                                ...current,
+                                [field.id]: event.target.value
+                              }));
+                            }}
+                          />
+                        </label>
+                      )
+                    )}
+                  </article>
+                );
+              })}
             </section>
           )
         )}

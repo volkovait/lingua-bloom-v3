@@ -1118,6 +1118,129 @@ p {
   text-align: left;
 }
 
+.unknown-layout-review {
+  padding: 1.25rem;
+  border: 1px solid var(--border-color, #d8d5cf);
+  border-radius: 1rem;
+  background: #fffdf8;
+}
+
+.unknown-layout-review ol {
+  display: grid;
+  gap: 0.75rem;
+  padding-left: 1.5rem;
+}
+.unknown-layout-review li {
+  padding: 0.75rem;
+  border: 1px solid #e4dfd5;
+  border-radius: 0.75rem;
+}
+.unknown-layout-review pre {
+  margin: 0.5rem 0 0;
+  white-space: pre-wrap;
+  font: inherit;
+}
+.unknown-layout-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.unknown-layout-review fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  border: 0;
+  padding: 0;
+}
+.unknown-layout-review fieldset legend {
+  width: 100%;
+  font-weight: 600;
+}
+.unknown-layout-review fieldset label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.teacher-inline-choice-preview {
+  border: 1px solid rgb(64 86 161 / 12%);
+  border-radius: 0.9rem;
+  padding: 0.85rem 1rem;
+  background: linear-gradient(135deg, #faf8f2, #f4f5fb);
+  font-size: 1.05rem;
+  line-height: 2.8;
+}
+
+.teacher-inline-choice,
+.student-inline-choice {
+  display: inline-block;
+  width: auto;
+  min-width: 9rem;
+  max-width: min(24rem, 70vw);
+  field-sizing: content;
+  margin: 0 0.38rem;
+  border: 1.5px solid rgb(64 86 161 / 48%);
+  border-radius: 0.7rem;
+  padding: 0.46rem 2.25rem 0.46rem 0.82rem;
+  appearance: none;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='%234056a1' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.2' d='m5 7.5 5 5 5-5'/%3E%3C/svg%3E");
+  background-position: right 0.72rem center;
+  background-repeat: no-repeat;
+  background-size: 0.88rem;
+  box-shadow: 0 2px 7px rgb(51 51 51 / 8%);
+  color: var(--bloom-navy);
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.25;
+  vertical-align: baseline;
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.teacher-inline-choice:hover,
+.student-inline-choice:hover {
+  border-color: var(--bloom-navy);
+  box-shadow: 0 4px 12px rgb(64 86 161 / 16%);
+}
+
+.teacher-inline-choice:focus-visible,
+.student-inline-choice:focus-visible {
+  border-color: var(--bloom-navy);
+  outline: 3px solid rgb(64 86 161 / 22%);
+  outline-offset: 2px;
+  box-shadow: 0 4px 14px rgb(64 86 161 / 18%);
+}
+
+.student-inline-choice.has-value {
+  border-color: var(--bloom-navy);
+  background-color: #f1f3fb;
+  color: var(--bloom-ink);
+}
+
+@media (max-width: 640px) {
+  .teacher-inline-choice,
+  .student-inline-choice {
+    min-width: 7.5rem;
+    max-width: calc(100vw - 4.5rem);
+    margin-inline: 0.2rem;
+  }
+}
+.exercise-options-details {
+  margin: 0.75rem 0;
+}
+.exercise-options-details summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
 .workflow-live {
   border-radius: 999px;
   padding: 0.4rem 0.7rem;

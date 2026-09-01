@@ -27,7 +27,7 @@ describe("durable review workflow", () => {
     expect(failure).toBeGreaterThan(0);
     expect(draftInsert).toBeGreaterThan(failure);
     expect(workflow).toContain('last_successful_checkpoint: "validate-coverage"');
-    expect(workflow).toContain("DocumentIrCheckpointSchema");
+    expect(workflow).toContain("selectDocumentIrCheckpoint(kind, irCheckpointResult.data)");
   });
 });
 

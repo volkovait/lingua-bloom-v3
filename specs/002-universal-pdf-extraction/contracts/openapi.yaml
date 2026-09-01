@@ -1,0 +1,368 @@
+openapi: 3.1.0
+info:
+  title: Lingua-Bloom Universal PDF Extraction API additions
+  version: 0.4.0
+paths:
+  /api/imports/{runId}/suggest-answers:
+    post:
+      summary: Request bounded model suggestions for unresolved persisted draft answers
+      security: [{ teacherSession: [] }]
+      parameters: [{ $ref: '#/components/parameters/RunId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [expectedRevision, idempotencyKey]
+              properties:
+                expectedRevision: { type: integer, minimum: 1 }
+                idempotencyKey: { type: string, minLength: 16, maxLength: 128 }
+      responses:
+        '200': { description: Suggestions persisted as modelInferred in a new draft revision }
+        '409': { description: Draft revision conflict }
+        '422': { description: Provider returned no usable suggestions }
+        '502': { description: Terminal provider failure; manual review remains available }
+        '503': { description: Provider unavailable; manual review remains available }
+  /api/imports/{runId}:
+    get:
+      summary: Return owner-scoped import state with draft or unknown-layout review
+      security: [{ teacherSession: [] }]
+      parameters: [{ $ref: '#/components/parameters/RunId' }]
+      responses:
+        '200':
+          description: Exactly one review representation is present
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ImportReviewState' }
+        '401': { description: Authentication required }
+        '404': { description: Unknown or non-owned run }
+  /api/imports/{runId}/layout-review:
+    post:
+      summary: Atomically classify, edit or assign non-student outcomes to unknown candidates
+      security: [{ teacherSession: [] }]
+      parameters: [{ $ref: '#/components/parameters/RunId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LayoutReviewSubmission' }
+      responses:
+        '202':
+          description: Decisions persisted; same run resumes or remains in review
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [runId, revision, status]
+                properties:
+                  runId: { type: string, minLength: 1 }
+                  revision: { type: integer, minimum: 1 }
+                  status: { enum: [awaiting_review, processing] }
+        '400': { description: Invalid or incomplete decision payload }
+        '401': { description: Authentication required }
+        '404': { description: Unknown or non-owned run }
+        '409': { description: Stale revision or conflicting idempotency key; no partial writes }
+components:
+  securitySchemes:
+    teacherSession:
+      type: apiKey
+      in: cookie
+      name: sb-auth-token
+  parameters:
+    RunId:
+      in: path
+      name: runId
+      required: true
+      schema: { type: string, minLength: 1 }
+  schemas:
+    ImportReviewState:
+      type: object
+      additionalProperties: false
+      required:
+        - runId
+        - status
+        - currentStep
+        - lastSuccessfulCheckpoint
+        - updatedAt
+        - recovery
+        - failure
+        - source
+        - draft
+        - unknownLayoutReview
+        - documentIr
+        - issues
+        - events
+      properties:
+        runId: { type: string, minLength: 1 }
+        status: { enum: [accepted, processing, awaiting_review, blocked, ready_to_publish, completed, cancelled, failed] }
+        currentStep: { type: [string, 'null'] }
+        lastSuccessfulCheckpoint: { type: [string, 'null'] }
+        updatedAt: { type: string, format: date-time }
+        recovery:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/StaleRunRecovery'
+        failure:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/FailureInfo'
+        source:
+          type: object
+          additionalProperties: false
+          required: [id, title, kind, signedUrl]
+          properties:
+            id: { type: string, minLength: 1 }
+            title: { type: string }
+            kind: { enum: [pdf, text] }
+            signedUrl: { type: [string, 'null'] }
+        draft:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/DraftEnvelope'
+        unknownLayoutReview:
+          oneOf: [{ type: 'null' }, { $ref: '#/components/schemas/UnknownLayoutReview' }]
+        documentIr:
+          oneOf:
+            - type: 'null'
+            - $ref: '../../001-reliable-source-ingestion/contracts/document-ir.schema.json'
+        issues: { type: array, items: { $ref: '#/components/schemas/ImportIssue' } }
+        events: { type: array, items: { $ref: '#/components/schemas/WorkflowEvent' } }
+      allOf:
+        - not:
+            properties:
+              draft: { type: object }
+              unknownLayoutReview: { type: object }
+        - if:
+            properties: { status: { const: failed } }
+          then:
+            properties:
+              failure: { $ref: '#/components/schemas/FailureInfo' }
+        - if:
+            properties: { status: { const: blocked } }
+          then:
+            properties: { issues: { minItems: 1 } }
+        - if:
+            properties:
+              status:
+                enum: [accepted, processing, awaiting_review, blocked, ready_to_publish, completed, cancelled]
+          then:
+            properties: { failure: { type: 'null' } }
+    StaleRunRecovery:
+      type: object
+      additionalProperties: false
+      required: [kind, redispatchAllowed, staleSince]
+      properties:
+        kind: { enum: [dispatch_not_started, worker_heartbeat_expired] }
+        redispatchAllowed: { const: true }
+        staleSince: { type: string, format: date-time }
+    FailureInfo:
+      type: object
+      additionalProperties: false
+      required: [code, kind, message, manualResumeAllowed]
+      properties:
+        code: { type: string, minLength: 1 }
+        kind: { enum: [retriable, terminal] }
+        message: { type: string, minLength: 1 }
+        manualResumeAllowed: { type: boolean }
+        limitType: { enum: [pdfPages, pdfBytes, textCharacters, answerFields] }
+        limit: { type: integer, minimum: 1 }
+        actual: { type: integer, minimum: 1 }
+      allOf:
+        - if:
+            properties: { kind: { const: retriable } }
+          then:
+            properties: { manualResumeAllowed: { const: true } }
+        - if:
+            properties: { kind: { const: terminal } }
+          then:
+            properties: { manualResumeAllowed: { const: false } }
+        - if:
+            properties: { code: { const: SOURCE_TOO_LARGE } }
+          then:
+            required: [limitType, limit, actual]
+    DraftEnvelope:
+      type: object
+      additionalProperties: false
+      required: [id, revision, payload]
+      properties:
+        id: { type: string, minLength: 1 }
+        revision: { type: integer, minimum: 1 }
+        payload:
+          type: object
+          description: Strict ReviewDraft 1.0/1.1/1.2 union from the canonical contracts package
+    ImportIssue:
+      type: object
+      additionalProperties: true
+      required: [id, code, severity, resolution, createdAt]
+      properties:
+        id: { type: string, minLength: 1 }
+        code: { type: string, minLength: 1 }
+        severity: { enum: [info, warning, blocking] }
+        resolution: { enum: [open, resolved, acceptedRisk] }
+        createdAt: { type: string, format: date-time }
+    WorkflowEvent:
+      type: object
+      additionalProperties: true
+      required: [sequence, type, status, step, occurredAt]
+      properties:
+        sequence: { type: integer, minimum: 1 }
+        type: { type: string, minLength: 1 }
+        status: { type: string, minLength: 1 }
+        step: { type: [string, 'null'] }
+        occurredAt: { type: string, format: date-time }
+    UnknownLayoutReview:
+      type: object
+      additionalProperties: false
+      required: [schemaVersion, runId, sourceDocumentId, documentIrId, revision, status, candidates, coverage, createdAt, updatedAt]
+      properties:
+        schemaVersion: { const: 1.0.0 }
+        runId: { type: string, minLength: 1 }
+        sourceDocumentId: { type: string, minLength: 1 }
+        documentIrId: { type: string, minLength: 1 }
+        revision: { type: integer, minimum: 1 }
+        status: { const: active }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        candidates:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, sourceRefs, rawPrompt, optionCandidates, classification, confidence, evidence]
+            properties:
+              id: { type: string, minLength: 1 }
+              sourceOrdinal: { oneOf: [{ type: integer, minimum: 0 }, { type: string, minLength: 1 }] }
+              sourceRefs: { type: array, minItems: 1, items: { type: object } }
+              rawPrompt: { type: string }
+              optionCandidates: { type: array, items: { type: object } }
+              classification: { const: unknown }
+              confidence: { type: number, minimum: 0, maximum: 1 }
+              evidence: { type: array, items: { type: string, minLength: 1 } }
+              suggestedKind: { enum: [matching, singleChoice, bracketGap, wordBankGap] }
+              suggestionProvenance: { enum: [deterministic, modelInferred] }
+        decisions:
+          type: array
+          default: []
+          description: Append-only teacher decisions already persisted for this review revision
+          items:
+            type: object
+            additionalProperties: true
+            required: [id, candidateId, action, reason, actorId, createdAt]
+        coverage:
+          type: object
+          additionalProperties: false
+          required: [detectedCandidateCount, accountedCandidateCount, status]
+          properties:
+            detectedCandidateCount: { type: integer, minimum: 1 }
+            accountedCandidateCount: { type: integer, minimum: 0 }
+            status: { enum: [needsReview, blocked] }
+    LayoutReviewSubmission:
+      type: object
+      additionalProperties: false
+      required: [expectedRevision, idempotencyKey, decisions]
+      properties:
+        expectedRevision: { type: integer, minimum: 1 }
+        idempotencyKey: { type: string, minLength: 16, maxLength: 128 }
+        decisions:
+          type: array
+          minItems: 1
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/SingleChoiceLayoutDecision'
+              - $ref: '#/components/schemas/BracketGapLayoutDecision'
+              - $ref: '#/components/schemas/WordBankGapLayoutDecision'
+              - $ref: '#/components/schemas/MatchingLayoutDecision'
+              - $ref: '#/components/schemas/NonStudentLayoutDecision'
+    SingleChoiceLayoutDecision:
+      $ref: '#/components/schemas/ClassifyLayoutDecisionBase'
+      properties:
+        interactionKind: { const: singleChoice }
+        structuralFields: { $ref: '#/components/schemas/SingleChoiceStructuralFields' }
+    BracketGapLayoutDecision:
+      $ref: '#/components/schemas/ClassifyLayoutDecisionBase'
+      properties:
+        interactionKind: { const: bracketGap }
+        structuralFields: { $ref: '#/components/schemas/BracketGapStructuralFields' }
+    WordBankGapLayoutDecision:
+      $ref: '#/components/schemas/ClassifyLayoutDecisionBase'
+      properties:
+        interactionKind: { const: wordBankGap }
+        structuralFields: { $ref: '#/components/schemas/WordBankGapStructuralFields' }
+    MatchingLayoutDecision:
+      $ref: '#/components/schemas/ClassifyLayoutDecisionBase'
+      properties:
+        interactionKind: { const: matching }
+        structuralFields: { $ref: '#/components/schemas/MatchingStructuralFields' }
+    ClassifyLayoutDecisionBase:
+      type: object
+      additionalProperties: false
+      required: [candidateId, action, interactionKind, structuralFields, reason]
+      properties:
+        candidateId: { type: string, minLength: 1 }
+        action: { const: classify }
+        interactionKind: { enum: [singleChoice, bracketGap, wordBankGap, matching] }
+        structuralFields: { type: object }
+        reason: { type: string, minLength: 1 }
+    NonStudentLayoutDecision:
+      type: object
+      additionalProperties: false
+      required: [candidateId, action, reason]
+      properties:
+        candidateId: { type: string, minLength: 1 }
+        action: { enum: [reference, example, exclude] }
+        reason: { type: string, minLength: 1 }
+    SingleChoiceStructuralFields:
+      type: object
+      additionalProperties: false
+      required: [kind, prompt, options]
+      properties:
+        kind: { const: singleChoice }
+        prompt: { type: string, minLength: 1 }
+        options: { type: array, minItems: 2, items: { type: string, minLength: 1 } }
+    BracketGapStructuralFields:
+      type: object
+      additionalProperties: false
+      required: [kind, prompt, answerFieldCount]
+      properties:
+        kind: { const: bracketGap }
+        prompt: { type: string, minLength: 1 }
+        answerFieldCount: { type: integer, minimum: 1 }
+    WordBankGapStructuralFields:
+      type: object
+      additionalProperties: false
+      required: [kind, prompt, sharedEntries]
+      properties:
+        kind: { const: wordBankGap }
+        prompt: { type: string, minLength: 1 }
+        sharedEntries: { type: array, minItems: 2, items: { type: string, minLength: 1 } }
+    MatchingStructuralFields:
+      type: object
+      additionalProperties: false
+      required: [kind, items, entries, usagePolicy]
+      properties:
+        kind: { const: matching }
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            required: [sourceOrdinal, prompt]
+            properties:
+              sourceOrdinal: { oneOf: [{ type: integer, minimum: 0 }, { type: string, minLength: 1 }] }
+              prompt: { type: string, minLength: 1 }
+        entries:
+          type: array
+          minItems: 2
+          items:
+            type: object
+            additionalProperties: false
+            required: [sourceLabel, value]
+            properties:
+              sourceLabel: { type: string, minLength: 1 }
+              value: { type: string, minLength: 1 }
+        usagePolicy: { const: useOnce }

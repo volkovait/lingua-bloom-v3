@@ -190,14 +190,17 @@ describe("reading_text_questions_4_pages.pdf golden evaluation", () => {
   test("marks questions partial and blocking when their reading passage is absent", async () => {
     const root = resolve(import.meta.dirname, "../../../..");
     const bytes = new Uint8Array(
-      await readFile(
-        resolve(root, "tests/fixtures/sources/reading_text_questions_missing_passage_3_pages.pdf")
-      )
+      await readFile(resolve(root, "tests/fixtures/sources/reading_text_questions_4_pages.pdf"))
     );
-    const document = await buildPdfDocumentIr(bytes, {
+    const completeDocument = await buildPdfDocumentIr(bytes, {
       id: "ir:reading_text_questions_missing_passage",
       sourceDocumentId: "source:reading_text_questions_missing_passage"
     });
+    const document = {
+      ...completeDocument,
+      pages: completeDocument.pages.slice(0, 3),
+      blocks: completeDocument.blocks.filter((block) => block.pageIndex !== 3)
+    };
     const result = extractPdfExercises(document, {
       documentIrId: "ir:reading_text_questions_missing_passage"
     });

@@ -49,7 +49,7 @@ describe("text ingestion resilience", () => {
   test("reuses checkpoints and makes duplicate delivery harmless for text runs", async () => {
     const workflow = await read("apps/web/src/inngest/reliable-ingestion.ts");
 
-    expect(workflow).toContain("DocumentIrCheckpointSchema");
+    expect(workflow).toContain("selectDocumentIrCheckpoint(kind, irCheckpointResult.data)");
     expect(workflow).toContain('if (existing.data) return { status: "awaiting_review"');
     expect(workflow).toContain('error.code !== "23505"');
     expect(workflow).toContain("(latestEvent?.sequence ?? 0) + 1");

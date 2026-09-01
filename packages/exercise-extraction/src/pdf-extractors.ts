@@ -11,6 +11,7 @@ import type {
   SourceRef,
   ValidationIssue
 } from "@lingua-bloom/contracts";
+import type { UnknownExerciseCandidate } from "@lingua-bloom/contracts";
 
 export type PdfInteractionKind =
   "singleChoice" | "wordOrder" | "bracketGap" | "oddOneOut" | "wordBankGap" | "inlineGap";
@@ -81,6 +82,7 @@ export interface PdfExtractionResult {
   readonly referenceBlocks?: readonly ExtractedPdfReferenceBlock[];
   readonly issues: readonly ValidationIssue[];
   readonly coverage: CoverageReport;
+  readonly unknownCandidates?: readonly UnknownExerciseCandidate[];
 }
 
 export interface PdfExtractionInput {
@@ -147,6 +149,8 @@ export function extractPdfExercises(
     ];
   });
   const exercises = groups.flatMap((group) => group.exercises);
+  const unknownCandidates =
+    groups.length === 0 ? segmentUnknownCandidates(document, input.documentIrId) : [];
   const issues = exercises.flatMap((exercise) =>
     exercise.answerFields
       .filter((field) => field.reviewStatus === "needsReview")
@@ -162,18 +166,61 @@ export function extractPdfExercises(
   );
   return {
     groups,
+    ...(unknownCandidates.length > 0 ? { unknownCandidates } : {}),
     issues,
     coverage: {
       entries: exercises.map((exercise) => ({
         candidateId: exercise.id,
         outcome: { kind: "exercise", exerciseIds: [exercise.id] }
       })),
-      detectedCandidateCount: exercises.length,
+      detectedCandidateCount: exercises.length + unknownCandidates.length,
       accountedCandidateCount: exercises.length,
       unsupportedAdditionCount: 0,
-      status: issues.length > 0 ? "needsReview" : "passed"
+      status: issues.length > 0 || unknownCandidates.length > 0 ? "needsReview" : "passed"
     }
   };
+}
+
+function segmentUnknownCandidates(
+  document: DocumentIR,
+  documentIrId: string
+): UnknownExerciseCandidate[] {
+  const blocks = [...document.blocks]
+    .sort((left, right) => left.order - right.order)
+    .filter((block) => block.rawText.trim().length > 0 && !isLikelyBoilerplate(block.rawText));
+  if (blocks.length === 0) return [];
+
+  const starts = blocks
+    .map((block, index) => ({ block, index }))
+    .filter(({ block }) => /^(?:question\s*)?\d{1,3}[.)\s]/i.test(block.rawText.trim()));
+  const slices =
+    starts.length > 0
+      ? starts.map(({ index }, position) =>
+          blocks.slice(index, starts[position + 1]?.index ?? blocks.length)
+        )
+      : blocks.map((block) => [block]);
+
+  return slices
+    .filter((slice) => slice.length > 0)
+    .map((slice, index) => {
+      const first = slice[0];
+      if (!first) throw new Error("Unknown candidate slice must not be empty");
+      const ordinalMatch = first.rawText.trim().match(/^(?:question\s*)?(\d{1,3})[.)\s]/i);
+      return {
+        id: `unknown-candidate:${String(index + 1)}:${first.id}`,
+        ...(ordinalMatch?.[1] ? { sourceOrdinal: Number(ordinalMatch[1]) } : {}),
+        rawPrompt: slice.map((block) => block.rawText.trim()).join("\n"),
+        classification: "unknown" as const,
+        confidence: 0,
+        evidence: ["No deterministic extractor claimed this source region"],
+        sourceRefs: slice.map((block) => makeSourceRef(document, documentIrId, block))
+      };
+    });
+}
+
+function isLikelyBoilerplate(value: string) {
+  const text = value.trim();
+  return /^(?:page\s+)?\d+\s*(?:of\s+\d+)?$/i.test(text) || /^©/.test(text);
 }
 
 function sliceExerciseGroups(blocks: readonly SourceBlock[]): GroupSlice[] {

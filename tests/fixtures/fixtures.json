@@ -62,6 +62,37 @@
         ],
         "generatedContinuationCount": 0
       }
+    },
+    {
+      "id": "vocab",
+      "path": "sources/vocab.pdf",
+      "kind": "pdf",
+      "parserVersion": "pdf-layout/1.1.0",
+      "expectedManifest": "../golden/vocab.expected.json",
+      "expected": {
+        "pageCount": 1,
+        "matchingGroupCount": 1,
+        "answerableItemCount": 5,
+        "sharedEntryCount": 6,
+        "exampleCount": 1,
+        "unsupportedAdditionCount": 0,
+        "answersRequireReview": true
+      }
+    },
+    {
+      "id": "placement_test",
+      "path": "sources/placement_test.pdf",
+      "kind": "pdf",
+      "parserVersion": "pdf-layout/1.1.0",
+      "expectedManifest": "../golden/placement_test.expected.json",
+      "expected": {
+        "pageCount": 5,
+        "exerciseGroupCount": 2,
+        "answerableItemCount": 50,
+        "optionCountPerItem": 4,
+        "unsupportedAdditionCount": 0,
+        "answersRequireReview": true
+      }
     }
   ]
 }

@@ -23,7 +23,8 @@ export const ValidationIssueSchema = z
       "READING_ORDER_UNCERTAIN",
       "SOURCE_REF_MISSING",
       "OCR_REQUIRED",
-      "ANSWER_KEY_CONFLICT"
+      "ANSWER_KEY_CONFLICT",
+      "UNSUPPORTED_LAYOUT"
     ]),
     severity: z.enum(["info", "warning", "blocking"]),
     entityIds: z.array(IdSchema),

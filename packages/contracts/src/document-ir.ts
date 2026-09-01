@@ -47,6 +47,7 @@ export const SourceBlockSchema = z
 export const DocumentIRSchema = z
   .object({
     schemaVersion: z.literal("1.0.0"),
+    parserVersion: z.string().min(1).optional(),
     id: IdSchema.optional(),
     sourceDocumentId: IdSchema,
     pages: z.array(DocumentPageSchema).min(1),

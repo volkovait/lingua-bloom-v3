@@ -1,4 +1,4 @@
-import { DocumentIRSchema } from "@lingua-bloom/contracts";
+import { DocumentIRSchema, UnknownLayoutReviewSchema } from "@lingua-bloom/contracts";
 import {
   buildPdfDocumentIr,
   buildTextDocumentIr,
@@ -22,6 +22,7 @@ import {
 } from "@/src/ai/openai-answer-suggester.server";
 import { getServerEnvironment } from "@/src/config/server-env";
 import { buildReviewDraft } from "@/src/imports/build-review-draft";
+import { selectDocumentIrCheckpoint } from "@/src/imports/select-ir-checkpoint";
 import { createAdminSupabaseClient } from "@/src/supabase/admin";
 
 import { inngest } from "./client";
@@ -37,9 +38,6 @@ const ImportEventDataSchema = z.object({
 
 const SourceTitleSchema = z.object({ title: z.string().min(1) });
 const EventSequenceSchema = z.object({ sequence: z.number().int().positive() }).nullable();
-const DocumentIrCheckpointSchema = z
-  .object({ id: z.string().min(1), payload: z.unknown() })
-  .nullable();
 
 export const reliableIngestion = inngest.createFunction(
   { id: "reliable-source-ingestion", retries: 0 },
@@ -57,6 +55,18 @@ export const reliableIngestion = inngest.createFunction(
       if (existing.error)
         throw new Error(`Failed to check draft checkpoint: ${existing.error.message}`);
       if (existing.data) return { status: "awaiting_review" as const };
+      const existingUnknownReview = await supabase
+        .from("unknown_layout_reviews")
+        .select("id")
+        .eq("owner_id", ownerId)
+        .eq("run_id", runId)
+        .eq("status", "active")
+        .maybeSingle();
+      if (existingUnknownReview.error)
+        throw new Error(
+          `Failed to check unknown-layout checkpoint: ${existingUnknownReview.error.message}`
+        );
+      if (existingUnknownReview.data) return { status: "awaiting_review" as const };
 
       await updateRun(supabase, runId, ownerId, {
         status: "processing",
@@ -82,11 +92,9 @@ export const reliableIngestion = inngest.createFunction(
           .select("id,payload")
           .eq("owner_id", ownerId)
           .eq("source_document_id", sourceDocumentId)
-          .order("created_at", { ascending: true })
-          .limit(1)
-          .maybeSingle();
+          .order("created_at", { ascending: true });
         if (irCheckpointResult.error) throw new Error(irCheckpointResult.error.message);
-        const irCheckpoint = DocumentIrCheckpointSchema.parse(irCheckpointResult.data);
+        const irCheckpoint = selectDocumentIrCheckpoint(kind, irCheckpointResult.data);
         const documentIrId = irCheckpoint?.id ?? crypto.randomUUID();
         const document = irCheckpoint
           ? DocumentIRSchema.parse(irCheckpoint.payload)
@@ -111,6 +119,68 @@ export const reliableIngestion = inngest.createFunction(
           kind === "pdf"
             ? extractPdfExercises(document, { documentIrId })
             : extractTextExercises(document, { documentIrId });
+        const unknownCandidates =
+          "unknownCandidates" in extraction ? extraction.unknownCandidates : undefined;
+        if (kind === "pdf" && extraction.groups.length === 0 && unknownCandidates?.length) {
+          const now = new Date().toISOString();
+          const review = UnknownLayoutReviewSchema.parse({
+            schemaVersion: "1.0.0",
+            runId,
+            sourceDocumentId,
+            documentIrId,
+            revision: 1,
+            status: "active",
+            candidates: unknownCandidates,
+            coverage: {
+              detectedCandidateCount: unknownCandidates.length,
+              accountedCandidateCount: 0,
+              status: "needsReview"
+            },
+            createdAt: now,
+            updatedAt: now
+          });
+          const issueId = crypto.randomUUID();
+          const issue = {
+            id: issueId,
+            code: "UNSUPPORTED_LAYOUT" as const,
+            severity: "blocking" as const,
+            entityIds: unknownCandidates.map((candidate) => candidate.id),
+            evidence: unknownCandidates.flatMap((candidate) => candidate.sourceRefs),
+            message: "Detected source content uses a layout that requires teacher classification",
+            resolution: "open" as const
+          };
+          const { error: reviewError } = await supabase.from("unknown_layout_reviews").insert({
+            run_id: runId,
+            source_document_id: sourceDocumentId,
+            document_ir_id: documentIrId,
+            owner_id: ownerId,
+            revision: 1,
+            status: "active",
+            payload: review
+          });
+          if (reviewError)
+            throw new Error(`Failed to persist unknown-layout review: ${reviewError.message}`);
+          const { error: issueError } = await supabase.from("validation_issues").insert({
+            id: issueId,
+            run_id: runId,
+            owner_id: ownerId,
+            code: issue.code,
+            severity: issue.severity,
+            payload: issue,
+            resolution: issue.resolution
+          });
+          if (issueError)
+            throw new Error(`Failed to persist unknown-layout issue: ${issueError.message}`);
+          await updateRun(supabase, runId, ownerId, {
+            status: "awaiting_review",
+            current_step: "await-layout-review",
+            last_successful_checkpoint: "detect-unknown-layout"
+          });
+          await appendRunEvent(supabase, ownerId, runId, "awaiting_review", "await-layout-review", {
+            candidateCount: unknownCandidates.length
+          });
+          return { status: "awaiting_review" as const };
+        }
         const answerFieldCount = extraction.groups.reduce(
           (total, group) =>
             total +

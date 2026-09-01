@@ -58,5 +58,23 @@
       "ambiguousFieldExcluded": true,
       "passed": true
     }
+  ],
+  "feature002Fixtures": [
+    {
+      "fixture": "vocab.pdf",
+      "sha256": "0d0a07161a2aac4bfc87b8dd0612d10483238bcfd04bfd60a1bc1063fb3a7ab5",
+      "parserVersion": "pdf-layout/1.1.0",
+      "expectedManifest": "vocab.expected.json",
+      "evaluationSuite": "packages/evals/src/fixtures/vocab-matching.eval.test.ts",
+      "releaseGate": true
+    },
+    {
+      "fixture": "placement_test.pdf",
+      "sha256": "0ed6ea13c458bad7476b41c586a924e41937bfb497bfe168c219818cfc493e6f",
+      "parserVersion": "pdf-layout/1.1.0",
+      "expectedManifest": "placement_test.expected.json",
+      "evaluationSuite": "packages/evals/src/fixtures/placement-test.eval.test.ts",
+      "releaseGate": true
+    }
   ]
 }

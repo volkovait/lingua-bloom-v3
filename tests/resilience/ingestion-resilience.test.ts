@@ -13,7 +13,7 @@ describe("ingestion resilience release matrix", () => {
 
   test("restart reuses durable IR and draft checkpoints", async () => {
     const workflow = await read("apps/web/src/inngest/reliable-ingestion.ts");
-    expect(workflow).toContain("DocumentIrCheckpointSchema");
+    expect(workflow).toContain("selectDocumentIrCheckpoint(kind, irCheckpointResult.data)");
     expect(workflow).toContain('if (existing.data) return { status: "awaiting_review"');
     expect(workflow).toContain('last_successful_checkpoint: "validate-coverage"');
     expect(workflow).toContain('last_successful_checkpoint: "assemble-draft"');

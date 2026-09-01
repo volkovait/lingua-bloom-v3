@@ -1,0 +1,4035 @@
+{
+  "schemaVersion": "1.0.0",
+  "fixtureId": "placement_test",
+  "sourceFile": "../fixtures/sources/placement_test.pdf",
+  "sha256": "0ed6ea13c458bad7476b41c586a924e41937bfb497bfe168c219818cfc493e6f",
+  "parserVersion": "pdf-layout/1.1.0",
+  "humanLabel": {
+    "reviewedAt": "2026-08-27",
+    "method": "all five pages visually reviewed against rendered PDF and block-level DocumentIR"
+  },
+  "summary": {
+    "pageCount": 5,
+    "sectionCount": 2,
+    "singleChoiceItemCount": 50,
+    "optionCountPerItem": 4,
+    "sourceOrdinalStart": 21,
+    "sourceOrdinalEnd": 70,
+    "canonicalBlankCount": 50,
+    "boilerplateInPromptsOrOptions": 0,
+    "unsupportedAdditionCount": 0
+  },
+  "answerPolicy": {
+    "sourceAnswerKeyPresent": false,
+    "reviewStatus": "needsReview"
+  },
+  "sections": [
+    {
+      "title": "Grammar",
+      "sourceOrdinalStart": 21,
+      "sourceOrdinalEnd": 50,
+      "pages": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "title": "Vocabulary",
+      "sourceOrdinalStart": 51,
+      "sourceOrdinalEnd": 70,
+      "pages": [
+        3,
+        4
+      ]
+    }
+  ],
+  "regions": [
+    {
+      "kind": "heading",
+      "value": " GRAMMAR",
+      "sourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:0",
+          "charStart": 0,
+          "charEnd": 9
+        }
+      ]
+    },
+    {
+      "kind": "instruction",
+      "value": "Choose the correct answer to complete the sentences.",
+      "sourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:1",
+          "charStart": 0,
+          "charEnd": 52
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "© 2019 Pearson Education, Inc. Permission granted to reproduce for classroom use.",
+      "sourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:33",
+          "charStart": 0,
+          "charEnd": 81
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "Pearson course placement test – Test 1 Form B",
+      "sourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:34",
+          "charStart": 0,
+          "charEnd": 45
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "GO TO THE NEXT PAGE",
+      "sourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:64",
+          "charStart": 0,
+          "charEnd": 19
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "4",
+      "sourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:65",
+          "charStart": 0,
+          "charEnd": 1
+        }
+      ]
+    },
+    {
+      "kind": "heading",
+      "value": " GRAMMAR",
+      "sourceRefs": [
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:0",
+          "charStart": 0,
+          "charEnd": 9
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "© 2019 Pearson Education, Inc. Permission granted to reproduce for classroom use.",
+      "sourceRefs": [
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:31",
+          "charStart": 0,
+          "charEnd": 81
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "Pearson course placement test – Test 1 Form B",
+      "sourceRefs": [
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:32",
+          "charStart": 0,
+          "charEnd": 45
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "GO TO THE NEXT PAGE",
+      "sourceRefs": [
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:66",
+          "charStart": 0,
+          "charEnd": 19
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "5",
+      "sourceRefs": [
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:67",
+          "charStart": 0,
+          "charEnd": 1
+        }
+      ]
+    },
+    {
+      "kind": "heading",
+      "value": " GRAMMAR",
+      "sourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:0",
+          "charStart": 0,
+          "charEnd": 9
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "THIS IS THE END OF THE GRAMMAR SECTION.",
+      "sourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:30",
+          "charStart": 0,
+          "charEnd": 39
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "© 2019 Pearson Education, Inc. Permission granted to reproduce for classroom use.",
+      "sourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:31",
+          "charStart": 0,
+          "charEnd": 81
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "Pearson course placement test – Test 1 Form B",
+      "sourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:32",
+          "charStart": 0,
+          "charEnd": 45
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "GO TO THE NEXT PAGE",
+      "sourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:63",
+          "charStart": 0,
+          "charEnd": 19
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "6",
+      "sourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:64",
+          "charStart": 0,
+          "charEnd": 1
+        }
+      ]
+    },
+    {
+      "kind": "heading",
+      "value": " VOCABULARY",
+      "sourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:0",
+          "charStart": 0,
+          "charEnd": 12
+        }
+      ]
+    },
+    {
+      "kind": "instruction",
+      "value": "Choose the correct answer to complete the sentences.",
+      "sourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:1",
+          "charStart": 0,
+          "charEnd": 52
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "© 2019 Pearson Education, Inc. Permission granted to reproduce for classroom use.",
+      "sourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:35",
+          "charStart": 0,
+          "charEnd": 81
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "Pearson course placement test – Test 1 Form B",
+      "sourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:36",
+          "charStart": 0,
+          "charEnd": 45
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "GO TO THE NEXT PAGE",
+      "sourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:68",
+          "charStart": 0,
+          "charEnd": 19
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "7",
+      "sourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:69",
+          "charStart": 0,
+          "charEnd": 1
+        }
+      ]
+    },
+    {
+      "kind": "heading",
+      "value": " VOCABULARY",
+      "sourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:0",
+          "charStart": 0,
+          "charEnd": 12
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "THIS IS THE END OF THE VOCABULARY SECTION.",
+      "sourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:31",
+          "charStart": 0,
+          "charEnd": 42
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "© 2019 Pearson Education, Inc. Permission granted to reproduce for classroom use.",
+      "sourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:32",
+          "charStart": 0,
+          "charEnd": 81
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "Pearson course placement test – Test 1 Form B",
+      "sourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:33",
+          "charStart": 0,
+          "charEnd": 45
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "GO TO THE NEXT PAGE",
+      "sourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:64",
+          "charStart": 0,
+          "charEnd": 19
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "value": "8",
+      "sourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:65",
+          "charStart": 0,
+          "charEnd": 1
+        }
+      ]
+    }
+  ],
+  "items": [
+    {
+      "sourceOrdinal": 21,
+      "section": "Grammar",
+      "pageIndex": 0,
+      "prompt": "I spoke to ___ hotel manager about the problem with our room.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:2",
+          "charStart": 0,
+          "charEnd": 23
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:3",
+          "charStart": 0,
+          "charEnd": 30
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:4",
+          "charStart": 0,
+          "charEnd": 9
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "a",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:5",
+              "charStart": 0,
+              "charEnd": 3
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "the",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:6",
+              "charStart": 0,
+              "charEnd": 5
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "any",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:7",
+              "charStart": 0,
+              "charEnd": 5
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "some",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:8",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 22,
+      "section": "Grammar",
+      "pageIndex": 0,
+      "prompt": "I ___ early tomorrow morning.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:9",
+          "charStart": 0,
+          "charEnd": 23
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:10",
+          "charStart": 0,
+          "charEnd": 8
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "woke up",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:11",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "wake up",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:12",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "was waking up",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:13",
+              "charStart": 0,
+              "charEnd": 15
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "am going to wake up",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:14",
+              "charStart": 0,
+              "charEnd": 21
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 23,
+      "section": "Grammar",
+      "pageIndex": 0,
+      "prompt": "A: ___ you live? B: I live in Jamestown.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:15",
+          "charStart": 0,
+          "charEnd": 19
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:16",
+          "charStart": 0,
+          "charEnd": 23
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "Where",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:17",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "Where is",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:18",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "Where do",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:19",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "Where does",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:20",
+              "charStart": 0,
+              "charEnd": 12
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 24,
+      "section": "Grammar",
+      "pageIndex": 0,
+      "prompt": "I ___ John at the party yesterday.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:21",
+          "charStart": 0,
+          "charEnd": 25
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:22",
+          "charStart": 0,
+          "charEnd": 10
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "see",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:23",
+              "charStart": 0,
+              "charEnd": 5
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "saw",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:24",
+              "charStart": 0,
+              "charEnd": 5
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "have seen",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:25",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "was seeing",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:26",
+              "charStart": 0,
+              "charEnd": 12
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 25,
+      "section": "Grammar",
+      "pageIndex": 0,
+      "prompt": "___ the rain, they moved the concert inside.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:27",
+          "charStart": 0,
+          "charEnd": 27
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:28",
+          "charStart": 0,
+          "charEnd": 19
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "Despite",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:29",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "However",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:30",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "Because of",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:31",
+              "charStart": 0,
+              "charEnd": 12
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "Even though",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:32",
+              "charStart": 0,
+              "charEnd": 13
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 26,
+      "section": "Grammar",
+      "pageIndex": 0,
+      "prompt": "___ me at the restaurant after work.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:35",
+          "charStart": 0,
+          "charEnd": 27
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:36",
+          "charStart": 0,
+          "charEnd": 11
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "Meet",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:37",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "Meeting",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:38",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "Will meet",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:39",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "To meet",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:40",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 27,
+      "section": "Grammar",
+      "pageIndex": 0,
+      "prompt": "I need to buy ___ bread. Can we stop at the shop?",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:41",
+          "charStart": 0,
+          "charEnd": 27
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:42",
+          "charStart": 0,
+          "charEnd": 24
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "any",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:43",
+              "charStart": 0,
+              "charEnd": 5
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "some",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:44",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "many",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:45",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "much",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:46",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 28,
+      "section": "Grammar",
+      "pageIndex": 0,
+      "prompt": "The view is beautiful ___ the evening.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:47",
+          "charStart": 0,
+          "charEnd": 32
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:48",
+          "charStart": 0,
+          "charEnd": 8
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "on",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:49",
+              "charStart": 0,
+              "charEnd": 4
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "at",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:50",
+              "charStart": 0,
+              "charEnd": 4
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "in",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:51",
+              "charStart": 0,
+              "charEnd": 4
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "to",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:52",
+              "charStart": 0,
+              "charEnd": 4
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 29,
+      "section": "Grammar",
+      "pageIndex": 0,
+      "prompt": "We enjoy ___ family dinner on Sunday evenings.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:53",
+          "charStart": 0,
+          "charEnd": 29
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:54",
+          "charStart": 0,
+          "charEnd": 19
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "had",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:55",
+              "charStart": 0,
+              "charEnd": 5
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "have",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:56",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "to have",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:57",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "having",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:58",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 30,
+      "section": "Grammar",
+      "pageIndex": 0,
+      "prompt": "___ two libraries in the city.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:59",
+          "charStart": 0,
+          "charEnd": 33
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "It is",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:60",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "They are",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:61",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "There is",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:62",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "There are",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:63",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 31,
+      "section": "Grammar",
+      "pageIndex": 1,
+      "prompt": "A: Do you want something to drink? B: I ___ a cup of tea please.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:1",
+          "charStart": 0,
+          "charEnd": 37
+        },
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:2",
+          "charStart": 0,
+          "charEnd": 29
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "like",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:3",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "can like",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:4",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "could like",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:5",
+              "charStart": 0,
+              "charEnd": 12
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "would like",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:6",
+              "charStart": 0,
+              "charEnd": 12
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 32,
+      "section": "Grammar",
+      "pageIndex": 1,
+      "prompt": "I ___ TV when you called.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:7",
+          "charStart": 0,
+          "charEnd": 28
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "watch",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:8",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "watched",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:9",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "am watching",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:10",
+              "charStart": 0,
+              "charEnd": 13
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "was watching",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:11",
+              "charStart": 0,
+              "charEnd": 14
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 33,
+      "section": "Grammar",
+      "pageIndex": 1,
+      "prompt": "The cinema is ___ Hudson Street.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:12",
+          "charStart": 0,
+          "charEnd": 20
+        },
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:13",
+          "charStart": 0,
+          "charEnd": 14
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "on",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:14",
+              "charStart": 0,
+              "charEnd": 4
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "in",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:15",
+              "charStart": 0,
+              "charEnd": 4
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "under",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:16",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "between",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:17",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 34,
+      "section": "Grammar",
+      "pageIndex": 1,
+      "prompt": "Elizabeth loves to travel. She ___ more than twenty countries.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:18",
+          "charStart": 0,
+          "charEnd": 29
+        },
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:19",
+          "charStart": 0,
+          "charEnd": 24
+        },
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:20",
+          "charStart": 0,
+          "charEnd": 10
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "visits",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:21",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "visited",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:22",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "is visiting",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:23",
+              "charStart": 0,
+              "charEnd": 13
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "has visited",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:24",
+              "charStart": 0,
+              "charEnd": 13
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 35,
+      "section": "Grammar",
+      "pageIndex": 1,
+      "prompt": "I ___ drive you to the airport. It’s no problem at all.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:25",
+          "charStart": 0,
+          "charEnd": 25
+        },
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:26",
+          "charStart": 0,
+          "charEnd": 32
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "may",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:27",
+              "charStart": 0,
+              "charEnd": 5
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "must",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:28",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "could",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:29",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "would",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:30",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 36,
+      "section": "Grammar",
+      "pageIndex": 1,
+      "prompt": "A: Did you get the job in Bogota? B: Yes! I ___ move there next month.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:33",
+          "charStart": 0,
+          "charEnd": 36
+        },
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:34",
+          "charStart": 0,
+          "charEnd": 24
+        },
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:35",
+          "charStart": 0,
+          "charEnd": 11
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "can",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:36",
+              "charStart": 0,
+              "charEnd": 5
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "will",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:37",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "would",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:38",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "might",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:39",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 37,
+      "section": "Grammar",
+      "pageIndex": 1,
+      "prompt": "This test is ___ than the last test.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:40",
+          "charStart": 0,
+          "charEnd": 24
+        },
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:41",
+          "charStart": 0,
+          "charEnd": 14
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "easy",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:42",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "easier",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:43",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "easiest",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:44",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "the easiest",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:45",
+              "charStart": 0,
+              "charEnd": 13
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 38,
+      "section": "Grammar",
+      "pageIndex": 1,
+      "prompt": "Did you ___ to the fotball match last night?",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:46",
+          "charStart": 0,
+          "charEnd": 28
+        },
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:47",
+          "charStart": 0,
+          "charEnd": 17
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "go",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:48",
+              "charStart": 0,
+              "charEnd": 4
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "went",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:49",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "have gone",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:50",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "were going",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:51",
+              "charStart": 0,
+              "charEnd": 12
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 39,
+      "section": "Grammar",
+      "pageIndex": 1,
+      "prompt": "We have ten science teachers. All the ___ offices are on the second floor.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:52",
+          "charStart": 0,
+          "charEnd": 32
+        },
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:53",
+          "charStart": 0,
+          "charEnd": 26
+        },
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:54",
+          "charStart": 0,
+          "charEnd": 17
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "teacher",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:55",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "teachers",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:56",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "teacher’s",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:57",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "teachers’",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:58",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 40,
+      "section": "Grammar",
+      "pageIndex": 1,
+      "prompt": "John loves this coffee shop and comes here every day. He ___ gets his coffee here.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:59",
+          "charStart": 0,
+          "charEnd": 34
+        },
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:60",
+          "charStart": 0,
+          "charEnd": 21
+        },
+        {
+          "pageIndex": 1,
+          "blockId": "page:1:block:61",
+          "charStart": 0,
+          "charEnd": 28
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "never",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:62",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "rarely",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:63",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "always",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:64",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "sometimes",
+          "sourceRefs": [
+            {
+              "pageIndex": 1,
+              "blockId": "page:1:block:65",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 41,
+      "section": "Grammar",
+      "pageIndex": 2,
+      "prompt": "Chinese ___ in many communities in London.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:1",
+          "charStart": 0,
+          "charEnd": 22
+        },
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:2",
+          "charStart": 0,
+          "charEnd": 22
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "spoke",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:3",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "speaks",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:4",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "is spoken",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:5",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "has spoken",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:6",
+              "charStart": 0,
+              "charEnd": 12
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 42,
+      "section": "Grammar",
+      "pageIndex": 2,
+      "prompt": "Ben ___ right now. He is at the library.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:7",
+          "charStart": 0,
+          "charEnd": 30
+        },
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:8",
+          "charStart": 0,
+          "charEnd": 12
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "didn't work",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:9",
+              "charStart": 0,
+              "charEnd": 13
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "doesn't work",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:10",
+              "charStart": 0,
+              "charEnd": 14
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "isn’t working",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:11",
+              "charStart": 0,
+              "charEnd": 15
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "wasn’t working",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:12",
+              "charStart": 0,
+              "charEnd": 16
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 43,
+      "section": "Grammar",
+      "pageIndex": 2,
+      "prompt": "I don’t know anyone ___ lives here. Do you?",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:13",
+          "charStart": 0,
+          "charEnd": 26
+        },
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:14",
+          "charStart": 0,
+          "charEnd": 19
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "who",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:15",
+              "charStart": 0,
+              "charEnd": 5
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "when",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:16",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "where",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:17",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "which",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:18",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 44,
+      "section": "Grammar",
+      "pageIndex": 2,
+      "prompt": "Can you bring me ___ jeans behind you?",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:19",
+          "charStart": 0,
+          "charEnd": 23
+        },
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:20",
+          "charStart": 0,
+          "charEnd": 17
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "that",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:21",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "this",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:22",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "those",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:23",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "these",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:24",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 45,
+      "section": "Grammar",
+      "pageIndex": 2,
+      "prompt": "I want to visit ___.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:25",
+          "charStart": 0,
+          "charEnd": 23
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "South Pole",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:26",
+              "charStart": 0,
+              "charEnd": 12
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "a South Pole",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:27",
+              "charStart": 0,
+              "charEnd": 14
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "the South Pole",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:28",
+              "charStart": 0,
+              "charEnd": 16
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "this South Pole",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:29",
+              "charStart": 0,
+              "charEnd": 17
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 46,
+      "section": "Grammar",
+      "pageIndex": 2,
+      "prompt": "Mark lived in Rome and Milan, so he speaks Italian very ___.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:33",
+          "charStart": 0,
+          "charEnd": 35
+        },
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:34",
+          "charStart": 0,
+          "charEnd": 27
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "good",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:35",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "well",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:36",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "better",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:37",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "best",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:38",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 47,
+      "section": "Grammar",
+      "pageIndex": 2,
+      "prompt": "A: ___ you go to London? B: I went last year.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:39",
+          "charStart": 0,
+          "charEnd": 27
+        },
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:40",
+          "charStart": 0,
+          "charEnd": 20
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "Why did",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:41",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "When did",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:42",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "When were",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:43",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "Where were",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:44",
+              "charStart": 0,
+              "charEnd": 12
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 48,
+      "section": "Grammar",
+      "pageIndex": 2,
+      "prompt": "We have ___ food for the party, but we need more drinks.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:45",
+          "charStart": 0,
+          "charEnd": 27
+        },
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:46",
+          "charStart": 0,
+          "charEnd": 31
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "too",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:47",
+              "charStart": 0,
+              "charEnd": 5
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "too much",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:48",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "too many",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:49",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "enough",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:50",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 49,
+      "section": "Grammar",
+      "pageIndex": 2,
+      "prompt": "You’ve met Jonas before, ___?",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:51",
+          "charStart": 0,
+          "charEnd": 32
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "have you",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:52",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "haven’t you",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:53",
+              "charStart": 0,
+              "charEnd": 13
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "did you",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:54",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "didn’t you",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:55",
+              "charStart": 0,
+              "charEnd": 12
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 50,
+      "section": "Grammar",
+      "pageIndex": 2,
+      "prompt": "I have a lot of meetings this morning, so let’s meet ___ lunch.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:56",
+          "charStart": 0,
+          "charEnd": 32
+        },
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:57",
+          "charStart": 0,
+          "charEnd": 26
+        },
+        {
+          "pageIndex": 2,
+          "blockId": "page:2:block:58",
+          "charStart": 0,
+          "charEnd": 6
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "in",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:59",
+              "charStart": 0,
+              "charEnd": 4
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "on",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:60",
+              "charStart": 0,
+              "charEnd": 4
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "after",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:61",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "before",
+          "sourceRefs": [
+            {
+              "pageIndex": 2,
+              "blockId": "page:2:block:62",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 51,
+      "section": "Vocabulary",
+      "pageIndex": 3,
+      "prompt": "I like taking black and white ___ with my camera.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:2",
+          "charStart": 0,
+          "charEnd": 32
+        },
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:3",
+          "charStart": 0,
+          "charEnd": 19
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "calls",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:4",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "notes",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:5",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "breaks",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:6",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "photographs",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:7",
+              "charStart": 0,
+              "charEnd": 13
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 52,
+      "section": "Vocabulary",
+      "pageIndex": 3,
+      "prompt": "A: Hi, Greg. I’d like to ___ you to my friend, Phil. B: Hi, Phil. I’m Greg.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:8",
+          "charStart": 0,
+          "charEnd": 31
+        },
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:9",
+          "charStart": 0,
+          "charEnd": 23
+        },
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:10",
+          "charStart": 0,
+          "charEnd": 22
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "meet",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:11",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "invite",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:12",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "introduce",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:13",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "remember",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:14",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 53,
+      "section": "Vocabulary",
+      "pageIndex": 3,
+      "prompt": "There are a lot of cars downtown, and ___ is really bad around high street.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:15",
+          "charStart": 0,
+          "charEnd": 36
+        },
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:16",
+          "charStart": 0,
+          "charEnd": 21
+        },
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:17",
+          "charStart": 0,
+          "charEnd": 19
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "weather",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:18",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "traffic",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:19",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "tourist",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:20",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "health",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:21",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 54,
+      "section": "Vocabulary",
+      "pageIndex": 3,
+      "prompt": "Be safe, and don’t walk around at night in ___ areas.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:22",
+          "charStart": 0,
+          "charEnd": 33
+        },
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:23",
+          "charStart": 0,
+          "charEnd": 22
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "unusual",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:24",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "familiar",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:25",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "exciting",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:26",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "dangerous",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:27",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 55,
+      "section": "Vocabulary",
+      "pageIndex": 3,
+      "prompt": "Let’s go home this ___ so we can have Sunday dinner with mom and dad.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:28",
+          "charStart": 0,
+          "charEnd": 28
+        },
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:29",
+          "charStart": 0,
+          "charEnd": 30
+        },
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:30",
+          "charStart": 0,
+          "charEnd": 12
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "day",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:31",
+              "charStart": 0,
+              "charEnd": 5
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "hour",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:32",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "tomorrow",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:33",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "weekend",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:34",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 56,
+      "section": "Vocabulary",
+      "pageIndex": 3,
+      "prompt": "I spent too much ___ at the library. I’m late for dinner!",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:37",
+          "charStart": 0,
+          "charEnd": 26
+        },
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:38",
+          "charStart": 0,
+          "charEnd": 33
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "time",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:39",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "minute",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:40",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "clock",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:41",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "watch",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:42",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 57,
+      "section": "Vocabulary",
+      "pageIndex": 3,
+      "prompt": "Cathy ___ to take the job in Boston.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:43",
+          "charStart": 0,
+          "charEnd": 28
+        },
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:44",
+          "charStart": 0,
+          "charEnd": 10
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "began",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:45",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "thought",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:46",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "decided",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:47",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "completed",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:48",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 58,
+      "section": "Vocabulary",
+      "pageIndex": 3,
+      "prompt": "Food and art are part of people’s ___.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:49",
+          "charStart": 0,
+          "charEnd": 36
+        },
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:50",
+          "charStart": 0,
+          "charEnd": 4
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "culture",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:51",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "religion",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:52",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "laws",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:53",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "ideas",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:54",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 59,
+      "section": "Vocabulary",
+      "pageIndex": 3,
+      "prompt": "It’s so hot today! What’s the ___?",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:55",
+          "charStart": 0,
+          "charEnd": 32
+        },
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:56",
+          "charStart": 0,
+          "charEnd": 4
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "season",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:57",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "noise",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:58",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "environment",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:59",
+              "charStart": 0,
+              "charEnd": 13
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "temperature",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:60",
+              "charStart": 0,
+              "charEnd": 13
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 60,
+      "section": "Vocabulary",
+      "pageIndex": 3,
+      "prompt": "The police arrested the man because he tried to ___ five million dollars from his company.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:61",
+          "charStart": 0,
+          "charEnd": 30
+        },
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:62",
+          "charStart": 0,
+          "charEnd": 28
+        },
+        {
+          "pageIndex": 3,
+          "blockId": "page:3:block:63",
+          "charStart": 0,
+          "charEnd": 33
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "earn",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:64",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "steal",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:65",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "return",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:66",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "protect",
+          "sourceRefs": [
+            {
+              "pageIndex": 3,
+              "blockId": "page:3:block:67",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 61,
+      "section": "Vocabulary",
+      "pageIndex": 4,
+      "prompt": "___, the website doesn’t accept credit card payments.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:1",
+          "charStart": 0,
+          "charEnd": 27
+        },
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:2",
+          "charStart": 0,
+          "charEnd": 28
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "Likely",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:3",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "Rarely",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:4",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "Suddenly",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:5",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "Unfortunately",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:6",
+              "charStart": 0,
+              "charEnd": 15
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 62,
+      "section": "Vocabulary",
+      "pageIndex": 4,
+      "prompt": "I didn’t know the meaning of the word, so I ___.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:7",
+          "charStart": 0,
+          "charEnd": 35
+        },
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:8",
+          "charStart": 0,
+          "charEnd": 15
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "told",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:9",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "wrote",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:10",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "moved",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:11",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "guessed",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:12",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 63,
+      "section": "Vocabulary",
+      "pageIndex": 4,
+      "prompt": "A: Do you know why Tim is late? B: It’s ___ he missed his train.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:13",
+          "charStart": 0,
+          "charEnd": 34
+        },
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:14",
+          "charStart": 0,
+          "charEnd": 32
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "sure",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:15",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "early",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:16",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "difficult",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:17",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "possible",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:18",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 64,
+      "section": "Vocabulary",
+      "pageIndex": 4,
+      "prompt": "John ___ lost his job, so he is looking for a new one.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:19",
+          "charStart": 0,
+          "charEnd": 31
+        },
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:20",
+          "charStart": 0,
+          "charEnd": 25
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "usually",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:21",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "recently",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:22",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "regularly",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:23",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "immediately",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:24",
+              "charStart": 0,
+              "charEnd": 13
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 65,
+      "section": "Vocabulary",
+      "pageIndex": 4,
+      "prompt": "I live on one end of high street, and Sue lives on the ___ end.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:25",
+          "charStart": 0,
+          "charEnd": 36
+        },
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:26",
+          "charStart": 0,
+          "charEnd": 29
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "opposite",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:27",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "correct",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:28",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "wrong",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:29",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "front",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:30",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 66,
+      "section": "Vocabulary",
+      "pageIndex": 4,
+      "prompt": "It’s not ___ to bring money. We paid for everything already.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:34",
+          "charStart": 0,
+          "charEnd": 31
+        },
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:35",
+          "charStart": 0,
+          "charEnd": 31
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "fair",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:36",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "normal",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:37",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "necessary",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:38",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "appropriate",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:39",
+              "charStart": 0,
+              "charEnd": 13
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 67,
+      "section": "Vocabulary",
+      "pageIndex": 4,
+      "prompt": "He wants to study ___ so he can work with computers.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:40",
+          "charStart": 0,
+          "charEnd": 27
+        },
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:41",
+          "charStart": 0,
+          "charEnd": 27
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "politics",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:42",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "science",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:43",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "history",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:44",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "technology",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:45",
+              "charStart": 0,
+              "charEnd": 12
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 68,
+      "section": "Vocabulary",
+      "pageIndex": 4,
+      "prompt": "This report is full of ___. We can’t use it.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:46",
+          "charStart": 0,
+          "charEnd": 30
+        },
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:47",
+          "charStart": 0,
+          "charEnd": 16
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "plans",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:48",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "mistakes",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:49",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "accidents",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:50",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "appointments",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:51",
+              "charStart": 0,
+              "charEnd": 14
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 69,
+      "section": "Vocabulary",
+      "pageIndex": 4,
+      "prompt": "Are you ___ to go? We have to leave now or we’ll be late.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:52",
+          "charStart": 0,
+          "charEnd": 24
+        },
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:53",
+          "charStart": 0,
+          "charEnd": 35
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "easy",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:54",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "angry",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:55",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "ready",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:56",
+              "charStart": 0,
+              "charEnd": 7
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "busy",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:57",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    },
+    {
+      "sourceOrdinal": 70,
+      "section": "Vocabulary",
+      "pageIndex": 4,
+      "prompt": "I don’t like driving. I ___ the train.",
+      "blankCount": 1,
+      "promptSourceRefs": [
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:58",
+          "charStart": 0,
+          "charEnd": 34
+        },
+        {
+          "pageIndex": 4,
+          "blockId": "page:4:block:59",
+          "charStart": 0,
+          "charEnd": 6
+        }
+      ],
+      "options": [
+        {
+          "sourceLabel": "a",
+          "value": "need",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:60",
+              "charStart": 0,
+              "charEnd": 6
+            }
+          ]
+        },
+        {
+          "sourceLabel": "b",
+          "value": "prefer",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:61",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "sourceLabel": "c",
+          "value": "suggest",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:62",
+              "charStart": 0,
+              "charEnd": 9
+            }
+          ]
+        },
+        {
+          "sourceLabel": "d",
+          "value": "schedule",
+          "sourceRefs": [
+            {
+              "pageIndex": 4,
+              "blockId": "page:4:block:63",
+              "charStart": 0,
+              "charEnd": 10
+            }
+          ]
+        }
+      ],
+      "answerStatus": "needsReview"
+    }
+  ]
+}

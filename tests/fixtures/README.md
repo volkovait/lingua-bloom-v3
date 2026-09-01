@@ -3,6 +3,14 @@
 These files are immutable regression inputs. Tests may create derived artifacts elsewhere, but MUST
 NOT normalize or overwrite the source files in this directory.
 
+## Universal PDF extraction acceptance fixtures
+
+- `sources/vocab.pdf`: SHA-256 `0d0a07161a2aac4bfc87b8dd0612d10483238bcfd04bfd60a1bc1063fb3a7ab5`; one page; readable text layer; copied byte-for-byte from the supplied source.
+- `sources/placement_test.pdf`: SHA-256 `0ed6ea13c458bad7476b41c586a924e41937bfb497bfe168c219818cfc493e6f`; five pages; readable text layer; copied byte-for-byte from the supplied source.
+
+These files are immutable acceptance evidence for feature 002. Do not update either file silently;
+introduce a new fixture and manifest revision when source evidence changes.
+
 ## `sources/1_page.pdf`
 
 - One visual PDF page with a two-column layout.

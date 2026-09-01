@@ -12,6 +12,16 @@ describe("review polling policy", () => {
     expect(shouldPollForDraft({ draft: { revision: 1 }, status: "processing" })).toBe(false);
   });
 
+  test("stops immediately when an unknown-layout review appears", () => {
+    expect(
+      shouldPollForDraft({
+        draft: null,
+        unknownLayoutReview: { revision: 1 },
+        status: "awaiting_review"
+      })
+    ).toBe(false);
+  });
+
   test("stops when status API offers stale-run recovery", () => {
     expect(
       shouldPollForDraft({

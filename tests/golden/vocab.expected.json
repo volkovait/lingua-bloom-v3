@@ -1,0 +1,355 @@
+{
+  "schemaVersion": "1.0.0",
+  "fixtureId": "vocab",
+  "sourceFile": "../fixtures/sources/vocab.pdf",
+  "sha256": "0d0a07161a2aac4bfc87b8dd0612d10483238bcfd04bfd60a1bc1063fb3a7ab5",
+  "parserVersion": "pdf-layout/1.1.0",
+  "humanLabel": {
+    "reviewedAt": "2026-08-27",
+    "method": "all pages visually reviewed against rendered PDF and block-level DocumentIR"
+  },
+  "summary": {
+    "pageCount": 1,
+    "matchingGroupCount": 1,
+    "studentItemCount": 5,
+    "sharedEntryCount": 6,
+    "exampleCount": 1,
+    "unsupportedAdditionCount": 0
+  },
+  "regions": [
+    {
+      "kind": "boilerplate",
+      "sourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:0",
+          "charStart": 0,
+          "charEnd": 2
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:1",
+          "charStart": 0,
+          "charEnd": 27
+        }
+      ]
+    },
+    {
+      "kind": "heading",
+      "value": "VOCABULARY",
+      "sourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:2",
+          "charStart": 0,
+          "charEnd": 10
+        }
+      ]
+    },
+    {
+      "kind": "instruction",
+      "value": "4 Match (1–5) with (A–F) to make sentences.",
+      "sourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:3",
+          "charStart": 0,
+          "charEnd": 43
+        }
+      ]
+    },
+    {
+      "kind": "example",
+      "sourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:4",
+          "charStart": 0,
+          "charEnd": 34
+        }
+      ]
+    },
+    {
+      "kind": "question",
+      "sourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:5",
+          "charStart": 0,
+          "charEnd": 29
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:6",
+          "charStart": 0,
+          "charEnd": 32
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:7",
+          "charStart": 0,
+          "charEnd": 17
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:8",
+          "charStart": 0,
+          "charEnd": 29
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:9",
+          "charStart": 0,
+          "charEnd": 29
+        }
+      ]
+    },
+    {
+      "kind": "optionBank",
+      "sourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:11",
+          "charStart": 0,
+          "charEnd": 14
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:12",
+          "charStart": 0,
+          "charEnd": 8
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:13",
+          "charStart": 0,
+          "charEnd": 13
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:14",
+          "charStart": 0,
+          "charEnd": 11
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:15",
+          "charStart": 0,
+          "charEnd": 8
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:16",
+          "charStart": 0,
+          "charEnd": 18
+        }
+      ]
+    },
+    {
+      "kind": "boilerplate",
+      "sourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:10",
+          "charStart": 0,
+          "charEnd": 28
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:17",
+          "charStart": 0,
+          "charEnd": 7
+        },
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:18",
+          "charStart": 0,
+          "charEnd": 1
+        }
+      ]
+    }
+  ],
+  "matchingGroup": {
+    "sourceExerciseNumber": 4,
+    "interactionKind": "matching",
+    "usagePolicy": "useOnce",
+    "instructionSourceRefs": [
+      {
+        "pageIndex": 0,
+        "blockId": "page:0:block:3",
+        "charStart": 0,
+        "charEnd": 43
+      }
+    ],
+    "example": {
+      "sourceOrdinal": 0,
+      "prompt": "I like travel and I can read",
+      "acceptedEntryId": "matching-entry:B",
+      "studentAnswerable": false,
+      "sourceRefs": [
+        {
+          "pageIndex": 0,
+          "blockId": "page:0:block:4",
+          "charStart": 0,
+          "charEnd": 34
+        }
+      ]
+    },
+    "items": [
+      {
+        "sourceOrdinal": 1,
+        "prompt": "Ben and Riana can dance",
+        "sourceRefs": [
+          {
+            "pageIndex": 0,
+            "blockId": "page:0:block:5",
+            "charStart": 0,
+            "charEnd": 29
+          }
+        ],
+        "acceptedEntryId": "matching-entry:E"
+      },
+      {
+        "sourceOrdinal": 2,
+        "prompt": "For me, it’s easy to sleep",
+        "sourceRefs": [
+          {
+            "pageIndex": 0,
+            "blockId": "page:0:block:6",
+            "charStart": 0,
+            "charEnd": 32
+          }
+        ],
+        "acceptedEntryId": "matching-entry:A"
+      },
+      {
+        "sourceOrdinal": 3,
+        "prompt": "I can’t use",
+        "sourceRefs": [
+          {
+            "pageIndex": 0,
+            "blockId": "page:0:block:7",
+            "charStart": 0,
+            "charEnd": 17
+          }
+        ],
+        "acceptedEntryId": "matching-entry:C"
+      },
+      {
+        "sourceOrdinal": 4,
+        "prompt": "My teacher can remember",
+        "sourceRefs": [
+          {
+            "pageIndex": 0,
+            "blockId": "page:0:block:8",
+            "charStart": 0,
+            "charEnd": 29
+          }
+        ],
+        "acceptedEntryId": "matching-entry:F"
+      },
+      {
+        "sourceOrdinal": 5,
+        "prompt": "My brother can sleep in",
+        "sourceRefs": [
+          {
+            "pageIndex": 0,
+            "blockId": "page:0:block:9",
+            "charStart": 0,
+            "charEnd": 29
+          }
+        ],
+        "acceptedEntryId": "matching-entry:D"
+      }
+    ],
+    "sharedBank": {
+      "id": "matching-bank:4",
+      "entries": [
+        {
+          "id": "matching-entry:A",
+          "ordinal": 1,
+          "sourceLabel": "A",
+          "value": "a hotel bed.",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:11",
+              "charStart": 0,
+              "charEnd": 14
+            }
+          ]
+        },
+        {
+          "id": "matching-entry:B",
+          "ordinal": 2,
+          "sourceLabel": "B",
+          "value": "a map.",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:12",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "id": "matching-entry:C",
+          "ordinal": 3,
+          "sourceLabel": "C",
+          "value": "chopsticks.",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:13",
+              "charStart": 0,
+              "charEnd": 13
+            }
+          ]
+        },
+        {
+          "id": "matching-entry:D",
+          "ordinal": 4,
+          "sourceLabel": "D",
+          "value": "on a bus.",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:14",
+              "charStart": 0,
+              "charEnd": 11
+            }
+          ]
+        },
+        {
+          "id": "matching-entry:E",
+          "ordinal": 5,
+          "sourceLabel": "E",
+          "value": "salsa.",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:15",
+              "charStart": 0,
+              "charEnd": 8
+            }
+          ]
+        },
+        {
+          "id": "matching-entry:F",
+          "ordinal": 6,
+          "sourceLabel": "F",
+          "value": "students’ names.",
+          "sourceRefs": [
+            {
+              "pageIndex": 0,
+              "blockId": "page:0:block:16",
+              "charStart": 0,
+              "charEnd": 18
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

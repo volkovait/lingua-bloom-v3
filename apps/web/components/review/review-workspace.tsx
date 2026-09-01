@@ -1,12 +1,16 @@
 "use client";
 
-import type { ReviewDraft } from "@lingua-bloom/contracts";
+import type {
+  ReviewDraft,
+  UnknownLayoutReview as UnknownLayoutReviewContract
+} from "@lingua-bloom/contracts";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { ExerciseDraftEditor, type ReviewIssue } from "./exercise-draft-editor";
 import { SourceViewer } from "./source-viewer";
 import { WorkflowLog, type WorkflowEvent } from "./workflow-log";
+import { UnknownLayoutReview } from "./unknown-layout-review";
 import { shouldPollForDraft } from "@/src/review/polling-policy";
 
 interface ImportWorkspace {
@@ -38,6 +42,7 @@ interface ImportWorkspace {
     readonly revision: number;
     readonly payload: ReviewDraft;
   } | null;
+  readonly unknownLayoutReview: UnknownLayoutReviewContract | null;
   readonly issues: readonly ReviewIssue[];
   readonly events: readonly WorkflowEvent[];
 }
@@ -83,7 +88,13 @@ export function ReviewWorkspace({ runId }: { readonly runId: string }) {
       cancelled = true;
       window.clearInterval(interval);
     };
-  }, [refresh, workspace?.draft, workspace?.recovery, workspace?.status]);
+  }, [
+    refresh,
+    workspace?.draft,
+    workspace?.recovery,
+    workspace?.status,
+    workspace?.unknownLayoutReview
+  ]);
 
   async function resume() {
     setResuming(true);
@@ -195,6 +206,32 @@ export function ReviewWorkspace({ runId }: { readonly runId: string }) {
         ) : null}
         <WorkflowLog events={workspace.events} currentStep={workspace.currentStep} />
       </WorkspaceMessage>
+    );
+  }
+  if (workspace.unknownLayoutReview) {
+    return (
+      <main className="review-page">
+        <header className="review-header">
+          <div>
+            <p className="eyebrow">Проверка импорта</p>
+            <h1>{workspace.source.title}</h1>
+          </div>
+          <Link className="secondary-link" href="/imports/new">
+            Новый импорт
+          </Link>
+        </header>
+        <div className="review-layout">
+          <SourceViewer
+            kind={workspace.source.kind}
+            signedUrl={workspace.source.signedUrl}
+            rawText={null}
+          />
+          <div className="review-results">
+            <UnknownLayoutReview review={workspace.unknownLayoutReview} onSaved={refresh} />
+            <WorkflowLog events={workspace.events} currentStep={workspace.currentStep} />
+          </div>
+        </div>
+      </main>
     );
   }
   if (!workspace.draft)
