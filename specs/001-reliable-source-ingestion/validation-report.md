@@ -111,6 +111,11 @@ under stable public ID `JqMuy3CMYQvH79fC10xnOg`; anonymous URL:
 
 ## Closure
 
+Post-release regression T155 reproduces the production failure for pasted article exercises numbered
+without dots. The text extractor now preserves sequential item boundaries, maps every article
+ellipsis to an addressable answer field, and routes any still-unclaimed non-empty text to the shared
+typed layout review instead of attempting an invalid zero-group draft.
+
 T148 and T149 are complete: deterministic, contract, integration, resilience, security, performance,
 live model, production build and full browser matrix gates pass. The final post-fix
 `$speckit-analyze` covered 71 formal requirements and 154 uniquely identified tasks, with 100%

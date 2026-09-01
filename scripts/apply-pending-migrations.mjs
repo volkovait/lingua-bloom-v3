@@ -9,7 +9,8 @@ const pendingMigrationNames = [
   "0011_publish_readiness_gate.sql",
   "0012_stale_dispatch_recovery.sql",
   "0013_publish_public_id_gen_random_bytes_repair.sql",
-  "0014_review_decision_issue_resolution.sql"
+  "0014_review_decision_issue_resolution.sql",
+  "0017_student_attempt_grading.sql"
 ];
 
 const databaseUrl = process.env.SUPABASE_DB_URL ?? process.env.DATABASE_URL;

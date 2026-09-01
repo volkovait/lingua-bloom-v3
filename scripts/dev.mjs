@@ -1,5 +1,10 @@
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { createServer } from "node:net";
+import { fileURLToPath, URL } from "node:url";
+
+const rootEnvironmentPath = fileURLToPath(new URL("../.env.local", import.meta.url));
+if (existsSync(rootEnvironmentPath)) process.loadEnvFile(rootEnvironmentPath);
 
 const requestedWebPort = Number(process.env.PORT ?? "3000");
 const webPort = await firstAvailablePort(requestedWebPort);

@@ -4,3 +4,5 @@ export * from "./layout-extraction";
 export * from "./review-draft";
 export * from "./student-lesson-spec";
 export * from "./validation";
+export * from "./student-attempt";
+export * from "./telegram-settings";

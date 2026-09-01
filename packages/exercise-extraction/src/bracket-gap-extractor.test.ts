@@ -51,4 +51,41 @@ describe("bracket gap text extraction", () => {
       "to wear"
     ]);
   });
+  test("extracts sequential items without punctuation and treats article ellipses as gaps", () => {
+    const document = buildTextDocumentIr(
+      "Справка об артиклях.\nУпражнение 2\nВставьте артикль, где необходимо.\n" +
+        "1 This is ... cat. ... cat sleeps. 2 I see ... dog.",
+      { id: "ir:articles", sourceDocumentId: "source:articles" }
+    );
+
+    const result = extractTextExercises(document, { documentIrId: "ir:articles" });
+    const exercises = result.groups[0]?.exercises ?? [];
+
+    expect(exercises.map((exercise) => exercise.itemOrdinal)).toEqual([1, 2]);
+    expect(exercises.map((exercise) => exercise.answerFields.length)).toEqual([2, 1]);
+    expect(exercises.map((exercise) => exercise.prompt)).toEqual([
+      "This is ___ cat. ___ cat sleeps.",
+      "I see ___ dog."
+    ]);
+    expect(
+      exercises.flatMap((exercise) => exercise.answerFields.map((field) => field.markerKind))
+    ).toEqual(["ellipsis", "ellipsis", "ellipsis"]);
+  });
+
+  test("routes non-empty unsupported text to typed layout review", () => {
+    const document = buildTextDocumentIr("Unnumbered source material that needs classification.", {
+      id: "ir:unknown-text",
+      sourceDocumentId: "source:unknown-text"
+    });
+
+    const result = extractTextExercises(document, { documentIrId: "ir:unknown-text" });
+
+    expect(result.groups).toEqual([]);
+    expect(result.unknownCandidates).toHaveLength(1);
+    expect(result.coverage).toMatchObject({
+      detectedCandidateCount: 1,
+      accountedCandidateCount: 0,
+      status: "needsReview"
+    });
+  });
 });

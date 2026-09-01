@@ -234,6 +234,10 @@ raw/normalized links и warning для оборванного пункта 18.
   blocking issues; покрыть policy unit regression
 - [x] T154 [US2] Закрывать привязанный `SOURCE_TRUNCATED` при сохранении дополненной учителем
   формулировки упражнения, не закрывая остальные issues; покрыть regression unit test
+- [x] T155 [US2] Распознавать последовательные номера text-source с точкой или без неё и создавать
+  answer fields из многоточий только в упражнениях без bracket markers; неизвестный непустой text
+  source направлять в общий typed layout review вместо сборки zero-group draft; покрыть regression и
+  resilience contract tests
 **Checkpoint**: Text source проходит тот же durable lifecycle и тот же canonical publish gate, что
 PDF; различаются только source adapter/extractors и режим source preview.
 

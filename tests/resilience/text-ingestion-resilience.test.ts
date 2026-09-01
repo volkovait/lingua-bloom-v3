@@ -17,6 +17,10 @@ describe("text ingestion resilience", () => {
     expect(workflow).toContain('kind === "pdf"');
     expect(workflow).toContain("buildTextDocumentIr");
     expect(workflow).toContain("extractTextExercises");
+    expect(workflow).toContain("if (extraction.groups.length === 0 && unknownCandidates?.length)");
+    expect(workflow).not.toContain(
+      'if (kind === "pdf" && extraction.groups.length === 0 && unknownCandidates?.length)'
+    );
     expect(workflow).toContain("retries: 0");
     expect(workflow).not.toContain("textRetry");
   });

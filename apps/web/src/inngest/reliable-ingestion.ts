@@ -121,7 +121,7 @@ export const reliableIngestion = inngest.createFunction(
             : extractTextExercises(document, { documentIrId });
         const unknownCandidates =
           "unknownCandidates" in extraction ? extraction.unknownCandidates : undefined;
-        if (kind === "pdf" && extraction.groups.length === 0 && unknownCandidates?.length) {
+        if (extraction.groups.length === 0 && unknownCandidates?.length) {
           const now = new Date().toISOString();
           const review = UnknownLayoutReviewSchema.parse({
             schemaVersion: "1.0.0",

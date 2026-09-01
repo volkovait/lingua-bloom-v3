@@ -181,7 +181,7 @@ export function extractPdfExercises(
   };
 }
 
-function segmentUnknownCandidates(
+export function segmentUnknownCandidates(
   document: DocumentIR,
   documentIrId: string
 ): UnknownExerciseCandidate[] {

@@ -10,7 +10,9 @@ const ServerEnvironmentSchema = z.object({
   INNGEST_SIGNING_KEY: z.string().min(1),
   OPENAI_API_KEY: z.string().min(1).optional(),
   OPENAI_BASE_URL: z.url().default("https://api.openai.com/v1"),
-  OPENAI_MODEL: z.string().min(1).default("gpt-5.4-mini")
+  OPENAI_MODEL: z.string().min(1).default("gpt-5.4-mini"),
+  TELEGRAM_CREDENTIALS_ENCRYPTION_KEY: z.string().min(1).optional(),
+  ATTEMPT_RATE_LIMIT_SECRET: z.string().min(16).optional()
 });
 
 export type ServerEnvironment = z.infer<typeof ServerEnvironmentSchema>;

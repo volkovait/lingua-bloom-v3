@@ -1,0 +1,247 @@
+openapi: 3.1.0
+info:
+  title: Lingua Bloom Student Attempt and Telegram Settings API
+  version: 1.0.0-draft
+  description: Proposed contract; implementation requires product confirmation.
+paths:
+  /api/lessons/{publicLessonId}/attempts:
+    post:
+      summary: Grade and persist one anonymous attempt
+      parameters:
+        - $ref: '#/components/parameters/PublicLessonId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttemptSubmission'
+      responses:
+        '200':
+          description: Completed attempt or identical idempotent replay
+          headers:
+            Cache-Control:
+              schema: { type: string, const: no-store }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AttemptResult' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '413': { $ref: '#/components/responses/TooLarge' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+  /api/settings/telegram:
+    get:
+      summary: Read the authenticated teacher's safe Telegram settings view
+      security: [{ teacherSession: [] }]
+      responses:
+        '200':
+          description: Safe settings view
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TelegramSettingsView' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+    put:
+      summary: Save or replace the authenticated teacher's Telegram settings
+      security: [{ teacherSession: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TelegramSettingsUpdate' }
+      responses:
+        '200':
+          description: Updated safe settings view
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TelegramSettingsView' }
+        '400': { $ref: '#/components/responses/InvalidRequest' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+  /api/settings/telegram/test:
+    post:
+      summary: Send one bounded test message using the authenticated teacher's settings
+      security: [{ teacherSession: [] }]
+      responses:
+        '200':
+          description: Test send confirmed
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [sent]
+                properties:
+                  sent: { type: boolean, const: true }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '409':
+          description: Credentials are disabled or not configured
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '502':
+          description: Sanitized Telegram provider failure
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ApiError' }
+components:
+  securitySchemes:
+    teacherSession:
+      type: apiKey
+      in: cookie
+      name: sb-session
+  parameters:
+    PublicLessonId:
+      name: publicLessonId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 22
+        pattern: '^[A-Za-z0-9_-]+$'
+  schemas:
+    AttemptSubmission:
+      type: object
+      additionalProperties: false
+      required: [schemaVersion, attemptId, lessonVersion, studentDisplayName, responses]
+      properties:
+        schemaVersion: { type: string, const: 1.0.0 }
+        attemptId: { type: string, format: uuid }
+        lessonVersion: { type: integer, minimum: 1 }
+        studentDisplayName: { type: string, minLength: 1, maxLength: 120 }
+        responses:
+          type: array
+          maxItems: 500
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/TextResponse'
+              - $ref: '#/components/schemas/ChoiceResponse'
+              - $ref: '#/components/schemas/OrderedTokensResponse'
+    TextResponse:
+      type: object
+      additionalProperties: false
+      required: [fieldId, kind, value]
+      properties:
+        fieldId: { type: string, minLength: 1, maxLength: 200 }
+        kind: { type: string, const: text }
+        value: { type: string, maxLength: 2000 }
+    ChoiceResponse:
+      type: object
+      additionalProperties: false
+      required: [fieldId, kind, optionId]
+      properties:
+        fieldId: { type: string, minLength: 1, maxLength: 200 }
+        kind: { type: string, const: choice }
+        optionId: { type: string, minLength: 1, maxLength: 200 }
+    OrderedTokensResponse:
+      type: object
+      additionalProperties: false
+      required: [fieldId, kind, tokenIds]
+      properties:
+        fieldId: { type: string, minLength: 1, maxLength: 200 }
+        kind: { type: string, const: orderedTokens }
+        tokenIds:
+          type: array
+          maxItems: 200
+          items: { type: string, minLength: 1, maxLength: 200 }
+    AttemptResult:
+      type: object
+      additionalProperties: false
+      required: [schemaVersion, attemptId, lessonVersion, graderVersion, score, fields, exercises, delivery]
+      properties:
+        schemaVersion: { type: string, const: 1.0.0 }
+        attemptId: { type: string, format: uuid }
+        lessonVersion: { type: integer, minimum: 1 }
+        graderVersion: { type: string, const: 1.0.0 }
+        score:
+          type: object
+          additionalProperties: false
+          required: [correct, total]
+          properties:
+            correct: { type: integer, minimum: 0 }
+            total: { type: integer, minimum: 1, maximum: 500 }
+        fields:
+          type: array
+          maxItems: 500
+          items:
+            type: object
+            additionalProperties: false
+            required: [fieldId, exerciseId, status]
+            properties:
+              fieldId: { type: string }
+              exerciseId: { type: string }
+              status: { type: string, enum: [correct, incorrect] }
+              acceptedDisplayValues:
+                type: array
+                items: { type: string }
+                description: Present only for an incorrect field after attempt completion.
+        exercises:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [exerciseId, status]
+            properties:
+              exerciseId: { type: string }
+              status: { type: string, enum: [correct, partial, incorrect] }
+        delivery:
+          type: object
+          additionalProperties: false
+          required: [status]
+          properties:
+            status: { type: string, enum: [pending, skipped] }
+    TelegramSettingsUpdate:
+      type: object
+      additionalProperties: false
+      required: [enabled, chatId]
+      properties:
+        enabled: { type: boolean }
+        chatId: { type: string, minLength: 1, maxLength: 128 }
+        replacementBotToken: { type: string, minLength: 20, maxLength: 256 }
+    TelegramSettingsView:
+      type: object
+      additionalProperties: false
+      required: [enabled, chatId, tokenConfigured]
+      properties:
+        enabled: { type: boolean }
+        chatId: { type: string }
+        tokenConfigured: { type: boolean }
+        botUsername: { type: string }
+        updatedAt: { type: string, format: date-time }
+    ApiError:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+  responses:
+    InvalidRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    NotFound:
+      description: Lesson/version not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    IdempotencyConflict:
+      description: Attempt ID was reused with a different request fingerprint
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    TooLarge:
+      description: Request exceeds attempt limits
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    RateLimited:
+      description: Request rate exceeded
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    Unauthenticated:
+      description: Teacher session required
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
