@@ -98,6 +98,15 @@ export function ExerciseDraftEditor({
   const unresolvedWithoutSuggestion = answerEntries.filter(
     ({ field }) => field.reviewStatus !== "verified" && field.provenance !== "modelInferred"
   ).length;
+  const verifiedAnswerCount = answerEntries.filter(
+    ({ field }) => field.reviewStatus === "verified"
+  ).length;
+  const queuedChangeCount =
+    Object.keys(answers).length +
+    Object.values(confirmedSuggestions).filter(Boolean).length +
+    Object.keys(exerciseEdits).length +
+    Object.keys(exerciseCreates).length +
+    exerciseDeletes.length;
 
   async function requestAiSuggestions() {
     setSuggesting(true);
@@ -262,7 +271,16 @@ export function ExerciseDraftEditor({
           ) : null}
         </div>
         <div className="draft-heading-actions">
-          <span className="provenance-badge">{exercises.length} заданий</span>
+          <div className="review-editor-summary" aria-label="Сводка черновика">
+            <span>
+              <strong>{exercises.length}</strong>
+              заданий
+            </span>
+            <span>
+              <strong>{verifiedAnswerCount}</strong>
+              из {answerEntries.length} ответов проверено
+            </span>
+          </div>
           {unresolvedWithoutSuggestion > 0 ? (
             <button
               className="secondary-link compact-action"
@@ -291,13 +309,15 @@ export function ExerciseDraftEditor({
       <div className="draft-groups">
         {draft.groups.map((group) => (
           <section className="exercise-group" key={group.id}>
-            <div className="panel-heading">
+            <div className="exercise-group-heading">
               <div>
                 <h3>
                   {group.ordinal}. {group.instruction}
                 </h3>
                 {group.completeness === "partial" ? (
-                  <small>Неполная группа: начало задания отсутствует</small>
+                  <small className="partial-group-note">
+                    Неполная группа: начало задания отсутствует
+                  </small>
                 ) : null}
               </div>
               <button
@@ -448,7 +468,13 @@ export function ExerciseDraftEditor({
                     <span className="exercise-number">{exercise.ordinal}</span>
                     <span className="exercise-toggle-copy">
                       <strong>{exercise.prompt || "Задание без формулировки"}</strong>
-                      <small>
+                      <small
+                        className={
+                          exerciseIssueState.severity
+                            ? `exercise-state issue-${exerciseIssueState.severity}`
+                            : "exercise-state"
+                        }
+                      >
                         {exerciseIssueState.issues[0]
                           ? `Проблема: ${issueMessage(exerciseIssueState.issues[0])}`
                           : suggestionIds.length > 0
@@ -569,21 +595,6 @@ export function ExerciseDraftEditor({
                         <span className="provenance-badge">Источник привязан</span>
                         <span>{interactionLabel(exercise.interactionKind)}</span>
                       </div>
-                      <button
-                        className="secondary-link compact-action exercise-delete"
-                        type="button"
-                        onClick={() => {
-                          setExerciseDeletes((current) =>
-                            current.includes(exercise.id)
-                              ? current.filter((id) => id !== exercise.id)
-                              : [...current, exercise.id]
-                          );
-                        }}
-                      >
-                        {exerciseDeletes.includes(exercise.id)
-                          ? "Отменить удаление"
-                          : "Удалить задание"}
-                      </button>
                       <div className="answer-fields">
                         {exercise.answerFields.map((field, index) => {
                           const fieldIssueState = getEntityIssueState(visibleIssues, [field.id]);
@@ -657,6 +668,23 @@ export function ExerciseDraftEditor({
                           Подтвердить ИИ-ответы этого задания
                         </button>
                       ) : null}
+                      <div className="exercise-card-footer">
+                        <button
+                          className="secondary-link compact-action exercise-delete"
+                          type="button"
+                          onClick={() => {
+                            setExerciseDeletes((current) =>
+                              current.includes(exercise.id)
+                                ? current.filter((id) => id !== exercise.id)
+                                : [...current, exercise.id]
+                            );
+                          }}
+                        >
+                          {exerciseDeletes.includes(exercise.id)
+                            ? "Отменить удаление"
+                            : "Удалить задание"}
+                        </button>
+                      </div>
                     </div>
                   ) : null}
                 </article>
@@ -665,21 +693,31 @@ export function ExerciseDraftEditor({
           </section>
         ))}
       </div>
-      {message ? (
-        <p className="review-message" role="status">
-          {message}
-        </p>
-      ) : null}
-      <button
-        className="review-save"
-        type="button"
-        disabled={pending}
-        onClick={() => {
-          void saveReview();
-        }}
-      >
-        {pending ? "Сохраняем…" : "Подтвердить и сохранить ответы"}
-      </button>
+      <div className="review-save-bar">
+        <div>
+          {message ? (
+            <p className="review-message" role="status">
+              {message}
+            </p>
+          ) : (
+            <p className="review-save-hint">
+              {queuedChangeCount > 0
+                ? `Несохранённых изменений: ${String(queuedChangeCount)}`
+                : "Проверьте ответы и сохраните изменения."}
+            </p>
+          )}
+        </div>
+        <button
+          className="review-save"
+          type="button"
+          disabled={pending}
+          onClick={() => {
+            void saveReview();
+          }}
+        >
+          {pending ? "Сохраняем…" : "Сохранить проверку"}
+        </button>
+      </div>
     </section>
   );
 }

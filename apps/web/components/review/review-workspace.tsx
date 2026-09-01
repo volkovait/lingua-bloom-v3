@@ -331,6 +331,16 @@ export function ReviewWorkspace({ runId }: { readonly runId: string }) {
           ) : (
             <p>Все обязательные ответы проверены, блокирующих проблем нет.</p>
           )}
+          <div className="publication-metrics" aria-label="Готовность урока">
+            <span className={unverifiedAnswerCount === 0 ? "is-clear" : "has-pending"}>
+              <strong>{unverifiedAnswerCount}</strong>
+              ответов требуют проверки
+            </span>
+            <span className={openBlockingIssues.length === 0 ? "is-clear" : "has-blockers"}>
+              <strong>{openBlockingIssues.length}</strong>
+              блокирующих проблем
+            </span>
+          </div>
         </div>
         {workspace.status === "ready_to_publish" ? (
           <Link className="primary-link" href={"/imports/" + runId + "/publish"}>

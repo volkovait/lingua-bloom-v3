@@ -832,6 +832,7 @@ p {
   border-radius: 1rem;
   padding: 1rem 1.25rem;
   background: #fff8e9;
+  box-shadow: 0 12px 34px rgb(107 81 25 / 7%);
 }
 
 .publication-gate.is-ready {
@@ -847,6 +848,34 @@ p {
 
 .publication-gate p {
   margin: 0;
+}
+
+.publication-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.publication-metrics span {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  background: rgb(123 92 27 / 8%);
+  color: #6d5726;
+  font-size: 0.75rem;
+}
+
+.publication-metrics span.is-clear {
+  background: rgb(59 128 81 / 10%);
+  color: #2f7045;
+}
+
+.publication-metrics span.has-blockers {
+  background: rgb(197 72 58 / 11%);
+  color: #922f25;
 }
 
 .model-fallback-notice {
@@ -931,8 +960,55 @@ p {
 
 .draft-groups {
   display: grid;
-  gap: 0.8rem;
+  gap: 1rem;
   padding: 1rem;
+}
+
+.exercise-group {
+  overflow: hidden;
+  border: 1px solid #e3e5ef;
+  border-radius: 1rem;
+  background: #fafafe;
+}
+
+.exercise-group-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1rem;
+  border-bottom: 1px solid #e6e8f1;
+  background: #f5f6fb;
+}
+
+.exercise-group-heading h3 {
+  margin: 0;
+}
+
+.partial-group-note {
+  display: inline-block;
+  margin-top: 0.35rem;
+  border-radius: 999px;
+  padding: 0.25rem 0.5rem;
+  background: #fff0d9;
+  color: #875416;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.exercise-group > .exercise-card,
+.exercise-group > .shared-word-bank {
+  margin-right: 0.75rem;
+  margin-left: 0.75rem;
+}
+
+.exercise-group > .exercise-card:first-of-type,
+.exercise-group > .shared-word-bank:first-of-type {
+  margin-top: 0.75rem;
+}
+
+.exercise-group > .exercise-card:last-child {
+  margin-bottom: 0.75rem;
 }
 .provenance-badge {
   border-radius: 999px;
@@ -1044,16 +1120,34 @@ p {
   display: grid;
   gap: 0.4rem;
   margin-top: 0.8rem;
-  color: #7b2a1d;
+  border: 1px solid #e1e4ee;
+  border-radius: 0.75rem;
+  padding: 0.8rem;
+  background: #fbfcff;
+  color: #3f4863;
   font-size: 0.8rem;
   font-weight: 700;
 }
 
 .answer-editor input {
-  border: 1px solid #d39b91;
+  width: 100%;
+  border: 1px solid #cbd0df;
   border-radius: 0.6rem;
   padding: 0.7rem 0.8rem;
+  background: #fff;
+  color: var(--bloom-ink);
   font: inherit;
+}
+
+.answer-editor input:focus,
+.exercise-text-editor textarea:focus,
+.exercise-options-editor input:focus,
+.exercise-create-form input:focus,
+.exercise-create-form textarea:focus,
+.exercise-create-form select:focus {
+  border-color: var(--bloom-navy);
+  outline: none;
+  box-shadow: 0 0 0 4px rgb(64 86 161 / 13%);
 }
 
 .answer-fields {
@@ -1094,7 +1188,8 @@ p {
 }
 
 .review-save {
-  margin: 0 1rem 1rem;
+  flex: 0 0 auto;
+  margin: 0;
   border: 0;
   border-radius: 999px;
   padding: 0.8rem 1.1rem;
@@ -1106,8 +1201,30 @@ p {
 }
 
 .review-message {
-  margin: 0 1rem 1rem;
+  margin: 0;
+  color: #334378;
   font-size: 0.85rem;
+}
+
+.review-save-bar {
+  position: sticky;
+  z-index: 4;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  border-top: 1px solid #dde1ee;
+  padding: 0.85rem 1rem;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 -12px 30px rgb(64 86 161 / 8%);
+  backdrop-filter: blur(12px);
+}
+
+.review-save-hint {
+  margin: 0;
+  color: #72798c;
+  font-size: 0.8rem;
 }
 
 .workspace-message {
@@ -1551,6 +1668,16 @@ p {
   display: block;
   padding: 0;
   overflow: hidden;
+  background: #fff;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.exercise-card.clickable-exercise:hover {
+  border-color: rgb(64 86 161 / 32%);
+  box-shadow: 0 8px 20px rgb(64 86 161 / 7%);
 }
 
 .exercise-card.clickable-exercise.is-expanded {
@@ -1651,9 +1778,11 @@ p {
 }
 
 .exercise-toggle-copy strong {
+  display: -webkit-box;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .exercise-toggle-copy small,
@@ -1661,6 +1790,29 @@ p {
   margin: 0;
   color: #6b6b6b;
   font-size: 0.75rem;
+}
+
+.exercise-state {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0.2rem 0.48rem;
+  background: #eef0f6;
+}
+
+.exercise-state.issue-blocking {
+  background: #ffe8e3;
+  color: #962f24;
+}
+
+.exercise-state.issue-warning {
+  background: #fff0cf;
+  color: #84520a;
+}
+
+.exercise-state.issue-info {
+  background: #e9efff;
+  color: #35529b;
 }
 
 .exercise-toggle-icon {
@@ -1683,6 +1835,29 @@ p {
   gap: 0.55rem;
 }
 
+.review-editor-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.review-editor-summary span {
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.35rem 0.6rem;
+  background: #eef0f8;
+  color: #5d6682;
+  font-size: 0.7rem;
+}
+
+.review-editor-summary strong {
+  color: var(--bloom-navy);
+  font-size: 0.78rem;
+}
+
 .compact-action,
 .confirm-exercise-button {
   border: 1px solid rgb(64 86 161 / 38%);
@@ -1700,6 +1875,20 @@ p {
   margin-top: 0.9rem;
 }
 
+.compact-action:hover,
+.confirm-exercise-button:hover {
+  border-color: var(--bloom-navy);
+  background: #f1f3fb;
+}
+
+.exercise-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  border-top: 1px solid #eceef4;
+  padding-top: 0.8rem;
+}
+
 @media (max-width: 600px) {
   .panel-heading {
     align-items: flex-start;
@@ -1708,6 +1897,20 @@ p {
 
   .draft-heading-actions {
     justify-content: flex-start;
+  }
+
+  .review-editor-summary {
+    justify-content: flex-start;
+  }
+
+  .exercise-group-heading,
+  .review-save-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .review-save {
+    width: 100%;
   }
 }
 
@@ -2121,6 +2324,7 @@ p {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .exercise-card.clickable-exercise,
   .telegram-toggle-track,
   .telegram-toggle-track > span,
   .student-response-field,
