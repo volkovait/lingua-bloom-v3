@@ -102,7 +102,7 @@ test("an authenticated teacher imports text, reviews, publishes, and opens the p
     await expect(page.locator(".text-source-frame")).toContainText("She (to go) to school.");
     await expect(page.getByText("Урок готов к публикации")).toBeVisible();
 
-    await page.getByRole("link", { name: "Перейти к публикации" }).click();
+    await page.getByRole("link", { name: "Опубликовать урок" }).click();
     await expect(page.getByRole("heading", { name: "Опубликовать урок?" })).toBeVisible();
     await page
       .getByLabel("Я понимаю, что публичная ссылка сохраняет доступ к актуальной версии урока.")

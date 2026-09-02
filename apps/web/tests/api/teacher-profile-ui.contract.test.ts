@@ -22,6 +22,7 @@ describe("authenticated teacher profile UI contract", () => {
     expect(source).toContain("profile.initials");
     expect(source).toContain('href="/lessons"');
     expect(source).toContain('href="/imports/new"');
+    expect(source).toContain('href="/attempts"');
     expect(source).toContain('action="/auth/signout"');
     expect(source).toContain('method="post"');
   });

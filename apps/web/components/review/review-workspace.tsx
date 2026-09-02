@@ -342,19 +342,15 @@ export function ReviewWorkspace({ runId }: { readonly runId: string }) {
             </span>
           </div>
         </div>
-        {workspace.status === "ready_to_publish" ? (
-          <Link className="primary-link" href={"/imports/" + runId + "/publish"}>
-            Перейти к публикации
-          </Link>
-        ) : workspace.status === "completed" ? (
+        {workspace.status === "completed" ? (
           <Link className="secondary-link" href="/lessons">
             Мои уроки
           </Link>
-        ) : (
+        ) : workspace.status !== "ready_to_publish" ? (
           <a className="secondary-link" href="#draft-title">
             Проверить ответы
           </a>
-        )}
+        ) : null}
       </section>
       <div className="review-layout">
         <SourceViewer

@@ -112,21 +112,66 @@ export function ExerciseDraftEditor({
     setSuggesting(true);
     setMessage(null);
     try {
-      const response = await fetch(
-        `/api/imports/${encodeURIComponent(readRunId())}/suggest-answers`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ expectedRevision: revision, idempotencyKey: crypto.randomUUID() })
-        }
-      );
+      const endpoint = `/api/imports/${encodeURIComponent(readRunId())}/suggest-answers`;
+      const preflightResponse = await fetch(endpoint, { cache: "no-store" });
+      const preflightResult = (await preflightResponse.json().catch(() => null)) as {
+        readonly message?: string;
+        readonly preflight?: {
+          readonly planHash: string;
+          readonly answerFieldCount: number;
+          readonly batchCount: number;
+          readonly estimatedTokens: number;
+          readonly estimatedCostUsd: number;
+          readonly requiresConfirmation: boolean;
+          readonly exceedsHardLimit: boolean;
+          readonly hardLimitUsd: number;
+        };
+      } | null;
+      if (!preflightResponse.ok || !preflightResult?.preflight) {
+        throw new Error(
+          preflightResult?.message ?? "Не удалось рассчитать стоимость ИИ-подсказок."
+        );
+      }
+      const plan = preflightResult.preflight;
+      if (plan.exceedsHardLimit) {
+        throw new Error(
+          `Оценка ${plan.estimatedCostUsd.toFixed(2)} превышает лимит ${plan.hardLimitUsd.toFixed(2)}. Разбейте материал или заполните ответы вручную.`
+        );
+      }
+      if (
+        plan.requiresConfirmation &&
+        !window.confirm(
+          [
+            `Будет обработано полей: ${String(plan.answerFieldCount)}.`,
+            `Платных запросов: ${String(plan.batchCount)}.`,
+            `Оценка токенов: ${String(plan.estimatedTokens)}.`,
+            `Ориентировочная стоимость: до ${plan.estimatedCostUsd.toFixed(2)}.`,
+            "Продолжить?"
+          ].join("\n")
+        )
+      ) {
+        setMessage("Запрос к модели отменён. Деньги не списывались.");
+        return;
+      }
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          expectedRevision: revision,
+          idempotencyKey: crypto.randomUUID(),
+          ...(plan.requiresConfirmation ? { confirmedPlanHash: plan.planHash } : {})
+        })
+      });
       const result = (await response.json().catch(() => null)) as {
         readonly message?: string;
         readonly suggestionCount?: number;
+        readonly actualCostUsd?: number | null;
       } | null;
       if (!response.ok) throw new Error(result?.message ?? "Не удалось получить ИИ-подсказки.");
       setMessage(
-        `ИИ предложил ответы: ${String(result?.suggestionCount ?? 0)}. Проверьте каждый ответ.`
+        `ИИ предложил ответы: ${String(result?.suggestionCount ?? 0)}. Фактическая стоимость: ${
+          result?.actualCostUsd == null ? "не сообщена" : result.actualCostUsd.toFixed(2)
+        }. Проверьте каждый ответ.`
       );
       await onSaved();
     } catch (cause) {
@@ -593,7 +638,9 @@ export function ExerciseDraftEditor({
                       ) : null}
                       <div className="exercise-meta">
                         <span className="provenance-badge">Источник привязан</span>
-                        <span>{interactionLabel(exercise.interactionKind)}</span>
+                        <span className="exercise-interaction-kind">
+                          {interactionLabel(exercise.interactionKind)}
+                        </span>
                       </div>
                       <div className="answer-fields">
                         {exercise.answerFields.map((field, index) => {
@@ -737,6 +784,9 @@ function interactionLabel(
     bracketGap: "Заполнение пропуска",
     oddOneOut: "Лишнее слово",
     wordBankGap: "Банк слов",
-    inlineGap: "Пропуски в тексте"
+    inlineGap: "Пропуски в тексте",
+    shortText: "Короткий свободный ответ",
+    matching: "Сопоставление",
+    imageChoice: "Выбор изображения"
   }[kind];
 }

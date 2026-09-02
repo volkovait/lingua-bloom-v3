@@ -35,7 +35,7 @@ test("text review preserves teacher mutations across reload and reaches publish 
   );
   await expect(page.locator(".text-source-frame")).toContainText("She (to go) to school.");
   await expect(page.locator("article").filter({ hasText: "They ___ ready." })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Перейти к публикации" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Опубликовать урок" })).toBeVisible();
   expect(submissions.map((submission) => submission.draftVersion)).toEqual([1, 2]);
   expect(submissions[0]?.exerciseCreates[0]?.answerValues).toEqual(["are"]);
   expect(submissions[1]?.exerciseDeletes[0]?.exerciseId).toBe("text-exercise-1");
