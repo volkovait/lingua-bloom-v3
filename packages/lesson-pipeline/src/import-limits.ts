@@ -1,7 +1,12 @@
-export const MAX_PDF_PAGES = 20;
-export const MAX_PDF_BYTES = 52_428_800;
-export const MAX_TEXT_CODE_POINTS = 500_000;
-export const MAX_ANSWER_FIELDS = 500;
+import {
+  countUnicodeCodePointsAfterLineEndingNormalization,
+  MAX_ANSWER_FIELDS,
+  MAX_PDF_BYTES,
+  MAX_PDF_PAGES,
+  MAX_TEXT_CODE_POINTS
+} from "@lingua-bloom/contracts";
+
+export { MAX_ANSWER_FIELDS, MAX_PDF_BYTES, MAX_PDF_PAGES, MAX_TEXT_CODE_POINTS };
 
 export type ImportLimitType = "pdfPages" | "pdfBytes" | "textCharacters" | "answerFields";
 
@@ -47,7 +52,11 @@ export function validatePdfPageCount(actual: number): void {
 }
 
 export function validateTextCharacterCount(value: string): void {
-  assertLimit("textCharacters", MAX_TEXT_CODE_POINTS, countUnicodeCodePoints(value));
+  assertLimit(
+    "textCharacters",
+    MAX_TEXT_CODE_POINTS,
+    countUnicodeCodePointsAfterLineEndingNormalization(value)
+  );
 }
 
 export function validateAnswerFieldCount(actual: number): void {

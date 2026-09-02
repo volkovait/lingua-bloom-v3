@@ -1,10 +1,12 @@
 "use client";
 
+import {
+  countUnicodeCodePointsAfterLineEndingNormalization,
+  MAX_PDF_BYTES,
+  MAX_TEXT_CODE_POINTS
+} from "@lingua-bloom/contracts";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type SyntheticEvent } from "react";
-
-const MAX_PDF_BYTES = 52_428_800;
-const MAX_TEXT_CHARACTERS = 500_000;
 
 interface ImportResponse {
   readonly runId: string;
@@ -41,8 +43,8 @@ export function SourceImportForm() {
         throw new Error("Выберите ровно один источник: PDF или вставленный текст.");
       }
       if (file) validatePdf(file);
-      if (Array.from(sourceText).length > MAX_TEXT_CHARACTERS) {
-        throw new Error(limitGuidance(`Текст превышает ${format(MAX_TEXT_CHARACTERS)} символов.`));
+      if (countUnicodeCodePointsAfterLineEndingNormalization(sourceText) > MAX_TEXT_CODE_POINTS) {
+        throw new Error(limitGuidance(`Текст превышает ${format(MAX_TEXT_CODE_POINTS)} символов.`));
       }
 
       idempotencyKey.current ??= crypto.randomUUID();
@@ -83,15 +85,15 @@ export function SourceImportForm() {
         <label>
           <span>PDF-файл</span>
           <input name="sourceFile" type="file" accept="application/pdf,.pdf" />
-          <small>До 20 страниц и 50 МиБ.</small>
+          <small>До 5 страниц и 50 МиБ.</small>
         </label>
         <div className="source-divider" aria-hidden="true">
           или
         </div>
         <label>
           <span>Вставленный текст</span>
-          <textarea name="sourceText" rows={10} maxLength={MAX_TEXT_CHARACTERS + 1} />
-          <small>До {format(MAX_TEXT_CHARACTERS)} Unicode-символов.</small>
+          <textarea name="sourceText" rows={10} />
+          <small>До {format(MAX_TEXT_CODE_POINTS)} Unicode-символов.</small>
         </label>
       </fieldset>
       {error ? (

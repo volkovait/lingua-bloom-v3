@@ -2,6 +2,16 @@ import { z } from "zod";
 
 import { IdSchema, SourceRefSchema } from "./document-ir";
 
+export const TeacherClassifiableInteractionKindSchema = z.enum([
+  "singleChoice",
+  "wordOrder",
+  "bracketGap",
+  "oddOneOut",
+  "inlineGap",
+  "shortText"
+]);
+export const LayoutNonExerciseOutcomeSchema = z.enum(["reference", "example"]);
+
 export const UnknownExerciseCandidateSchema = z
   .object({
     id: IdSchema,
@@ -14,26 +24,59 @@ export const UnknownExerciseCandidateSchema = z
   })
   .strict();
 
+const StoredDecisionCore = {
+  id: IdSchema,
+  candidateId: IdSchema,
+  reason: z.string().min(1),
+  actorId: IdSchema,
+  createdAt: z.iso.datetime()
+};
+
 export const UnknownCandidateDecisionSchema = z.discriminatedUnion("action", [
   z
     .object({
-      id: IdSchema,
-      candidateId: IdSchema,
+      ...StoredDecisionCore,
       action: z.literal("classify"),
-      interactionKind: z.literal("singleChoice"),
-      reason: z.string().min(1),
-      actorId: IdSchema,
-      createdAt: z.iso.datetime()
+      interactionKind: TeacherClassifiableInteractionKindSchema
     })
     .strict(),
   z
     .object({
-      id: IdSchema,
+      ...StoredDecisionCore,
+      action: z.literal("mark"),
+      outcome: LayoutNonExerciseOutcomeSchema
+    })
+    .strict(),
+  z
+    .object({
+      ...StoredDecisionCore,
+      action: z.literal("exclude")
+    })
+    .strict()
+]);
+
+const SubmittedDecisionSchema = z.discriminatedUnion("action", [
+  z
+    .object({
+      candidateId: IdSchema,
+      action: z.literal("classify"),
+      interactionKind: TeacherClassifiableInteractionKindSchema,
+      reason: z.string().min(1)
+    })
+    .strict(),
+  z
+    .object({
+      candidateId: IdSchema,
+      action: z.literal("mark"),
+      outcome: LayoutNonExerciseOutcomeSchema,
+      reason: z.string().min(1)
+    })
+    .strict(),
+  z
+    .object({
       candidateId: IdSchema,
       action: z.literal("exclude"),
-      reason: z.string().min(1),
-      actorId: IdSchema,
-      createdAt: z.iso.datetime()
+      reason: z.string().min(1)
     })
     .strict()
 ]);
@@ -42,33 +85,13 @@ export const LayoutReviewSubmissionSchema = z
   .object({
     expectedRevision: z.number().int().positive(),
     idempotencyKey: z.string().min(16).max(128),
-    decisions: z
-      .array(
-        z.discriminatedUnion("action", [
-          z
-            .object({
-              candidateId: IdSchema,
-              action: z.literal("classify"),
-              interactionKind: z.literal("singleChoice"),
-              reason: z.string().min(1)
-            })
-            .strict(),
-          z
-            .object({
-              candidateId: IdSchema,
-              action: z.literal("exclude"),
-              reason: z.string().min(1)
-            })
-            .strict()
-        ])
-      )
-      .min(1)
+    decisions: z.array(SubmittedDecisionSchema).min(1)
   })
   .strict();
 
 export const UnknownLayoutReviewSchema = z
   .object({
-    schemaVersion: z.literal("1.0.0"),
+    schemaVersion: z.enum(["1.0.0", "1.1.0"]),
     runId: IdSchema,
     sourceDocumentId: IdSchema,
     documentIrId: IdSchema,
@@ -88,6 +111,10 @@ export const UnknownLayoutReviewSchema = z
   })
   .strict();
 
+export type TeacherClassifiableInteractionKind = z.infer<
+  typeof TeacherClassifiableInteractionKindSchema
+>;
+export type LayoutNonExerciseOutcome = z.infer<typeof LayoutNonExerciseOutcomeSchema>;
 export type UnknownExerciseCandidate = z.infer<typeof UnknownExerciseCandidateSchema>;
 export type UnknownLayoutReview = z.infer<typeof UnknownLayoutReviewSchema>;
 export type UnknownCandidateDecision = z.infer<typeof UnknownCandidateDecisionSchema>;

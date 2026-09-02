@@ -32,6 +32,28 @@ export function gradeStudentAttempt(
     if (!expectedIds.has(fieldId))
       throw new AttemptValidationError(`Unknown answer field: ${fieldId}`);
 
+  for (const group of lesson.groups) {
+    const useOnceResources = new Set(
+      (group.sharedResources ?? [])
+        .filter(
+          (resource) => resource.kind === "matchingBank" && resource.usagePolicy === "useOnce"
+        )
+        .map((resource) => resource.id)
+    );
+    for (const resourceId of useOnceResources) {
+      const selected = group.exercises.flatMap((exercise) => {
+        if (exercise.interactionKind !== "matching" || exercise.sharedResourceId !== resourceId)
+          return [];
+        return exercise.answerFields.flatMap((field) => {
+          const response = submitted.get(field.id);
+          return response?.kind === "choice" && response.optionId ? [response.optionId] : [];
+        });
+      });
+      if (new Set(selected).size !== selected.length)
+        throw new AttemptValidationError(`Matching entry reused in ${resourceId}`);
+    }
+  }
+
   const fields: AttemptFieldResult[] = [];
   const exerciseResults: StudentAttemptResult["exercises"] = [];
   for (const group of lesson.groups) {
@@ -39,7 +61,9 @@ export function gradeStudentAttempt(
       let correctCount = 0;
       for (const answer of exercise.answerFields) {
         const response = submitted.get(answer.id);
-        const correct = response ? gradeField(exercise, answer.acceptedValues, response) : false;
+        const correct = response
+          ? gradeField(exercise, answer.acceptedValues, response, group.sharedResources ?? [])
+          : false;
         if (correct) correctCount += 1;
         fields.push({
           fieldId: answer.id,
@@ -78,10 +102,14 @@ export function gradeStudentAttempt(
 function gradeField(
   exercise: LessonSpec["groups"][number]["exercises"][number],
   acceptedValues: readonly string[],
-  response: StudentAttemptSubmission["responses"][number]
+  response: StudentAttemptSubmission["responses"][number],
+  sharedResources: LessonSpec["groups"][number]["sharedResources"]
 ) {
   const expectedKind =
-    exercise.interactionKind === "singleChoice" || exercise.interactionKind === "oddOneOut"
+    exercise.interactionKind === "singleChoice" ||
+    exercise.interactionKind === "oddOneOut" ||
+    exercise.interactionKind === "matching" ||
+    exercise.interactionKind === "imageChoice"
       ? "choice"
       : exercise.interactionKind === "wordOrder"
         ? "orderedTokens"
@@ -91,7 +119,13 @@ function gradeField(
 
   if (response.kind === "choice") {
     if (!response.optionId) return false;
-    const option = exercise.options.find((candidate) => candidate.id === response.optionId);
+    const sharedOptions = exercise.sharedResourceId
+      ? ((sharedResources ?? []).find((resource) => resource.id === exercise.sharedResourceId)
+          ?.entries ?? [])
+      : [];
+    const option = [...exercise.options, ...sharedOptions].find(
+      (candidate) => candidate.id === response.optionId
+    );
     if (!option) throw new AttemptValidationError(`Choice does not belong to ${exercise.id}`);
     return acceptedValues.some(
       (accepted) =>

@@ -80,7 +80,9 @@ function inferMissingKind(lesson: ReturnType<typeof LessonSpecSchema.parse>, fie
     for (const exercise of group.exercises)
       if (exercise.answerFields.some((answer) => answer.id === fieldId))
         return exercise.interactionKind === "singleChoice" ||
-          exercise.interactionKind === "oddOneOut"
+          exercise.interactionKind === "oddOneOut" ||
+          exercise.interactionKind === "matching" ||
+          exercise.interactionKind === "imageChoice"
           ? "choice"
           : exercise.interactionKind === "wordOrder"
             ? "orderedTokens"

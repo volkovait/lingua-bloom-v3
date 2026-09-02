@@ -6,3 +6,6 @@ export * from "./student-lesson-spec";
 export * from "./validation";
 export * from "./student-attempt";
 export * from "./telegram-settings";
+export * from "./teacher-attempt-history";
+export * from "./source-limits";
+export * from "./structural-classification";

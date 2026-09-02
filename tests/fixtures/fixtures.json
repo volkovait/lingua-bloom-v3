@@ -93,6 +93,20 @@
         "unsupportedAdditionCount": 0,
         "answersRequireReview": true
       }
+    },
+    {
+      "id": "workbook_mixed_interactions_3_pages",
+      "path": "sources/workbook_mixed_interactions_3_pages.pdf",
+      "kind": "pdf",
+      "parserVersion": "pdf-layout/1.1.0",
+      "expectedManifest": "../golden/workbook_mixed_interactions_3_pages.expected.json",
+      "expected": {
+        "pageCount": 3,
+        "sectionCount": 3,
+        "requiresVisualAssets": true,
+        "requiresTeacherLedAudio": true,
+        "answersRequireReview": true
+      }
     }
   ]
 }

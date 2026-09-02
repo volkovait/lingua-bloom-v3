@@ -57,7 +57,7 @@ export const ReviewGroupSchema = z
 
 const ReviewDraftBaseSchema = z
   .object({
-    schemaVersion: z.enum(["1.0.0", "1.1.0"]),
+    schemaVersion: z.enum(["1.0.0", "1.1.0", "1.2.0"]),
     title: z.string().min(1),
     sourceDocumentId: IdSchema,
     documentIrId: IdSchema,
@@ -67,7 +67,7 @@ const ReviewDraftBaseSchema = z
   })
   .strict()
   .superRefine((draft, context) => {
-    if (draft.schemaVersion === "1.1.0")
+    if (draft.schemaVersion === "1.1.0" || draft.schemaVersion === "1.2.0")
       draft.groups.forEach((group, index) => {
         if (group.sharedResources == null)
           context.addIssue({
@@ -96,11 +96,33 @@ const ReviewDraftBaseSchema = z
                 path: [...path, "sharedResourceId"],
                 message: "wordBankGap requires a group wordBank resource"
               });
+          } else if (exercise.interactionKind === "matching") {
+            if (draft.schemaVersion !== "1.2.0")
+              context.addIssue({
+                code: "custom",
+                path: [...path, "interactionKind"],
+                message: "matching requires ReviewDraft 1.2.0"
+              });
+            if (exercise.options.length > 0)
+              context.addIssue({
+                code: "custom",
+                path: [...path, "options"],
+                message: "matching local options must be empty"
+              });
+            if (
+              !exercise.sharedResourceId ||
+              resources.get(exercise.sharedResourceId)?.kind !== "matchingBank"
+            )
+              context.addIssue({
+                code: "custom",
+                path: [...path, "sharedResourceId"],
+                message: "matching requires a group matchingBank resource"
+              });
           } else if (exercise.sharedResourceId != null)
             context.addIssue({
               code: "custom",
               path: [...path, "sharedResourceId"],
-              message: "only wordBankGap may reference a word bank"
+              message: "only wordBankGap or matching may reference a shared resource"
             });
         });
       });

@@ -4,6 +4,123 @@ import { describe, expect, test } from "vitest";
 import { AttemptValidationError, gradeStudentAttempt } from "./student-grading";
 
 describe("deterministic student grading", () => {
+  test("grades matching by stable shared-entry ID", () => {
+    const base = lesson();
+    const evidence = base.groups[0]!.provenance;
+    const matching: LessonSpec = {
+      ...base,
+      schemaVersion: "1.2.0",
+      groups: [
+        {
+          ...base.groups[0]!,
+          sharedResources: [
+            {
+              id: "matching-bank",
+              ordinal: 1,
+              kind: "matchingBank",
+              entries: [
+                { id: "entry-a", ordinal: 1, sourceLabel: "A", value: "one", provenance: evidence },
+                { id: "entry-b", ordinal: 2, sourceLabel: "B", value: "two", provenance: evidence }
+              ],
+              usagePolicy: "useOnce",
+              provenance: evidence
+            }
+          ],
+          exercises: [
+            {
+              id: "matching-exercise",
+              ordinal: 1,
+              interactionKind: "matching",
+              prompt: "1",
+              sharedResourceId: "matching-bank",
+              provenance: evidence,
+              options: [],
+              answerFields: [
+                {
+                  id: "matching-answer",
+                  acceptedValues: ["entry-b"],
+                  provenance: "sourceKey",
+                  reviewStatus: "verified",
+                  evidence
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    };
+    const result = gradeStudentAttempt(matching, {
+      schemaVersion: "1.0.0",
+      attemptId: "b3de0e9c-70dc-4885-82ed-f17b00cb64af",
+      lessonVersion: 2,
+      studentDisplayName: "Student",
+      responses: [{ fieldId: "matching-answer", kind: "choice", optionId: "entry-b" }]
+    });
+    expect(result.score).toEqual({ correct: 1, total: 1 });
+  });
+
+  test("rejects reusing one use-once matching entry", () => {
+    const base = lesson();
+    const evidence = base.groups[0]!.provenance;
+    const exercise = (
+      id: string,
+      ordinal: number,
+      answerId: string
+    ): LessonSpec["groups"][number]["exercises"][number] => ({
+      id,
+      ordinal,
+      interactionKind: "matching",
+      prompt: String(ordinal),
+      sharedResourceId: "matching-bank",
+      provenance: evidence,
+      options: [],
+      answerFields: [
+        {
+          id: answerId,
+          acceptedValues: [ordinal === 1 ? "entry-a" : "entry-b"],
+          provenance: "sourceKey",
+          reviewStatus: "verified",
+          evidence
+        }
+      ]
+    });
+    const matching: LessonSpec = {
+      ...base,
+      schemaVersion: "1.2.0",
+      groups: [
+        {
+          ...base.groups[0]!,
+          sharedResources: [
+            {
+              id: "matching-bank",
+              ordinal: 1,
+              kind: "matchingBank",
+              entries: [
+                { id: "entry-a", ordinal: 1, value: "one", provenance: evidence },
+                { id: "entry-b", ordinal: 2, value: "two", provenance: evidence }
+              ],
+              usagePolicy: "useOnce",
+              provenance: evidence
+            }
+          ],
+          exercises: [exercise("matching-1", 1, "answer-1"), exercise("matching-2", 2, "answer-2")]
+        }
+      ]
+    };
+    expect(() =>
+      gradeStudentAttempt(matching, {
+        schemaVersion: "1.0.0",
+        attemptId: "b3de0e9c-70dc-4885-82ed-f17b00cb64af",
+        lessonVersion: 2,
+        studentDisplayName: "Student",
+        responses: [
+          { fieldId: "answer-1", kind: "choice", optionId: "entry-a" },
+          { fieldId: "answer-2", kind: "choice", optionId: "entry-a" }
+        ]
+      })
+    ).toThrowError(AttemptValidationError);
+  });
+
   test("grades choice/text fields, reveals only incorrect answers and derives partial state", () => {
     const result = gradeStudentAttempt(lesson(), {
       schemaVersion: "1.0.0",

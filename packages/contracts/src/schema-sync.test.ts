@@ -39,4 +39,19 @@ describe("committed contract mirrors", () => {
     );
     expect(packageCopy).toBe(specCopy);
   });
+
+  for (const file of [
+    "structural-classification.schema.json",
+    "reconciled-structure-1.0.schema.json",
+    "reconciled-structure.schema.json"
+  ]) {
+    test(`${file} matches feature 002`, async () => {
+      const packageCopy = await readFile(resolve(import.meta.dirname, "../schemas", file), "utf8");
+      const specCopy = await readFile(
+        resolve(import.meta.dirname, "../../../specs/002-universal-pdf-extraction/contracts", file),
+        "utf8"
+      );
+      expect(JSON.parse(packageCopy)).toEqual(JSON.parse(specCopy));
+    });
+  }
 });

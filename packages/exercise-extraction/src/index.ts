@@ -5,3 +5,6 @@ export * from "./pdf-extractors";
 export * from "./source-lineage-validator";
 export * from "./bracket-gap-extractor";
 export * from "./truncation-detector";
+export * from "./window-planner";
+export * from "./reconcile-structure";
+export * from "./validate-structure";

@@ -77,9 +77,9 @@ describe("import performance and exact boundary evaluation", () => {
       measure(() => {
         validatePdfPageCount(1);
         validatePdfPageCount(5);
-        validatePdfPageCount(20);
+        validatePdfPageCount(MAX_PDF_PAGES);
         expectLimitFailure(() => {
-          validatePdfPageCount(21);
+          validatePdfPageCount(MAX_PDF_PAGES + 1);
         }, "pdfPages");
         validatePdfByteSize(52_428_800);
         validateTextCharacterCount(exactText);

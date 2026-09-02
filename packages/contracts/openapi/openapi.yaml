@@ -452,7 +452,7 @@ components:
             properties:
               groupId: { type: string, minLength: 1 }
               prompt: { type: string, minLength: 1 }
-              interactionKind: { enum: [singleChoice, wordOrder, bracketGap, oddOneOut, wordBankGap, inlineGap] }
+              interactionKind: { enum: [singleChoice, wordOrder, bracketGap, oddOneOut, wordBankGap, inlineGap, shortText, matching, imageChoice] }
               options: { type: array, items: { type: string } }
               answerValues: { type: array, minItems: 1, items: { type: string, minLength: 1 } }
         exerciseDeletes:

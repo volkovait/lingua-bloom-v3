@@ -14,6 +14,7 @@ export function LessonRenderer({ lesson }: { readonly lesson: StudentLessonSpec 
   const [responses, setResponses] = React.useState<Record<string, string>>({});
   const [studentName, setStudentName] = React.useState("");
   const [result, setResult] = React.useState<StudentAttemptResult | null>(null);
+  const [activeMatchingFieldId, setActiveMatchingFieldId] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState("");
   const fieldRefs = React.useRef(new Map<string, HTMLElement>());
@@ -76,7 +77,7 @@ export function LessonRenderer({ lesson }: { readonly lesson: StudentLessonSpec 
                 return {
                   fieldId: field.id,
                   kind: "orderedTokens",
-                  tokenIds: value.trim() ? value.trim().split(/\s+/u) : []
+                  tokenIds: orderedTokenValues(exercise.prompt, value)
                 };
               return { fieldId: field.id, kind: "text", value };
             })
@@ -174,11 +175,37 @@ export function LessonRenderer({ lesson }: { readonly lesson: StudentLessonSpec 
                   key={resource.id}
                 >
                   {resource.label ? <strong>{resource.label}</strong> : null}
-                  <ul>
-                    {resource.entries.map((word) => (
-                      <li key={word.id}>{word.value}</li>
-                    ))}
-                  </ul>
+                  {resource.kind === "matchingBank" ? (
+                    <div className="matching-bank" aria-label="Варианты для сопоставления">
+                      {resource.entries.map((option) => {
+                        const used = Object.values(responses).includes(option.id);
+                        return (
+                          <button
+                            className="matching-token"
+                            disabled={result != null || used}
+                            draggable={result == null && !used}
+                            key={option.id}
+                            type="button"
+                            onDragStart={(event) => {
+                              event.dataTransfer.setData("text/lingua-bloom-option", option.id);
+                            }}
+                            onClick={() => {
+                              if (activeMatchingFieldId) update(activeMatchingFieldId, option.id);
+                            }}
+                          >
+                            {option.sourceLabel ? <b>{option.sourceLabel}</b> : null}
+                            {option.value}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <ul>
+                      {resource.entries.map((word) => (
+                        <li key={word.id}>{word.value}</li>
+                      ))}
+                    </ul>
+                  )}
                 </aside>
               ))}
               {entry.value.exercises.map((exercise) => {
@@ -190,6 +217,18 @@ export function LessonRenderer({ lesson }: { readonly lesson: StudentLessonSpec 
                     : null;
                 const inlinePrompt = inlineField ? splitInlineChoicePrompt(exercise.prompt) : null;
                 const exerciseStatus = exerciseResults.get(exercise.id);
+                const matchingField =
+                  exercise.interactionKind === "matching" && exercise.responseFields.length === 1
+                    ? exercise.responseFields[0]
+                    : null;
+                const matchingResource = matchingField
+                  ? (entry.value.sharedResources ?? []).find(
+                      (resource) => resource.id === exercise.sharedResourceId
+                    )
+                  : null;
+                const selectedMatch = matchingResource?.entries.find(
+                  (option) => option.id === responses[matchingField?.id ?? ""]
+                );
                 return (
                   <article
                     className={`student-exercise${exerciseStatus ? ` is-${exerciseStatus}` : ""}`}
@@ -228,8 +267,42 @@ export function LessonRenderer({ lesson }: { readonly lesson: StudentLessonSpec 
                     {inlineField ? (
                       <FieldFeedback result={fieldResults.get(inlineField.id)} />
                     ) : null}
+                    {matchingField ? (
+                      <div
+                        className={`matching-drop-zone${selectedMatch ? " has-value" : ""}${fieldClass(fieldResults.get(matchingField.id)?.status)}`}
+                        ref={(node) => {
+                          if (node) fieldRefs.current.set(matchingField.id, node);
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Ответ на задание ${String(exercise.ordinal)}. Перетащите вариант или выберите поле и нажмите вариант в банке.`}
+                        aria-invalid={fieldResults.get(matchingField.id)?.status === "incorrect"}
+                        onFocus={() => setActiveMatchingFieldId(matchingField.id)}
+                        onDragOver={(event) => event.preventDefault()}
+                        onDrop={(event) => {
+                          event.preventDefault();
+                          const optionId = event.dataTransfer.getData("text/lingua-bloom-option");
+                          if (optionId) update(matchingField.id, optionId);
+                        }}
+                      >
+                        {selectedMatch ? (
+                          <>
+                            <span>{selectedMatch.value}</span>
+                            {result == null ? (
+                              <button type="button" onClick={() => update(matchingField.id, "")}>
+                                Убрать
+                              </button>
+                            ) : null}
+                          </>
+                        ) : (
+                          <span>Перетащите вариант сюда</span>
+                        )}
+                        <FieldFeedback result={fieldResults.get(matchingField.id)} />
+                      </div>
+                    ) : null}
                     {exercise.responseFields.map((field, index) =>
-                      inlineField?.id === field.id && inlinePrompt ? null : field.responseKind ===
+                      matchingField?.id === field.id ||
+                      (inlineField?.id === field.id && inlinePrompt) ? null : field.responseKind ===
                         "choice" ? (
                         <fieldset
                           className={`student-response-field${fieldClass(fieldResults.get(field.id)?.status)}`}
@@ -257,6 +330,18 @@ export function LessonRenderer({ lesson }: { readonly lesson: StudentLessonSpec 
                           ))}
                           <FieldFeedback result={fieldResults.get(field.id)} />
                         </fieldset>
+                      ) : field.responseKind === "orderedTokens" ? (
+                        <WordOrderControl
+                          key={field.id}
+                          prompt={exercise.prompt}
+                          value={responses[field.id] ?? ""}
+                          readOnly={result != null}
+                          result={fieldResults.get(field.id)}
+                          onChange={(value) => update(field.id, value)}
+                          register={(node) => {
+                            if (node) fieldRefs.current.set(field.id, node);
+                          }}
+                        />
                       ) : (
                         <label
                           className={`student-answer${fieldClass(fieldResults.get(field.id)?.status)}`}
@@ -304,6 +389,113 @@ export function LessonRenderer({ lesson }: { readonly lesson: StudentLessonSpec 
       </form>
     </main>
   );
+}
+
+function WordOrderControl({
+  prompt,
+  value,
+  readOnly,
+  result,
+  onChange,
+  register
+}: {
+  readonly prompt: string;
+  readonly value: string;
+  readonly readOnly: boolean;
+  readonly result: StudentAttemptResult["fields"][number] | undefined;
+  readonly onChange: (value: string) => void;
+  readonly register: (node: HTMLElement | null) => void;
+}) {
+  const tokens = wordOrderTokens(prompt);
+  const selected = decodeOrderedIds(value).filter((id) => Number(id) < tokens.length);
+  const setSelected = (ids: readonly string[]) => onChange(JSON.stringify(ids));
+  const add = (id: string) => {
+    if (!readOnly && !selected.includes(id)) setSelected([...selected, id]);
+  };
+  const moveBefore = (moving: string, target: string) => {
+    if (readOnly || moving === target) return;
+    const without = selected.filter((id) => id !== moving);
+    const targetIndex = without.indexOf(target);
+    if (targetIndex < 0) return;
+    setSelected([...without.slice(0, targetIndex), moving, ...without.slice(targetIndex)]);
+  };
+  return (
+    <div
+      className={`word-order-control${fieldClass(result?.status)}`}
+      ref={register}
+      tabIndex={-1}
+      aria-invalid={result?.status === "incorrect"}
+    >
+      <div className="word-order-bank" aria-label="Слова для предложения">
+        {tokens.map((token, index) => {
+          const id = String(index);
+          return (
+            <button
+              key={id}
+              type="button"
+              draggable={!readOnly && !selected.includes(id)}
+              disabled={readOnly || selected.includes(id)}
+              onClick={() => add(id)}
+              onDragStart={(event) =>
+                event.dataTransfer.setData("text/lingua-bloom-order-token", id)
+              }
+            >
+              {token}
+            </button>
+          );
+        })}
+      </div>
+      <div
+        className="word-order-drop-zone"
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => add(event.dataTransfer.getData("text/lingua-bloom-order-token"))}
+      >
+        {selected.length === 0 ? <span>Перетащите слова сюда</span> : null}
+        {selected.map((id) => (
+          <button
+            key={id}
+            type="button"
+            draggable={!readOnly}
+            disabled={readOnly}
+            aria-label={`Убрать ${tokens[Number(id)] ?? "слово"}`}
+            onClick={() => setSelected(selected.filter((candidate) => candidate !== id))}
+            onDragStart={(event) => event.dataTransfer.setData("text/lingua-bloom-order-move", id)}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              moveBefore(event.dataTransfer.getData("text/lingua-bloom-order-move"), id);
+            }}
+          >
+            {tokens[Number(id)]}
+          </button>
+        ))}
+      </div>
+      <FieldFeedback result={result} />
+    </div>
+  );
+}
+
+function wordOrderTokens(prompt: string) {
+  return prompt
+    .replace(/^\s*\d+[.)]?\s*/u, "")
+    .split("/")
+    .map((token) => token.trim())
+    .filter(Boolean);
+}
+
+function decodeOrderedIds(value: string): string[] {
+  if (!value) return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) && parsed.every((item) => typeof item === "string") ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function orderedTokenValues(prompt: string, value: string) {
+  const tokens = wordOrderTokens(prompt);
+  return decodeOrderedIds(value).flatMap((id) => tokens[Number(id)] ?? []);
 }
 
 function fieldClass(status: "correct" | "incorrect" | undefined) {

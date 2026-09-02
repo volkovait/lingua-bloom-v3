@@ -9,7 +9,12 @@ export const PublicLessonIdSchema = z
   .regex(/^[A-Za-z0-9_-]+$/);
 
 const StudentOptionSchema = z
-  .object({ id: IdSchema, ordinal: z.number().int().positive(), value: z.string() })
+  .object({
+    id: IdSchema,
+    ordinal: z.number().int().positive(),
+    value: z.string(),
+    sourceLabel: z.string().min(1).optional()
+  })
   .strict();
 const ResponseFieldSchema = z
   .object({ id: IdSchema, responseKind: z.enum(["choice", "text", "orderedTokens"]) })
@@ -39,7 +44,7 @@ const StudentGroupSchema = z
           .object({
             id: IdSchema,
             ordinal: z.number().int().positive(),
-            kind: z.literal("wordBank"),
+            kind: z.enum(["wordBank", "matchingBank"]),
             label: z.string().optional(),
             entries: z.array(StudentOptionSchema).min(1),
             usagePolicy: z.enum(["useOnce", "reusable", "unspecified"])
@@ -82,7 +87,7 @@ export const StudentReferenceBlockSchema = z
 
 const StudentLessonSpecBaseSchema = z
   .object({
-    schemaVersion: z.enum(["1.0.0", "1.1.0"]),
+    schemaVersion: z.enum(["1.0.0", "1.1.0", "1.2.0"]),
     publicLessonId: PublicLessonIdSchema,
     version: z.number().int().positive(),
     title: z.string().min(1),
@@ -91,7 +96,7 @@ const StudentLessonSpecBaseSchema = z
   })
   .strict()
   .superRefine((lesson, context) => {
-    if (lesson.schemaVersion === "1.1.0")
+    if (lesson.schemaVersion === "1.1.0" || lesson.schemaVersion === "1.2.0")
       lesson.groups.forEach((group, index) => {
         if (group.sharedResources == null)
           context.addIssue({
@@ -119,6 +124,28 @@ const StudentLessonSpecBaseSchema = z
                 code: "custom",
                 path: [...path, "sharedResourceId"],
                 message: "wordBankGap requires a group wordBank resource"
+              });
+          } else if (exercise.interactionKind === "matching") {
+            if (lesson.schemaVersion !== "1.2.0")
+              context.addIssue({
+                code: "custom",
+                path: [...path, "interactionKind"],
+                message: "matching requires StudentLessonSpec 1.2.0"
+              });
+            if (exercise.options.length > 0)
+              context.addIssue({
+                code: "custom",
+                path: [...path, "options"],
+                message: "matching local options must be empty"
+              });
+            if (
+              !exercise.sharedResourceId ||
+              resources.get(exercise.sharedResourceId)?.kind !== "matchingBank"
+            )
+              context.addIssue({
+                code: "custom",
+                path: [...path, "sharedResourceId"],
+                message: "matching requires a group matchingBank resource"
               });
           }
         });

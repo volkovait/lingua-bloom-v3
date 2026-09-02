@@ -50,6 +50,7 @@ export const OptionSpecSchema = z
     id: IdSchema,
     ordinal: z.number().int().positive(),
     value: z.string(),
+    sourceLabel: z.string().min(1).optional(),
     provenance: ProvenanceLinkSchema
   })
   .strict();
@@ -66,8 +67,21 @@ export const WordBankResourceSpecSchema = z
   })
   .strict();
 
+export const MatchingBankResourceSpecSchema = z
+  .object({
+    id: IdSchema,
+    ordinal: z.number().int().positive(),
+    kind: z.literal("matchingBank"),
+    label: z.string().optional(),
+    entries: z.array(OptionSpecSchema).min(2),
+    usagePolicy: z.literal("useOnce"),
+    provenance: ProvenanceLinkSchema
+  })
+  .strict();
+
 export const SharedExerciseResourceSpecSchema = z.discriminatedUnion("kind", [
-  WordBankResourceSpecSchema
+  WordBankResourceSpecSchema,
+  MatchingBankResourceSpecSchema
 ]);
 
 export const InteractionKindSchema = z.enum([
@@ -76,7 +90,10 @@ export const InteractionKindSchema = z.enum([
   "bracketGap",
   "oddOneOut",
   "wordBankGap",
-  "inlineGap"
+  "inlineGap",
+  "shortText",
+  "matching",
+  "imageChoice"
 ]);
 
 export const ReferenceLineSpecSchema = z
@@ -110,7 +127,11 @@ export const ExerciseSpecSchema = z
   })
   .strict()
   .superRefine((exercise, context) => {
-    const optionMinimum = ["singleChoice", "oddOneOut"].includes(exercise.interactionKind) ? 2 : 0;
+    const optionMinimum = ["singleChoice", "oddOneOut", "imageChoice"].includes(
+      exercise.interactionKind
+    )
+      ? 2
+      : 0;
     if (exercise.options.length < optionMinimum) {
       context.addIssue({
         code: "custom",
@@ -161,7 +182,7 @@ export const PublishedValidationSchema = z
 
 const LessonSpecBaseSchema = z
   .object({
-    schemaVersion: z.enum(["1.0.0", "1.1.0"]),
+    schemaVersion: z.enum(["1.0.0", "1.1.0", "1.2.0"]),
     lessonId: IdSchema,
     version: z.number().int().positive(),
     title: z.string().min(1),
@@ -173,7 +194,7 @@ const LessonSpecBaseSchema = z
   })
   .strict()
   .superRefine((lesson, context) => {
-    if (lesson.schemaVersion === "1.1.0") {
+    if (lesson.schemaVersion === "1.1.0" || lesson.schemaVersion === "1.2.0") {
       lesson.groups.forEach((group, index) => {
         if (group.sharedResources == null) {
           context.addIssue({
@@ -182,7 +203,7 @@ const LessonSpecBaseSchema = z
             message: "v1.1 groups require sharedResources"
           });
         }
-        validateV11WordBankGroup(group, index, context);
+        validateSharedResourceGroup(group, index, context, lesson.schemaVersion);
       });
     }
     for (const ref of collectSourceRefs(lesson)) {
@@ -199,10 +220,11 @@ const LessonSpecBaseSchema = z
     }
   });
 
-function validateV11WordBankGroup(
+function validateSharedResourceGroup(
   group: z.infer<typeof ExerciseGroupSchema>,
   groupIndex: number,
-  context: z.RefinementCtx
+  context: z.RefinementCtx,
+  schemaVersion: "1.0.0" | "1.1.0" | "1.2.0"
 ) {
   const resources = new Map(
     (group.sharedResources ?? []).map((resource) => [resource.id, resource])
@@ -232,11 +254,50 @@ function validateV11WordBankGroup(
           path: [...path, "sharedResourceId"],
           message: "wordBankGap requires a group wordBank resource"
         });
+    } else if (exercise.interactionKind === "matching") {
+      if (schemaVersion !== "1.2.0")
+        context.addIssue({
+          code: "custom",
+          path: [...path, "interactionKind"],
+          message: "matching requires LessonSpec 1.2.0"
+        });
+      if (exercise.options.length > 0)
+        context.addIssue({
+          code: "custom",
+          path: [...path, "options"],
+          message: "matching local options must be empty"
+        });
+      if (
+        !exercise.sharedResourceId ||
+        resources.get(exercise.sharedResourceId)?.kind !== "matchingBank"
+      )
+        context.addIssue({
+          code: "custom",
+          path: [...path, "sharedResourceId"],
+          message: "matching requires a group matchingBank resource"
+        });
+      const matchingBank = exercise.sharedResourceId
+        ? resources.get(exercise.sharedResourceId)
+        : undefined;
+      if (matchingBank?.kind === "matchingBank") {
+        const entryIds = new Set(matchingBank.entries.map((entry) => entry.id));
+        if (
+          exercise.answerFields.some(
+            (answer) =>
+              answer.acceptedValues.length !== 1 || !entryIds.has(answer.acceptedValues[0] ?? "")
+          )
+        )
+          context.addIssue({
+            code: "custom",
+            path: [...path, "answerFields"],
+            message: "matching answers require exactly one stable matching-bank entry ID"
+          });
+      }
     } else if (exercise.sharedResourceId != null)
       context.addIssue({
         code: "custom",
         path: [...path, "sharedResourceId"],
-        message: "only wordBankGap may reference a word bank"
+        message: "only wordBankGap or matching may reference a shared resource"
       });
   });
 }

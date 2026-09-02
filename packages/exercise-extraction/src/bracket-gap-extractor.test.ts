@@ -72,6 +72,31 @@ describe("bracket gap text extraction", () => {
     ).toEqual(["ellipsis", "ellipsis", "ellipsis"]);
   });
 
+  test("keeps independently answerable items out of the group instruction", () => {
+    const document = buildTextDocumentIr(
+      "22A. Write questions with Do …? or Does …? " +
+        "1 I like chocolate. How about you? (to ask) " +
+        "2 I play tennis. How about you? (to ask) " +
+        "3 You live near here. How about Lucy? (to ask)",
+      { id: "ir:atomic-items", sourceDocumentId: "source:atomic-items" }
+    );
+
+    const group = extractTextExercises(document, {
+      documentIrId: "ir:atomic-items"
+    }).groups[0];
+
+    expect(group?.instruction).toBe("22A. Write questions with Do …? or Does …?");
+    expect(group?.exercises).toHaveLength(3);
+    expect(group?.exercises.map((exercise) => exercise.prompt)).toEqual([
+      "I like chocolate. How about you? (to ask)",
+      "I play tennis. How about you? (to ask)",
+      "You live near here. How about Lucy? (to ask)"
+    ]);
+    expect(group?.exercises.every((exercise) => !group.instruction.includes(exercise.prompt))).toBe(
+      true
+    );
+  });
+
   test("routes non-empty unsupported text to typed layout review", () => {
     const document = buildTextDocumentIr("Unnumbered source material that needs classification.", {
       id: "ir:unknown-text",

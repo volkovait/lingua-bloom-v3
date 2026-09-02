@@ -37,10 +37,13 @@ describe("import limits", () => {
     }
   });
 
-  test("counts Unicode code points before normalization instead of UTF-8 bytes", () => {
+  test("counts Unicode code points after CRLF/CR normalization instead of UTF-8 bytes", () => {
     expect(countUnicodeCodePoints("😀a")).toBe(2);
     expect(() => {
       validateTextCharacterCount("a".repeat(MAX_TEXT_CODE_POINTS));
+    }).not.toThrow();
+    expect(() => {
+      validateTextCharacterCount(`${"a".repeat(MAX_TEXT_CODE_POINTS - 1)}\r\n`);
     }).not.toThrow();
     try {
       validateTextCharacterCount("😀".repeat(MAX_TEXT_CODE_POINTS + 1));

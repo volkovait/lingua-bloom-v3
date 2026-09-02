@@ -1,4 +1,4 @@
-import type { DocumentIR, SourceBlock } from "@lingua-bloom/contracts";
+import { MAX_PDF_PAGES, type DocumentIR, type SourceBlock } from "@lingua-bloom/contracts";
 
 import { orderBlocksByColumns } from "./reading-order";
 
@@ -40,6 +40,7 @@ export async function buildPdfDocumentIr(
   const loadingTask = getDocument({ data: bytes, useWorkerFetch: false });
   try {
     const pdf = await loadingTask.promise;
+    assertPdfPageLimit(pdf.numPages);
     const pages: DocumentIR["pages"][number][] = [];
     const items: PdfTextItemInput[] = [];
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
@@ -114,12 +115,22 @@ export function createDocumentIrFromTextItems(
   return {
     schemaVersion: "1.0.0",
     parserVersion: PDF_DOCUMENT_IR_PARSER_VERSION,
+    sourceKind: "pdf",
     id: input.id,
     sourceDocumentId: input.sourceDocumentId,
     pages: [...input.pages],
     blocks,
     warnings: []
   };
+}
+
+export function assertPdfPageLimit(pageCount: number): void {
+  if (!Number.isInteger(pageCount) || pageCount < 1) {
+    throw new RangeError("PDF page count must be a positive integer");
+  }
+  if (pageCount > MAX_PDF_PAGES) {
+    throw new RangeError(`PDF exceeds the ${String(MAX_PDF_PAGES)} page limit`);
+  }
 }
 
 function groupIntoLines(items: readonly PdfTextItemInput[], pageWidth: number): Line[] {

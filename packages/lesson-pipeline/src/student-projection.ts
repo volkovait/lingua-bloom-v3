@@ -11,7 +11,7 @@ export function projectStudentLesson(
 ): StudentLessonSpec {
   const source = LessonSpecSchema.parse(lesson);
   return StudentLessonSpecSchema.parse({
-    schemaVersion: "1.1.0",
+    schemaVersion: source.schemaVersion === "1.2.0" ? "1.2.0" : "1.1.0",
     publicLessonId,
     version: source.version,
     title: source.title,
@@ -27,7 +27,12 @@ export function projectStudentLesson(
         ordinal: resource.ordinal,
         kind: resource.kind,
         ...(resource.label ? { label: resource.label } : {}),
-        entries: resource.entries.map(({ id, ordinal, value }) => ({ id, ordinal, value })),
+        entries: resource.entries.map(({ id, ordinal, value, sourceLabel }) => ({
+          id,
+          ordinal,
+          value,
+          ...(sourceLabel ? { sourceLabel } : {})
+        })),
         usagePolicy: resource.usagePolicy
       })),
       exercises: group.exercises.map((exercise) => ({
@@ -36,7 +41,12 @@ export function projectStudentLesson(
         interactionKind: exercise.interactionKind,
         prompt: exercise.prompt,
         ...(exercise.sharedResourceId ? { sharedResourceId: exercise.sharedResourceId } : {}),
-        options: exercise.options.map(({ id, ordinal, value }) => ({ id, ordinal, value })),
+        options: exercise.options.map(({ id, ordinal, value, sourceLabel }) => ({
+          id,
+          ordinal,
+          value,
+          ...(sourceLabel ? { sourceLabel } : {})
+        })),
         responseFields: exercise.answerFields.map((answer) => ({
           id: answer.id,
           responseKind: responseKind(exercise.interactionKind)
@@ -54,6 +64,12 @@ export function projectStudentLesson(
 
 function responseKind(kind: LessonSpec["groups"][number]["exercises"][number]["interactionKind"]) {
   if (kind === "wordOrder") return "orderedTokens" as const;
-  if (kind === "singleChoice" || kind === "oddOneOut") return "choice" as const;
+  if (
+    kind === "singleChoice" ||
+    kind === "oddOneOut" ||
+    kind === "matching" ||
+    kind === "imageChoice"
+  )
+    return "choice" as const;
   return "text" as const;
 }

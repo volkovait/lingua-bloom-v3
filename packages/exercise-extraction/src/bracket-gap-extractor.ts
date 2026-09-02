@@ -5,11 +5,7 @@ import type {
   SourceRef,
   ValidationIssue
 } from "@lingua-bloom/contracts";
-import {
-  classifyTextSections,
-  mapNormalizedRangeToRaw,
-  normalizeTextWithSpans
-} from "@lingua-bloom/document-ingestion";
+import { mapNormalizedRangeToRaw, normalizeTextWithSpans } from "@lingua-bloom/document-ingestion";
 
 import { detectTextTruncation } from "./truncation-detector";
 import type {
@@ -68,11 +64,7 @@ export function extractTextExercises(
   const firstBoundary = boundaries[0];
   if (!firstBoundary) return emptyResult(document, input.documentIrId);
 
-  const sections = classifyTextSections(block.rawText);
-  const instruction = sections
-    .filter((section) => section.kind === "instruction")
-    .map((section) => section.rawText.trim())
-    .join(" ");
+  const instruction = normalized.normalizedText.slice(0, firstBoundary.markerStart).trim();
   const exercises = boundaries.map((boundary, index): ExtractedTextExercise => {
     const next = boundaries[index + 1];
     const itemEnd = next?.markerStart ?? normalized.normalizedText.length;

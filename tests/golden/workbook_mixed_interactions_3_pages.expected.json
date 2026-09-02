@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "1.0.0",
+  "fixtureId": "workbook_mixed_interactions_3_pages",
+  "sourceFile": "../fixtures/sources/workbook_mixed_interactions_3_pages.pdf",
+  "sha256": "2694cac3c8e941dfc1522d6b79db9e05de11f3ac634889111c762db549a93c4e",
+  "parserVersion": "pdf-layout/1.1.0",
+  "humanLabel": {
+    "reviewedAt": "2026-09-02",
+    "method": "all three rendered pages visually reviewed; interaction and page-transition boundaries labelled"
+  },
+  "summary": {
+    "pageCount": 3,
+    "sections": ["Lesson 1D", "Lesson 2A", "Reading"],
+    "requiresVisualAssets": true,
+    "requiresTeacherLedAudio": true,
+    "unsupportedAdditionCount": 0
+  },
+  "requiredGroups": [
+    { "sourceLabel": "1D/1A", "interactionKind": "singleChoice", "presentationKind": "inline", "itemCount": 8 },
+    { "sourceLabel": "1D/1B", "interactionKind": "shortText", "presentationKind": "list", "itemCount": 8 },
+    { "sourceLabel": "1D/2", "interactionKind": "wordOrder", "presentationKind": "list", "studentControl": "dragAndDrop" },
+    { "sourceLabel": "1D/3", "interactionKind": "singleChoice", "presentationKind": "inline" },
+    { "sourceLabel": "1D/4A", "interactionKind": "imageChoice", "presentationKind": "imageGrid", "stimulusKind": "teacherLedExternalAudio" },
+    { "sourceLabel": "1D/4B", "interactionKind": "wordBankGap", "presentationKind": "table", "stimulusKind": "teacherLedExternalAudio" },
+    { "sourceLabel": "1D/4C", "interactionKind": "singleChoice", "presentationKind": "list", "stimulusKind": "teacherLedExternalAudio" },
+    { "sourceLabel": "2A/1A", "interactionKind": "wordOrder", "studentControl": "dragAndDrop" },
+    { "sourceLabel": "2A/1B", "interactionKind": "matching", "studentControl": "dragAndDrop" },
+    { "sourceLabel": "Reading/5A", "interactionKind": "singleChoice", "presentationKind": "list", "requiresReferenceMaterial": true },
+    { "sourceLabel": "Reading/5B", "interactionKind": "imageChoice", "presentationKind": "imageGrid", "requiresReferenceMaterial": true },
+    { "sourceLabel": "Reading/5C", "interactionKind": "singleChoice", "presentationKind": "list", "requiresReferenceMaterial": true },
+    { "sourceLabel": "Reading/5D", "interactionKind": "shortText", "presentationKind": "list", "requiresReferenceMaterial": true }
+  ],
+  "boundaryRules": [
+    "one independently answerable row is one exercise",
+    "instructions and following groups are not appended to the previous item",
+    "page metadata and reading reference material are not exercise prompts",
+    "image exercises require source-derived assets before publication"
+  ]
+}

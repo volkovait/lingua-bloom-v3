@@ -8,7 +8,7 @@ import {
 } from "./observability";
 
 const SENSITIVE_KEY =
-  /(source(text|content)?|accepted(values?)?|answer|secret|password|signed.?url|storage.?url|(session|access|refresh|auth).?token)/i;
+  /(source(text|content)?|raw.?text|block.?text|accepted(values?)?|answer|evidence|secret|password|credential|api.?key|signed.?url|storage.?url|(session|access|refresh|auth).?token)/i;
 
 export function redactSensitive(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(redactSensitive);

@@ -53,15 +53,15 @@ describe("POST /api/imports contract", () => {
     pdf.set("idempotencyKey", "0123456789abcdef");
     pdf.set("sourceFile", new File(["%PDF-test"], "test.pdf", { type: "application/pdf" }));
     await expect(
-      parseImportRequest(pdf, { countPdfPages: () => Promise.resolve(20) })
+      parseImportRequest(pdf, { countPdfPages: () => Promise.resolve(5) })
     ).resolves.toMatchObject({ kind: "pdf" });
     await expect(
-      parseImportRequest(pdf, { countPdfPages: () => Promise.resolve(21) })
+      parseImportRequest(pdf, { countPdfPages: () => Promise.resolve(6) })
     ).rejects.toMatchObject({
       code: "SOURCE_TOO_LARGE",
       limitType: "pdfPages",
-      limit: 20,
-      actual: 21
+      limit: 5,
+      actual: 6
     });
 
     const exactByteLimitFile = new File(["%PDF-test"], "exact.pdf", {
@@ -70,7 +70,7 @@ describe("POST /api/imports contract", () => {
     Object.defineProperty(exactByteLimitFile, "size", { value: MAX_PDF_BYTES });
     pdf.set("sourceFile", exactByteLimitFile);
     await expect(
-      parseImportRequest(pdf, { countPdfPages: () => Promise.resolve(20) })
+      parseImportRequest(pdf, { countPdfPages: () => Promise.resolve(5) })
     ).resolves.toMatchObject({ kind: "pdf" });
 
     const aboveByteLimitFile = new File(["%PDF-test"], "large.pdf", {
@@ -79,7 +79,7 @@ describe("POST /api/imports contract", () => {
     Object.defineProperty(aboveByteLimitFile, "size", { value: MAX_PDF_BYTES + 1 });
     pdf.set("sourceFile", aboveByteLimitFile);
     await expect(
-      parseImportRequest(pdf, { countPdfPages: () => Promise.resolve(20) })
+      parseImportRequest(pdf, { countPdfPages: () => Promise.resolve(5) })
     ).rejects.toMatchObject({
       code: "SOURCE_TOO_LARGE",
       limitType: "pdfBytes",
@@ -90,14 +90,14 @@ describe("POST /api/imports contract", () => {
     const text = new FormData();
     text.set("title", "Text");
     text.set("idempotencyKey", "0123456789abcdef");
-    text.set("sourceText", "😀".repeat(500_000));
+    text.set("sourceText", "😀".repeat(30_000));
     await expect(parseImportRequest(text)).resolves.toMatchObject({ kind: "text" });
-    text.set("sourceText", "😀".repeat(500_001));
+    text.set("sourceText", "😀".repeat(30_001));
     await expect(parseImportRequest(text)).rejects.toMatchObject({
       code: "SOURCE_TOO_LARGE",
       limitType: "textCharacters",
-      limit: 500_000,
-      actual: 500_001
+      limit: 30_000,
+      actual: 30_001
     });
   });
 
