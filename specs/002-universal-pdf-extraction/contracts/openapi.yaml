@@ -1,38 +1,55 @@
 openapi: 3.1.0
 info:
-  title: Lingua-Bloom Universal PDF Extraction API additions
-  version: 0.4.0
+  title: Lingua-Bloom structural extraction API additions
+  version: 0.5.0
 paths:
-  /api/imports/{runId}/suggest-answers:
+  /api/imports:
     post:
-      summary: Request bounded model suggestions for unresolved persisted draft answers
+      summary: Admit a bounded PDF or pasted-text import
       security: [{ teacherSession: [] }]
-      parameters: [{ $ref: '#/components/parameters/RunId' }]
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
               additionalProperties: false
-              required: [expectedRevision, idempotencyKey]
+              required: [title, idempotencyKey]
               properties:
-                expectedRevision: { type: integer, minimum: 1 }
+                title: { type: string, minLength: 1, maxLength: 200 }
+                sourceFile: { type: string, format: binary }
+                sourceText:
+                  type: string
+                  minLength: 1
+                  description: Server normalizes CRLF/CR to LF, then admits at most 30,000 Unicode code points including whitespace
                 idempotencyKey: { type: string, minLength: 16, maxLength: 128 }
+              oneOf:
+                - required: [sourceFile]
+                  not: { required: [sourceText] }
+                - required: [sourceText]
+                  not: { required: [sourceFile] }
       responses:
-        '200': { description: Suggestions persisted as modelInferred in a new draft revision }
-        '409': { description: Draft revision conflict }
-        '422': { description: Provider returned no usable suggestions }
-        '502': { description: Terminal provider failure; manual review remains available }
-        '503': { description: Provider unavailable; manual review remains available }
+        '202':
+          description: Import accepted; processing is asynchronous
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ImportAccepted' }
+        '400': { description: Invalid import request }
+        '401': { description: Authentication required }
+        '409': { description: Idempotency conflict }
+        '413':
+          description: PDF exceeds 5 pages or normalized text exceeds 30,000 Unicode characters
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SourceLimitError' }
   /api/imports/{runId}:
     get:
-      summary: Return owner-scoped import state with draft or unknown-layout review
+      summary: Return owner-scoped import state with draft or structural review
       security: [{ teacherSession: [] }]
       parameters: [{ $ref: '#/components/parameters/RunId' }]
       responses:
         '200':
-          description: Exactly one review representation is present
+          description: Draft and structuralReview are mutually exclusive
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ImportReviewState' }
@@ -40,17 +57,17 @@ paths:
         '404': { description: Unknown or non-owned run }
   /api/imports/{runId}/layout-review:
     post:
-      summary: Atomically classify, edit or assign non-student outcomes to unknown candidates
+      summary: Resolve structural-classification issues atomically
       security: [{ teacherSession: [] }]
       parameters: [{ $ref: '#/components/parameters/RunId' }]
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/LayoutReviewSubmission' }
+            schema: { $ref: '#/components/schemas/StructuralReviewSubmission' }
       responses:
         '202':
-          description: Decisions persisted; same run resumes or remains in review
+          description: Decisions persisted; the same run resumes or remains in review
           content:
             application/json:
               schema:
@@ -65,6 +82,134 @@ paths:
         '401': { description: Authentication required }
         '404': { description: Unknown or non-owned run }
         '409': { description: Stale revision or conflicting idempotency key; no partial writes }
+  /api/imports/{runId}/suggest-answers:
+    get:
+      summary: Calculate answer-suggestion request count, token estimate and cost ceiling without calling the model
+      security: [{ teacherSession: [] }]
+      parameters: [{ $ref: '#/components/parameters/RunId' }]
+      responses:
+        '200':
+          description: Free immutable preflight for the current draft revision
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [runId, revision, model, preflight]
+                properties:
+                  runId: { type: string, minLength: 1 }
+                  revision: { type: integer, minimum: 1 }
+                  model: { type: string, minLength: 1 }
+                  preflight: { $ref: '#/components/schemas/AnswerSuggestionPreflight' }
+    post:
+      summary: Execute a confirmed, budget-bounded and checkpointed answer-suggestion plan
+      security: [{ teacherSession: [] }]
+      parameters: [{ $ref: '#/components/parameters/RunId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [expectedRevision, idempotencyKey]
+              properties:
+                expectedRevision: { type: integer, minimum: 1 }
+                idempotencyKey: { type: string, minLength: 16, maxLength: 128 }
+                confirmedPlanHash: { type: string, minLength: 64, maxLength: 64 }
+      responses:
+        '200':
+          description: Reviewable modelInferred suggestions persisted in a new revision
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnswerSuggestionExecutionResult' }
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnswerSuggestionError' }
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnswerSuggestionError' }
+        '404':
+          description: Run not found for this teacher
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnswerSuggestionError' }
+        '409':
+          description: Draft conflict, batch already running or cost confirmation required
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnswerSuggestionError' }
+        '422':
+          description: No fields remain or the configured estimated-cost limit was exceeded
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnswerSuggestionError' }
+        '502':
+          description: Provider failure; completed batches remain checkpointed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnswerSuggestionError' }
+        '503':
+          description: Provider unavailable; completed batches remain checkpointed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnswerSuggestionError' }
+  /api/imports/{runId}/layout-review/suggest:
+    get:
+      summary: Calculate a zero-call RUB preflight for optional AI layout classification
+      security: [{ teacherSession: [] }]
+      parameters: [{ $ref: '#/components/parameters/RunId' }]
+      responses:
+        '200':
+          description: Exact plan requiring teacher confirmation
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LayoutAiPreflightResponse' }
+    post:
+      summary: Return checkpointed AI classification suggestions without persisting teacher decisions
+      security: [{ teacherSession: [] }]
+      parameters: [{ $ref: '#/components/parameters/RunId' }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [expectedRevision, confirmedPlanHash]
+              properties:
+                expectedRevision: { type: integer, minimum: 1 }
+                confirmedPlanHash: { type: string, minLength: 64, maxLength: 64 }
+      responses:
+        '200':
+          description: Editable AI suggestions; teacher decisions remain unchanged
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LayoutAiSuggestionResult' }
+        '409':
+          description: Revision/confirmation conflict or request already running
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LayoutAiError' }
+        '422':
+          description: No candidates or RUB hard limit exceeded
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LayoutAiError' }
+        '502':
+          description: Provider failure; teacher decisions remain unchanged
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LayoutAiError' }
+        '503':
+          description: Provider is not configured
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LayoutAiError' }
 components:
   securitySchemes:
     teacherSession:
@@ -78,6 +223,110 @@ components:
       required: true
       schema: { type: string, minLength: 1 }
   schemas:
+    LayoutAiPreflight:
+      type: object
+      additionalProperties: false
+      required: [schemaVersion, planHash, candidateCount, requestCount, estimatedTokens, estimatedCostRub, hardLimitRub, exceedsHardLimit, requiresConfirmation]
+      properties:
+        schemaVersion: { const: '1.0.0' }
+        planHash: { type: string, minLength: 64, maxLength: 64 }
+        candidateCount: { type: integer, minimum: 1 }
+        requestCount: { const: 1 }
+        estimatedTokens: { type: integer, minimum: 1 }
+        estimatedCostRub: { type: number, minimum: 0 }
+        hardLimitRub: { type: number, exclusiveMinimum: 0 }
+        exceedsHardLimit: { type: boolean }
+        requiresConfirmation: { const: true }
+    LayoutAiPreflightResponse:
+      type: object
+      additionalProperties: false
+      required: [runId, revision, model, preflight]
+      properties:
+        runId: { type: string, minLength: 1 }
+        revision: { type: integer, minimum: 1 }
+        model: { type: string, minLength: 1 }
+        preflight: { $ref: '#/components/schemas/LayoutAiPreflight' }
+    LayoutAiSuggestion:
+      type: object
+      additionalProperties: false
+      required: [candidateId, classification, confidence, rationale]
+      properties:
+        candidateId: { type: string, minLength: 1 }
+        classification:
+          enum: [singleChoice, wordOrder, bracketGap, oddOneOut, inlineGap, shortText, reference, example, exclude]
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        rationale: { type: string, minLength: 1, maxLength: 500 }
+    LayoutAiSuggestionResult:
+      type: object
+      additionalProperties: false
+      required: [runId, revision, preflight, suggestions, telemetry, reused]
+      properties:
+        runId: { type: string, minLength: 1 }
+        revision: { type: integer, minimum: 1 }
+        preflight: { $ref: '#/components/schemas/LayoutAiPreflight' }
+        suggestions: { type: array, items: { $ref: '#/components/schemas/LayoutAiSuggestion' } }
+        telemetry:
+          type: object
+          additionalProperties: false
+          required: [model, promptVersion, pricingVersion, latencyMs, inputTokens, outputTokens, actualCost, actualCurrency]
+          properties:
+            model: { type: string, minLength: 1 }
+            promptVersion: { const: layout-review-classification/1.0.0 }
+            pricingVersion: { const: layout-review-rub-pricing/1.0.0 }
+            latencyMs: { type: integer, minimum: 0 }
+            inputTokens: { type: [integer, 'null'], minimum: 0 }
+            outputTokens: { type: [integer, 'null'], minimum: 0 }
+            actualCost: { type: [number, 'null'], minimum: 0 }
+            actualCurrency: { type: [string, 'null'], minLength: 1 }
+        reused: { type: boolean }
+    LayoutAiError:
+      type: object
+      additionalProperties: false
+      required: [code]
+      properties:
+        code: { type: string, minLength: 1 }
+        message: { type: string, minLength: 1 }
+    AnswerSuggestionPreflight:
+      type: object
+      additionalProperties: false
+      required: [schemaVersion, planHash, answerFieldCount, batchCount, estimatedTokens, estimatedCostUsd, requiresConfirmation, exceedsHardLimit, hardLimitUsd]
+      properties:
+        schemaVersion: { const: '1.0.0' }
+        planHash: { type: string, minLength: 64, maxLength: 64 }
+        answerFieldCount: { type: integer, minimum: 0 }
+        batchCount: { type: integer, minimum: 0 }
+        estimatedTokens: { type: integer, minimum: 0 }
+        estimatedCostUsd: { type: number, minimum: 0 }
+        requiresConfirmation: { type: boolean }
+        exceedsHardLimit: { type: boolean }
+        hardLimitUsd: { type: number, exclusiveMinimum: 0 }
+    AnswerSuggestionExecutionResult:
+      type: object
+      additionalProperties: false
+      required: [runId, revision, suggestionCount, preflight, actualCostUsd]
+      properties:
+        runId: { type: string, minLength: 1 }
+        revision: { type: integer, minimum: 1 }
+        suggestionCount: { type: integer, minimum: 0 }
+        preflight: { $ref: '#/components/schemas/AnswerSuggestionPreflight' }
+        actualCostUsd: { type: [number, 'null'], minimum: 0 }
+    AnswerSuggestionError:
+      type: object
+      additionalProperties: false
+      required: [code]
+      properties:
+        code: { type: string, minLength: 1 }
+        message: { type: string, minLength: 1 }
+        currentRevision: { type: integer, minimum: 1 }
+        preflight: { $ref: '#/components/schemas/AnswerSuggestionPreflight' }
+    ImportAccepted:
+      type: object
+      additionalProperties: false
+      required: [runId, sourceDocumentId, status]
+      properties:
+        runId: { type: string, minLength: 1 }
+        sourceDocumentId: { type: string, minLength: 1 }
+        status: { const: accepted }
     ImportReviewState:
       type: object
       additionalProperties: false
@@ -91,13 +340,14 @@ components:
         - failure
         - source
         - draft
-        - unknownLayoutReview
+        - structuralReview
         - documentIr
         - issues
         - events
       properties:
         runId: { type: string, minLength: 1 }
-        status: { enum: [accepted, processing, awaiting_review, blocked, ready_to_publish, completed, cancelled, failed] }
+        status:
+          enum: [accepted, processing, awaiting_review, blocked, ready_to_publish, completed, cancelled, failed]
         currentStep: { type: [string, 'null'] }
         lastSuccessfulCheckpoint: { type: [string, 'null'] }
         updatedAt: { type: string, format: date-time }
@@ -122,8 +372,10 @@ components:
           oneOf:
             - type: 'null'
             - $ref: '#/components/schemas/DraftEnvelope'
-        unknownLayoutReview:
-          oneOf: [{ type: 'null' }, { $ref: '#/components/schemas/UnknownLayoutReview' }]
+        structuralReview:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/StructuralReview'
         documentIr:
           oneOf:
             - type: 'null'
@@ -132,22 +384,21 @@ components:
         events: { type: array, items: { $ref: '#/components/schemas/WorkflowEvent' } }
       allOf:
         - not:
+            required: [draft, structuralReview]
             properties:
               draft: { type: object }
-              unknownLayoutReview: { type: object }
+              structuralReview: { type: object }
         - if:
             properties: { status: { const: failed } }
+            required: [status]
           then:
             properties:
               failure: { $ref: '#/components/schemas/FailureInfo' }
         - if:
-            properties: { status: { const: blocked } }
-          then:
-            properties: { issues: { minItems: 1 } }
-        - if:
             properties:
               status:
                 enum: [accepted, processing, awaiting_review, blocked, ready_to_publish, completed, cancelled]
+            required: [status]
           then:
             properties: { failure: { type: 'null' } }
     StaleRunRecovery:
@@ -163,24 +414,18 @@ components:
       additionalProperties: false
       required: [code, kind, message, manualResumeAllowed]
       properties:
-        code: { type: string, minLength: 1 }
+        code:
+          enum: [SOURCE_TOO_LARGE, MODEL_UNAVAILABLE, MODEL_INVALID_OUTPUT, INTERNAL_FAILURE]
         kind: { enum: [retriable, terminal] }
         message: { type: string, minLength: 1 }
         manualResumeAllowed: { type: boolean }
-        limitType: { enum: [pdfPages, pdfBytes, textCharacters, answerFields] }
+        limitType: { enum: [pdfPages, textCharacters] }
         limit: { type: integer, minimum: 1 }
         actual: { type: integer, minimum: 1 }
       allOf:
         - if:
-            properties: { kind: { const: retriable } }
-          then:
-            properties: { manualResumeAllowed: { const: true } }
-        - if:
-            properties: { kind: { const: terminal } }
-          then:
-            properties: { manualResumeAllowed: { const: false } }
-        - if:
             properties: { code: { const: SOURCE_TOO_LARGE } }
+            required: [code]
           then:
             required: [limitType, limit, actual]
     DraftEnvelope:
@@ -192,75 +437,47 @@ components:
         revision: { type: integer, minimum: 1 }
         payload:
           type: object
-          description: Strict ReviewDraft 1.0/1.1/1.2 union from the canonical contracts package
-    ImportIssue:
-      type: object
-      additionalProperties: true
-      required: [id, code, severity, resolution, createdAt]
-      properties:
-        id: { type: string, minLength: 1 }
-        code: { type: string, minLength: 1 }
-        severity: { enum: [info, warning, blocking] }
-        resolution: { enum: [open, resolved, acceptedRisk] }
-        createdAt: { type: string, format: date-time }
-    WorkflowEvent:
-      type: object
-      additionalProperties: true
-      required: [sequence, type, status, step, occurredAt]
-      properties:
-        sequence: { type: integer, minimum: 1 }
-        type: { type: string, minLength: 1 }
-        status: { type: string, minLength: 1 }
-        step: { type: [string, 'null'] }
-        occurredAt: { type: string, format: date-time }
-    UnknownLayoutReview:
+          description: Strict canonical ReviewDraft union
+    StructuralReview:
       type: object
       additionalProperties: false
-      required: [schemaVersion, runId, sourceDocumentId, documentIrId, revision, status, candidates, coverage, createdAt, updatedAt]
+      required:
+        [schemaVersion, runId, sourceDocumentId, documentIrId, revision, status, reason, regions, issues, coverage, createdAt, updatedAt]
       properties:
-        schemaVersion: { const: 1.0.0 }
+        schemaVersion: { const: '1.1.0' }
         runId: { type: string, minLength: 1 }
         sourceDocumentId: { type: string, minLength: 1 }
         documentIrId: { type: string, minLength: 1 }
         revision: { type: integer, minimum: 1 }
         status: { const: active }
-        createdAt: { type: string, format: date-time }
-        updatedAt: { type: string, format: date-time }
-        candidates:
+        reason:
+          enum: [providerFailure, invalidOutput, reconciliationConflict, lowConfidence, unknownStructure]
+        regions:
           type: array
           minItems: 1
           items:
             type: object
             additionalProperties: false
-            required: [id, sourceRefs, rawPrompt, optionCandidates, classification, confidence, evidence]
+            required: [id, blockIds, proposedRole, confidence, issueIds]
             properties:
               id: { type: string, minLength: 1 }
-              sourceOrdinal: { oneOf: [{ type: integer, minimum: 0 }, { type: string, minLength: 1 }] }
-              sourceRefs: { type: array, minItems: 1, items: { type: object } }
-              rawPrompt: { type: string }
-              optionCandidates: { type: array, items: { type: object } }
-              classification: { const: unknown }
+              blockIds: { type: array, minItems: 1, items: { type: string, minLength: 1 } }
+              proposedRole:
+                enum: [sectionHeading, instruction, referenceMaterial, example, exercisePrompt, gapSegment, localOption, sharedBankEntry, answerKey, boilerplate, unknown]
               confidence: { type: number, minimum: 0, maximum: 1 }
-              evidence: { type: array, items: { type: string, minLength: 1 } }
-              suggestedKind: { enum: [matching, singleChoice, bracketGap, wordBankGap] }
-              suggestionProvenance: { enum: [deterministic, modelInferred] }
-        decisions:
-          type: array
-          default: []
-          description: Append-only teacher decisions already persisted for this review revision
-          items:
-            type: object
-            additionalProperties: true
-            required: [id, candidateId, action, reason, actorId, createdAt]
+              issueIds: { type: array, items: { type: string, minLength: 1 } }
+        issues: { type: array, minItems: 1, items: { $ref: '#/components/schemas/ImportIssue' } }
         coverage:
           type: object
           additionalProperties: false
-          required: [detectedCandidateCount, accountedCandidateCount, status]
+          required: [significantBlockCount, accountedBlockCount, status]
           properties:
-            detectedCandidateCount: { type: integer, minimum: 1 }
-            accountedCandidateCount: { type: integer, minimum: 0 }
+            significantBlockCount: { type: integer, minimum: 1 }
+            accountedBlockCount: { type: integer, minimum: 0 }
             status: { enum: [needsReview, blocked] }
-    LayoutReviewSubmission:
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    StructuralReviewSubmission:
       type: object
       additionalProperties: false
       required: [expectedRevision, idempotencyKey, decisions]
@@ -272,97 +489,141 @@ components:
           minItems: 1
           items:
             oneOf:
-              - $ref: '#/components/schemas/SingleChoiceLayoutDecision'
-              - $ref: '#/components/schemas/BracketGapLayoutDecision'
-              - $ref: '#/components/schemas/WordBankGapLayoutDecision'
-              - $ref: '#/components/schemas/MatchingLayoutDecision'
-              - $ref: '#/components/schemas/NonStudentLayoutDecision'
-    SingleChoiceLayoutDecision:
-      $ref: '#/components/schemas/ClassifyLayoutDecisionBase'
-      properties:
-        interactionKind: { const: singleChoice }
-        structuralFields: { $ref: '#/components/schemas/SingleChoiceStructuralFields' }
-    BracketGapLayoutDecision:
-      $ref: '#/components/schemas/ClassifyLayoutDecisionBase'
-      properties:
-        interactionKind: { const: bracketGap }
-        structuralFields: { $ref: '#/components/schemas/BracketGapStructuralFields' }
-    WordBankGapLayoutDecision:
-      $ref: '#/components/schemas/ClassifyLayoutDecisionBase'
-      properties:
-        interactionKind: { const: wordBankGap }
-        structuralFields: { $ref: '#/components/schemas/WordBankGapStructuralFields' }
-    MatchingLayoutDecision:
-      $ref: '#/components/schemas/ClassifyLayoutDecisionBase'
-      properties:
-        interactionKind: { const: matching }
-        structuralFields: { $ref: '#/components/schemas/MatchingStructuralFields' }
-    ClassifyLayoutDecisionBase:
+              - $ref: '#/components/schemas/ChoiceStructuralDecision'
+              - $ref: '#/components/schemas/GapStructuralDecision'
+              - $ref: '#/components/schemas/WordBankStructuralDecision'
+              - $ref: '#/components/schemas/WordOrderStructuralDecision'
+              - $ref: '#/components/schemas/MatchingStructuralDecision'
+              - $ref: '#/components/schemas/NonStudentStructuralDecision'
+    ChoiceStructuralDecision:
       type: object
       additionalProperties: false
-      required: [candidateId, action, interactionKind, structuralFields, reason]
+      required: [regionId, action, interactionKind, structuralFields, reason]
       properties:
-        candidateId: { type: string, minLength: 1 }
+        regionId: { type: string, minLength: 1 }
         action: { const: classify }
-        interactionKind: { enum: [singleChoice, bracketGap, wordBankGap, matching] }
-        structuralFields: { type: object }
+        interactionKind: { enum: [singleChoice, oddOneOut] }
+        structuralFields:
+          type: object
+          additionalProperties: false
+          required: [prompt, options, answerFieldCount]
+          properties:
+            prompt: { type: string, minLength: 1 }
+            options: { type: array, minItems: 2, items: { type: string, minLength: 1 } }
+            answerFieldCount: { type: integer, minimum: 1 }
         reason: { type: string, minLength: 1 }
-    NonStudentLayoutDecision:
+    GapStructuralDecision:
       type: object
       additionalProperties: false
-      required: [candidateId, action, reason]
+      required: [regionId, action, interactionKind, structuralFields, reason]
       properties:
-        candidateId: { type: string, minLength: 1 }
+        regionId: { type: string, minLength: 1 }
+        action: { const: classify }
+        interactionKind: { enum: [bracketGap, inlineGap] }
+        structuralFields:
+          type: object
+          additionalProperties: false
+          required: [prompt, answerFieldCount]
+          properties:
+            prompt: { type: string, minLength: 1 }
+            answerFieldCount: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1 }
+    WordBankStructuralDecision:
+      type: object
+      additionalProperties: false
+      required: [regionId, action, interactionKind, structuralFields, reason]
+      properties:
+        regionId: { type: string, minLength: 1 }
+        action: { const: classify }
+        interactionKind: { const: wordBankGap }
+        structuralFields:
+          type: object
+          additionalProperties: false
+          required: [prompt, answerFieldCount, sharedEntries, usagePolicy]
+          properties:
+            prompt: { type: string, minLength: 1 }
+            answerFieldCount: { type: integer, minimum: 1 }
+            sharedEntries: { type: array, minItems: 1, items: { type: string, minLength: 1 } }
+            usagePolicy: { enum: [useOnce, reusable, unspecified] }
+        reason: { type: string, minLength: 1 }
+    WordOrderStructuralDecision:
+      type: object
+      additionalProperties: false
+      required: [regionId, action, interactionKind, structuralFields, reason]
+      properties:
+        regionId: { type: string, minLength: 1 }
+        action: { const: classify }
+        interactionKind: { const: wordOrder }
+        structuralFields:
+          type: object
+          additionalProperties: false
+          required: [prompt, segments, answerFieldCount]
+          properties:
+            prompt: { type: string, minLength: 1 }
+            segments: { type: array, minItems: 2, items: { type: string, minLength: 1 } }
+            answerFieldCount: { type: integer, minimum: 1 }
+        reason: { type: string, minLength: 1 }
+    MatchingStructuralDecision:
+      type: object
+      additionalProperties: false
+      required: [regionId, action, interactionKind, structuralFields, reason]
+      properties:
+        regionId: { type: string, minLength: 1 }
+        action: { const: classify }
+        interactionKind: { const: matching }
+        structuralFields:
+          type: object
+          additionalProperties: false
+          required: [items, sharedEntries, usagePolicy]
+          properties:
+            items:
+              type: array
+              minItems: 1
+              items:
+                type: object
+                additionalProperties: false
+                required: [prompt, answerFieldCount]
+                properties:
+                  prompt: { type: string, minLength: 1 }
+                  answerFieldCount: { const: 1 }
+            sharedEntries: { type: array, minItems: 2, items: { type: string, minLength: 1 } }
+            usagePolicy: { const: useOnce }
+        reason: { type: string, minLength: 1 }
+    NonStudentStructuralDecision:
+      type: object
+      additionalProperties: false
+      required: [regionId, action, reason]
+      properties:
+        regionId: { type: string, minLength: 1 }
         action: { enum: [reference, example, exclude] }
         reason: { type: string, minLength: 1 }
-    SingleChoiceStructuralFields:
+    SourceLimitError:
       type: object
       additionalProperties: false
-      required: [kind, prompt, options]
+      required: [code, message, limitType, limit, actual]
       properties:
-        kind: { const: singleChoice }
-        prompt: { type: string, minLength: 1 }
-        options: { type: array, minItems: 2, items: { type: string, minLength: 1 } }
-    BracketGapStructuralFields:
+        code: { const: SOURCE_TOO_LARGE }
+        message: { type: string, minLength: 1 }
+        limitType: { enum: [pdfPages, textCharacters] }
+        limit: { type: integer, minimum: 1 }
+        actual: { type: integer, minimum: 1 }
+    ImportIssue:
       type: object
       additionalProperties: false
-      required: [kind, prompt, answerFieldCount]
+      required: [id, code, severity, resolution, createdAt]
       properties:
-        kind: { const: bracketGap }
-        prompt: { type: string, minLength: 1 }
-        answerFieldCount: { type: integer, minimum: 1 }
-    WordBankGapStructuralFields:
+        id: { type: string, minLength: 1 }
+        code: { type: string, minLength: 1 }
+        severity: { enum: [info, warning, blocking] }
+        resolution: { enum: [open, resolved, acceptedRisk] }
+        createdAt: { type: string, format: date-time }
+    WorkflowEvent:
       type: object
       additionalProperties: false
-      required: [kind, prompt, sharedEntries]
+      required: [sequence, type, status, step, occurredAt]
       properties:
-        kind: { const: wordBankGap }
-        prompt: { type: string, minLength: 1 }
-        sharedEntries: { type: array, minItems: 2, items: { type: string, minLength: 1 } }
-    MatchingStructuralFields:
-      type: object
-      additionalProperties: false
-      required: [kind, items, entries, usagePolicy]
-      properties:
-        kind: { const: matching }
-        items:
-          type: array
-          minItems: 1
-          items:
-            type: object
-            additionalProperties: false
-            required: [sourceOrdinal, prompt]
-            properties:
-              sourceOrdinal: { oneOf: [{ type: integer, minimum: 0 }, { type: string, minLength: 1 }] }
-              prompt: { type: string, minLength: 1 }
-        entries:
-          type: array
-          minItems: 2
-          items:
-            type: object
-            additionalProperties: false
-            required: [sourceLabel, value]
-            properties:
-              sourceLabel: { type: string, minLength: 1 }
-              value: { type: string, minLength: 1 }
-        usagePolicy: { const: useOnce }
+        sequence: { type: integer, minimum: 1 }
+        type: { type: string, minLength: 1 }
+        status: { type: string, minLength: 1 }
+        step: { type: [string, 'null'] }
+        occurredAt: { type: string, format: date-time }

@@ -1,225 +1,314 @@
-# Tasks: Universal PDF Extraction
+# Tasks: Universal Structural Extraction
 
 **Input**: Design documents from `/specs/002-universal-pdf-extraction/`
 
-**Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md`
+**Prerequisites**: `spec.md`, `plan.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md`
 
-**Tests**: Required by the feature acceptance criteria and constitution. Test tasks precede their
-corresponding implementation tasks.
+**Tests**: Required by the constitution. Contract/golden/failure tests precede their implementation.
 
 ## Format: `[ID] [P?] [Story] Description`
 
-- **[P]**: Can run in parallel because it changes different files and has no incomplete dependency.
-- **[USn]**: Maps the task to the numbered user story in `spec.md`.
+- **[P]**: Can run in parallel because it changes different files after its prerequisites.
+- **[USn]**: Maps to the numbered user story in `spec.md`.
 
-## Phase 0: Accepted compatibility hotfixes discovered during live validation
+## Phase 0: Accepted compatibility fixes
 
-**Purpose**: Record already-delivered, independently tested fixes without treating them as
-completion of Setup, Foundation or any user story. No remaining story task is unblocked by this
-phase.
+These completed fixes remain evidence but do not satisfy the model-first feature gates.
 
-- [x] T060 Render one-gap single-choice controls inline in teacher/student views while keeping
-  option editing collapsed in `apps/web/src/lesson/inline-choice.ts`,
-  `apps/web/components/review/exercise-draft-editor.tsx` and
-  `apps/web/components/lesson/lesson-renderer.tsx`
-- [x] T061 Add teacher-triggered bounded answer suggestions with CAS persistence and manual fallback
-  in `apps/web/app/api/imports/[runId]/suggest-answers/route.ts` and
-  `apps/web/components/review/exercise-draft-editor.tsx`
-- [x] T062 Detect source-drawn horizontal answer lines from PDF vector geometry and reconstruct them
-  as canonical `___` markers in `packages/document-ingestion/src/pdf-to-ir.ts`
-- [x] T063 [P] Add real-fixture regression proving exactly one canonical blank in all 50 placement
-  prompts in `apps/web/src/imports/placement-prompt-regression.test.ts`
-- [x] T064 Version PDF DocumentIR parser output and reject stale cached IRs in
-  `packages/document-ingestion/src/pdf-to-ir.ts` and `apps/web/src/inngest/reliable-ingestion.ts`
-- [x] T065 [P] Add cache-selection regressions for legacy/current PDF IRs in
-  `apps/web/src/imports/select-ir-checkpoint.test.ts`
+- [x] T060 Render one-gap single-choice controls inline in teacher/student views in
+  `apps/web/src/lesson/inline-choice.ts`, `apps/web/components/review/exercise-draft-editor.tsx` and
+  `apps/web/components/lesson/lesson-renderer.tsx` (FR-025, SC-012)
+- [x] T061 Add teacher-triggered answer suggestions with CAS persistence and manual fallback in
+  `apps/web/app/api/imports/[runId]/suggest-answers/route.ts` and review UI (FR-026, SC-013)
+- [x] T062 Detect PDF vector answer lines and project them as canonical `___` markers in
+  `packages/document-ingestion/src/pdf-to-ir.ts` (FR-027)
+- [x] T063 [P] Add the 50-prompt placement blank regression in
+  `apps/web/src/imports/placement-prompt-regression.test.ts` (SC-014)
+- [x] T064 Version PDF `DocumentIR` parser output and reject stale cache entries in ingestion (FR-028)
+- [x] T065 [P] Add legacy/current IR cache-selection regressions in
+  `apps/web/src/imports/select-ir-checkpoint.test.ts` (SC-015)
 
 ---
 
-## Phase 1: Setup and immutable acceptance evidence
+## Phase 1: Immutable acceptance evidence
 
-**Purpose**: Preserve the two defects before changing parser behavior.
-
-- [x] T001 Copy `/Users/volkovaaaa/Downloads/vocab.pdf` and `/Users/volkovaaaa/Downloads/placement_test.pdf` byte-for-byte to `tests/fixtures/sources/vocab.pdf` and `tests/fixtures/sources/placement_test.pdf`, then record SHA-256 checksums and readable-text-layer scope in `tests/fixtures/README.md`
-- [x] T002 [P] Create human-labelled candidate/region/SourceRef manifests in `tests/golden/vocab.expected.json` and `tests/golden/placement_test.expected.json`
-- [x] T003 [P] Register both immutable fixtures, parser/schema versions and expected evaluation suites in `tests/fixtures/fixtures.json` and `tests/golden/baseline-report.json`
-
----
-
-## Phase 2: Foundational contracts, layout IR and durable state
-
-**Purpose**: Shared prerequisites for every user story.
-
-**CRITICAL**: No remaining generic coordinator, unknown-layout editor or matching implementation
-begins until the versioned contracts and persistence boundary are in place. Phase 0 hotfixes are prerequisite evidence from prior compatibility work and do not satisfy this gate.
-
-- [ ] T004 [P] Add failing Zod/JSON-schema sync and compatibility tests for reconstructed lines, layout regions, common 1.2 exercise `sourceOrdinal`, candidates and `UNSUPPORTED_LAYOUT` in `packages/contracts/src/layout-extraction.test.ts`, `packages/contracts/src/compatibility.test.ts` and `packages/contracts/src/schema-sync.test.ts`
-- [ ] T005 Implement versioned reconstructed-line, layout-region, exercise-candidate and unknown-review schemas plus common LessonSpec/ReviewDraft/StudentLessonSpec 1.2 `sourceOrdinal` scaffolding without switching production writers in `packages/contracts/src/layout-extraction.ts`, `packages/contracts/src/lesson-spec.ts`, `packages/contracts/src/review-draft.ts`, `packages/contracts/src/student-lesson-spec.ts`, `packages/contracts/src/validation.ts`, `packages/contracts/src/index.ts` and `packages/contracts/schemas/`
-- [ ] T006 [P] Add failing geometry/reading-order/lineage tests for multi-item and multi-line reconstruction in `packages/document-ingestion/src/reconstructed-lines.test.ts`
-- [ ] T007 Implement deterministic line reconstruction with stable SourceRefs and style/geometry evidence in `packages/document-ingestion/src/reconstructed-lines.ts` and export it from `packages/document-ingestion/src/index.ts`
-- [ ] T008 [P] Add failing repeated/variable page-header and footer characterization tests in `packages/document-ingestion/src/boilerplate-detector.test.ts`
-- [ ] T009 Implement conservative repeated-geometry boilerplate detection and layout-region projection in `packages/document-ingestion/src/boilerplate-detector.ts` and `packages/document-ingestion/src/layout-regions.ts`
-- [ ] T010 [P] Add migration/RPC characterization tests for owner scope, artifact exclusivity, revision conflict and idempotent replay in `tests/integration/unknown-layout-review-migration.test.ts`
-- [ ] T011 Add retained active/resolved `unknown_layout_reviews`, owner-derived RLS, CAS/idempotency RPC and restrictive provenance foreign keys in `supabase/migrations/0015_unknown_layout_review.sql`
-- [ ] T012 Implement typed unknown-review persistence and redacted repository errors in `packages/lesson-pipeline/src/unknown-layout-review.ts` and export it from `packages/lesson-pipeline/src/index.ts`
-- [ ] T013 Extend pipeline manifests with parser/contract versions, per-stage durations and aggregate layout counts while excluding source text/answers/URLs in `packages/lesson-pipeline/src/observability.ts` and `packages/lesson-pipeline/src/observability-repository.ts`
-
-**Checkpoint**: Versioned layout artifacts and owner-scoped fallback state are ready.
+- [x] T001 Copy `vocab.pdf` and `placement_test.pdf` byte-for-byte into
+  `tests/fixtures/sources/` and record SHA-256/text-layer scope (FR-023)
+- [x] T002 [P] Create human-labelled structure/SourceRef manifests in `tests/golden/` (FR-023)
+- [x] T003 [P] Register fixture and parser/schema versions in `tests/fixtures/fixtures.json` and
+  `tests/golden/baseline-report.json` (FR-022, FR-023)
 
 ---
 
-## Phase 3: User Story 1 — understandable unknown-layout recovery (Priority: P1) MVP
+## Phase 2: Foundation — common IR, limits and structural model contract
 
-**Goal**: Every readable PDF with detected candidates reaches a valid draft or durable teacher
-review without leaking a raw schema error.
+**Purpose**: Establish the only production structural-classification path before story work.
 
-**Independent Test**: Import a readable unsupported PDF; classify candidates into supported
-interactions and edit required fields or assign `reference`, `example` and `teacher exclusion`;
-reload, exercise stale-revision and cross-tenant paths, and never observe an invalid `groups=[]`
-draft.
+- [x] T066 [P] Add PDF-page and pasted-text Unicode-limit contract tests proving rejection before IR
+  persistence/model dispatch in `apps/web/tests/api/import-limits.contract.test.ts` and
+  `packages/document-ingestion/src/source-limits.test.ts` (FR-035)
+- [x] T067 Implement PDF `<=5 pages` and normalized pasted-text `<=30,000 Unicode code points`
+  admission plus a common immutable IR adapter boundary in `packages/document-ingestion/src/`
+  and `apps/web/src/imports/` (FR-001, FR-002, FR-028, FR-034, FR-035, FR-038)
+- [x] T068 [P] Add failing Zod/JSON-schema sync tests for request/proposal strictness, version pins,
+  semantic roles, supported interaction kinds, answer-field descriptors, block/span-only refs and
+  reconciled global output in `packages/contracts/src/structural-classification.test.ts`
+  (FR-008, FR-029, FR-030, FR-032, FR-034)
+- [x] T069 Implement/export `StructuralClassificationRequest`, `StructuralProposal`, extraction
+  profile, model-call manifest and `ReconciledStructure` schemas in
+  `packages/contracts/src/structural-classification.ts`, `packages/contracts/src/index.ts` and
+  `packages/contracts/schemas/`; pin `structure-v1` to 64
+  blocks/12,000 input tokens, 8-block overlap, confidence 0.80, timeout 45s, 2 attempts and
+  concurrency 3 (FR-008, FR-018, FR-029, FR-032, FR-036)
+- [x] T070 [P] Add failing window-plan tests for stable identity, complete membership, bounded size and
+  cross-page prompt/bank/reference continuation in
+  `packages/exercise-extraction/src/window-planner.test.ts` (FR-006, FR-036)
+- [x] T071 Implement profile-versioned overlapping windows over ordered IR block IDs in
+  `packages/exercise-extraction/src/window-planner.ts` (FR-006, FR-036)
+- [x] T072 [P] Add provider adapter tests for strict structured output and timeout, retry exhaustion,
+  401, 402, 429, malformed, partial, unknown-ID and embedded prompt-injection results in
+  `apps/web/src/ai/structural-classifier.test.ts` (FR-029, FR-031, FR-032, FR-040)
+- [x] T073 Implement the source-language-neutral structural prompt and bounded provider adapter in
+  `apps/web/src/ai/structural-classifier.ts` from
+  `contracts/structural-classification-prompt.md`; treat source as untrusted quoted data and prohibit
+  tools, answer solving and free model-authored source text (FR-004, FR-006, FR-007, FR-008, FR-013,
+  FR-018, FR-029, FR-032, FR-034, FR-040)
+- [x] T074 [P] Add deterministic reconciliation/validator property tests for identical overlap
+  de-duplication, compatible continuation, conflicts, invented text, dangling IDs, ownership,
+  ordering, missing blocks and empty answer fields in `packages/exercise-extraction/src/`
+  (FR-014, FR-016, FR-020, FR-030, FR-036, SC-018)
+- [x] T075 Implement deterministic reconciliation, exact source projection, global coverage and
+  structural validation in `packages/exercise-extraction/src/reconcile-structure.ts`,
+  `validate-structure.ts` and `coverage-validator.ts` (FR-014, FR-016, FR-020, FR-030, FR-036)
+- [x] T076 [P] Add redaction and aggregate metric tests for window/model/reconciliation manifests in
+  `packages/lesson-pipeline/src/observability-repository.test.ts` (FR-024)
+- [x] T077 Extend import observability with profile/schema/prompt/model versions, attempts, durations,
+  provider token usage and cost or `costUnavailable`, outcomes, window/conflict/coverage counts and
+  no source/answer/URL/credential content in `packages/lesson-pipeline/src/observability.ts`
+  (FR-024, FR-029, FR-032, FR-039)
 
-### Tests for User Story 1
-
-- [ ] T014 [P] [US1] Add failing characterization tests for readable empty-group, mixed known/unknown, example-only and preserved `OCR_REQUIRED` outcomes in `packages/exercise-extraction/src/unknown-layout-fallback.test.ts`
-- [ ] T015 [P] [US1] Add failing status and layout-review request/response contract tests, including draft/fallback exclusivity and sanitized errors, in `apps/web/tests/api/unknown-layout-review.contract.test.ts` and `apps/web/tests/api/import-status.contract.test.ts`
-- [ ] T016 [P] [US1] Add failing end-to-end persistence tests for supported-kind structural edits and `reference`/`example`/`teacher exclusion` decisions, reload persistence, complete coverage and valid-draft gating in `tests/integration/unknown-layout-review.test.ts`
-- [ ] T017 [P] [US1] Add failing cross-tenant/RLS/service-role route tests in `tests/security/unknown-layout-review-isolation.test.ts`
-- [ ] T018 [P] [US1] Add failing duplicate-event, idempotent replay and stale-revision tests in `tests/resilience/unknown-layout-review-idempotency.test.ts`
-
-### Implementation for User Story 1
-
-- [ ] T019 [US1] Implement candidate-first arbitrary-number/multi-line segmentation with exclusive line ownership in `packages/exercise-extraction/src/candidate-segmenter.ts`
-- [ ] T020 [US1] Implement deterministic classifier interfaces and explicit `unknown` result evidence in `packages/exercise-extraction/src/classifiers.ts`
-- [ ] T021 [US1] Replace ordinal-based routing with a strategy coordinator that protects specialized extractors and rejects overlapping region claims in `packages/exercise-extraction/src/extraction-coordinator.ts` and `packages/exercise-extraction/src/pdf-extractors.ts`
-- [ ] T022 [US1] Account every candidate as exercise, example/reference, issue or teacher decision before draft validation in `packages/exercise-extraction/src/coverage-validator.ts` and `packages/exercise-extraction/src/assemble-draft.ts`
-- [ ] T023 [US1] Route zero-valid-group results to typed unknown review or existing OCR state instead of `ReviewDraftSchema.parse` in `apps/web/src/imports/build-review-draft.ts` and `apps/web/src/inngest/reliable-ingestion.ts`
-- [ ] T024 [US1] Return `unknownLayoutReview` from owner-scoped status and implement atomic typed submissions for supported interaction fields and all non-student outcomes in `apps/web/app/api/imports/[runId]/route.ts` and `apps/web/app/api/imports/[runId]/layout-review/route.ts`
-- [ ] T025 [P] [US1] Add component tests for source-adjacent unknown candidates, keyboard controls, supported-type field editing, `reference`/`example`/`teacher exclusion` validation and human-readable errors in `apps/web/components/review/unknown-layout-review.test.tsx`
-- [ ] T026 [US1] Implement the accessible unknown-layout editor with supported-type selector, required-field editors and explicit non-student outcomes, then wire it into the existing polling/review workspace in `apps/web/components/review/unknown-layout-review.tsx` and `apps/web/components/review/review-workspace.tsx`
-- [ ] T027 [US1] Validate and apply typed teacher decisions with preserved SourceRefs/provenance, dispatch only after complete decisions and preserve ordered sanitized run events in `apps/web/src/imports/apply-layout-review.ts`, `apps/web/src/inngest/events.ts` and `apps/web/src/inngest/reliable-ingestion.ts`
-
-**Checkpoint**: P1 fallback journey is independently usable without model availability.
-
----
-
-## Phase 4: User Story 2 — five-page placement test (Priority: P2)
-
-**Goal**: Reproduce Grammar/Vocabulary questions 21–70 with four ordered a–d options and no
-boilerplate.
-
-**Independent Test**: `placement_test.pdf` yields exactly 50 source-numbered single-choice exercises,
-four options each and unverified answers.
-
-### Tests for User Story 2
-
-- [ ] T028 [P] [US2] Add failing golden evaluation for exact counts, ordinals 21–70, section boundaries, prompt completeness, option SourceRefs and boilerplate absence in `packages/evals/src/fixtures/placement-test.eval.test.ts`
-- [ ] T029 [P] [US2] Add failing parser cases for arbitrary starts, numbering restarts, multi-block prompts, multi-line options and page continuation in `packages/exercise-extraction/src/single-choice-classifier.test.ts`
-- [ ] T030 [P] [US2] Add failing no-answer-key publication-gate test for all 50 fields in `packages/lesson-pipeline/src/placement-publish-readiness.test.ts`
-
-### Implementation for User Story 2
-
-- [ ] T031 [US2] Implement heading/instruction detection from typography, geometry and extensible lexicon rather than exact titles in `packages/exercise-extraction/src/classifiers.ts`
-- [ ] T032 [US2] Implement arbitrary source ordinal and multi-line single-choice assembly with ordered a–d options in `packages/exercise-extraction/src/single-choice-classifier.ts`
-- [ ] T033 [US2] Preserve Grammar/Vocabulary grouping, source ordinal separate from UI ordinal and option-level lineage in `packages/exercise-extraction/src/assemble-draft.ts` and `packages/contracts/src/review-draft.ts`
-- [ ] T034 [US2] Keep every missing-key answer empty/`needsReview` and expose teacher confirmation without model dependency in `apps/web/src/imports/build-review-draft.ts` and `apps/web/components/review/exercise-draft-editor.tsx`
-- [ ] T035 [US2] Add the authenticated upload-to-review Playwright journey and exact visible 21–70 assertions in `apps/web/tests/e2e/placement-test-import.spec.ts`
-
-**Checkpoint**: Placement test imports completely and publication remains safely blocked for review.
+**Checkpoint**: Both source kinds can produce bounded strict proposals and globally validated output;
+no fixture recognizer participates.
 
 ---
 
-## Phase 5: User Story 3 — matching with one shared bank (Priority: P3)
+## Phase 2A: Atomic exercise ownership remediation
 
-**Goal**: Reproduce item 0 as an example and items 1–5 as matching exercises sharing one A–F
-`useOnce` bank.
-
-**Independent Test**: `vocab.pdf` yields one bank rendered once, five answerable items, no local
-option copies and stable-ID answers.
-
-### Tests for User Story 3
-
-- [ ] T036 [P] [US3] Add failing LessonSpec/ReviewDraft/StudentLessonSpec 1.2 compatibility and conditional-invariant tests in `packages/contracts/src/matching-contract.test.ts` and `packages/contracts/src/compatibility.test.ts`
-- [ ] T037 [P] [US3] Add failing golden evaluation for one group, example 0, five items, A–F bank, stable IDs, source labels and `useOnce` in `packages/evals/src/fixtures/vocab-matching.eval.test.ts`
-- [ ] T038 [P] [US3] Add failing student answer-leakage and duplicate-bank-assignment tests in `tests/security/matching-answer-leakage.test.ts` and `packages/domain/src/matching-attempt.test.ts`
-
-### Implementation for User Story 3
-
-- [ ] T039 [US3] Complete LessonSpec/ReviewDraft/StudentLessonSpec 1.2 with `matching`, `matchingBank`, conditional invariants, upcasters and generated JSON schemas, then switch new writers to 1.2 in `packages/contracts/src/lesson-spec.ts`, `packages/contracts/src/review-draft.ts`, `packages/contracts/src/student-lesson-spec.ts` and `packages/contracts/schemas/`
-- [ ] T040 [US3] Detect Match instruction, numbered left side, lettered shared bank and non-student example 0 in `packages/exercise-extraction/src/matching-classifier.ts`
-- [ ] T041 [US3] Assemble canonical stable-entry-ID answers and validate same-group bank resolution without local options in `packages/exercise-extraction/src/assemble-draft.ts` and `packages/lesson-pipeline/src/publish-version.ts`
-- [ ] T042 [US3] Project matching to student-safe 1.2 without accepted IDs/provenance in `packages/lesson-pipeline/src/student-projection.ts`
-- [ ] T043 [US3] Render one shared matching bank above the group in teacher and student views in `apps/web/components/review/exercise-draft-editor.tsx` and `apps/web/components/lesson/lesson-renderer.tsx`
-- [ ] T044 [US3] Enforce canonical stable-ID selection and `useOnce` assignment behavior in `packages/domain/src/matching-attempt.ts` and the student interaction UI in `apps/web/components/lesson/lesson-renderer.tsx`
-- [ ] T045 [US3] Add upload-review-publish-anonymous-student Playwright coverage in `apps/web/tests/e2e/vocab-matching-import.spec.ts`
-
-**Checkpoint**: Matching is contract-valid, publishable after teacher verification and student-safe.
+- [x] T107 [P] Add a pasted-text regression proving group instruction ends before the first
+  independently answerable item and every sequential item remains a separate Exercise in
+  `packages/exercise-extraction/src/bracket-gap-extractor.test.ts` (FR-041, SC-020)
+- [x] T108 Add prompt v2 atomic-item guidance plus deterministic prompt/prompt and
+  instruction/prompt ownership validation with versioned conflicts and `structure-v2` in
+  `apps/web/src/ai/structural-classifier.ts`,
+  `packages/exercise-extraction/src/reconcile-structure.ts` and structural contracts
+  (FR-029, FR-030, FR-041, SC-020)
+- [x] T109 Update structural contract mirrors, quickstart and regression gates for
+  ReconciledStructure 1.1.0, prompt v2 and profile v2 (FR-021, FR-041, SC-020)
+- [x] T110 Add the immutable ReconciledStructure 1.0 schema, 1.0→1.1 in-memory upcaster,
+  compatibility/schema-sync tests and a documented no-op database migration decision because no
+  1.0 artifact was ever persisted or released (FR-021)
 
 ---
 
-## Phase 6: User Story 4 — preserve feature 001 behavior (Priority: P4)
+## Phase 2B: Paid-model cost safety and teacher classification
 
-**Goal**: Introduce generic parsing and 1.2 contracts without changing accepted existing lessons.
-
-**Independent Test**: Every feature 001 fixture preserves expected structure, lineage and public
-rendering; old published versions remain readable.
-
-### Tests and integration for User Story 4
-
-- [ ] T046 [P] [US4] Pin pre-feature extraction outputs and assert zero new/duplicate region claims for every existing PDF in `packages/evals/src/fixtures/feature-001-regression.eval.test.ts`
-- [ ] T047 [P] [US4] Add property tests for exclusive source-region ownership and stable candidate IDs across repeated runs in `packages/exercise-extraction/src/extraction-coordinator.property.test.ts`
-- [ ] T048 [P] [US4] Add 1.0/1.1 persisted LessonSpec reader and immutable-version migration tests in `packages/contracts/src/compatibility.test.ts` and `tests/integration/publish-version.test.ts`
-- [ ] T049 [US4] Route all specialized and generic extractors through the coordinator while preserving version-pinned precedence in `packages/exercise-extraction/src/pdf-extractors.ts`
-- [ ] T050 [US4] Run and reconcile the full golden baseline without silently updating expected manifests in `packages/evals/src/fixtures/` and `tests/golden/baseline-report.json`
-
-**Checkpoint**: Feature 001 baseline remains unchanged and backward-compatible.
+- [x] T111 Add deterministic dense group-preserving batch planning, immutable preflight hashing,
+  token/cost estimation, confirmation thresholds and hard budget tests in
+  `apps/web/src/ai/answer-suggestion-plan.ts` (FR-042, SC-021)
+- [x] T112 Add owner-scoped leased/completed answer-suggestion batch checkpoints and atomic claim/
+  complete RPCs in `supabase/migrations/0019_answer_suggestion_cost_safety.sql` (FR-024, FR-042)
+- [x] T113 Add GET preflight, confirmed-plan POST, budget rejection and checkpoint reuse to
+  `apps/web/app/api/imports/[runId]/suggest-answers/route.ts` (FR-042, SC-021)
+- [x] T114 Prevent automatic expensive suggestions during ingestion and add teacher confirmation UI
+  with request/token/cost disclosure in review (FR-042, SC-021)
+- [x] T115 Add API/security contract coverage for confirmation, RLS, atomic claims and zero-call
+  cancellation in `apps/web/tests/api/answer-suggestion-cost-safety.contract.test.ts` (FR-042)
+- [x] T116 Bind answer plan/checkpoint identity to revision, exact payload digests, model,
+  prompt/input/output and pricing versions; remove cross-run uniqueness and add stale-claim tokens
+  (FR-042, SC-021)
+- [x] T117 Add strict runtime/OpenAPI success and error contracts plus migration/security regression
+  coverage for paid-model checkpoints (FR-024, FR-042)
+- [x] T118 Version unknown-layout review 1.1 with teacher-safe exercise/reference/example/
+  exclusion outcomes and legacy 1.0 compatibility tests (FR-021, FR-043, SC-016, SC-022)
+- [x] T119 Add checkpointed optional AI layout-classification GET preflight/confirmed POST and
+  editable UI suggestions with RUB estimate/hard limit (FR-043, SC-022)
+- [x] T120 Apply migration 0019 and validate RLS, concurrent claim, stale lease, completed reuse,
+  zero-call cancellation and unchanged review revision on the live project
+  (FR-024, FR-042, FR-043, SC-021, SC-022)
 
 ---
 
-## Phase 7: Release validation and cross-cutting gates
+## Phase 3: User Story 1 — recoverable structural review (Priority: P1) MVP
 
-**Purpose**: Close resilience, security, performance, accessibility and live evidence requirements.
+**Goal**: Provider/validation ambiguity preserves IR and opens actionable teacher review without an
+automatic or empty draft.
 
-- [ ] T051 [P] Add bounded ambiguous-candidate model tests proving timeout, 401/402, invalid or partial output falls back to teacher review without changing coverage in `apps/web/src/ai/openai-layout-classifier.test.ts`
-- [ ] T052 Implement optional typed ambiguous-candidate suggestions with explicit evidence/retry/stop limits in `apps/web/src/ai/openai-layout-classifier.ts` and record provider outcome in `apps/web/src/inngest/reliable-ingestion.ts`
-- [ ] T053 [P] Extend performance evaluation with reconstruction, segmentation and classification timings and assert import admission at most 2 seconds p95 plus each acceptance PDF deterministic parse below 60 seconds p95 in `packages/evals/src/performance.eval.test.ts`
-- [ ] T054 [P] Add observability privacy tests for aggregate-only events/manifests in `packages/lesson-pipeline/src/observability-repository.test.ts`
-- [ ] T055 Run complete contract, unit, golden, integration, security, resilience, typecheck, lint, format and production-build gates from `specs/002-universal-pdf-extraction/quickstart.md`
-- [ ] T056 Run authenticated browser journeys for unknown fallback, placement and matching plus anonymous student rendering and keyboard/mobile accessibility in `apps/web/tests/e2e/`
-- [ ] T057 Apply migration `0015_unknown_layout_review.sql` to the live Supabase project and record RPC/RLS/Storage isolation evidence in `specs/002-universal-pdf-extraction/validation-report.md`
-- [ ] T058 Record fixture checksums, exact counts, SourceRef coverage, timings, provider-failure behavior and all browser results in `specs/002-universal-pdf-extraction/validation-report.md`
-- [ ] T059 Re-run `$speckit-analyze`, resolve all CRITICAL/HIGH findings and record the final release decision in `specs/002-universal-pdf-extraction/validation-report.md`
+- [ ] T078 [P] [US1] Add state-machine tests proving every provider/validator failure creates a review
+  containing all significant blocks and no draft, while OCR remains distinct in
+  `packages/lesson-pipeline/src/structural-review.test.ts` (FR-015, FR-016, FR-031, SC-006, SC-007)
+- [ ] T079 [P] [US1] Add migration/RPC tests for owner scope, review/draft exclusivity, CAS revision,
+  idempotency and retained decisions in `tests/integration/structural-review-migration.test.ts`
+  (FR-024, FR-031)
+- [ ] T080 [US1] Add or revise the Supabase structural-review migration and owner-derived RLS/CAS RPC
+  in `supabase/migrations/`; inherit `retainForProvenance`, no TTL/delete API, restrictive source
+  lineage and no cascade deletion (FR-024, FR-031, FR-037, FR-039)
+- [ ] T081 [US1] Implement structural-review persistence and sanitized failure mapping in
+  `packages/lesson-pipeline/src/unknown-layout-review.ts` and ingestion workflow; do not dispatch an
+  automatic fallback classifier (FR-015, FR-017, FR-031)
+- [ ] T082 [P] [US1] Add OpenAPI/runtime response tests for mutual exclusivity of `draft` and
+  `structuralReview`, strict type-specific teacher decisions, complete review regions, source
+  limits and sanitized errors in
+  `apps/web/tests/api/import-status.contract.test.ts` (FR-015, FR-017, FR-024, FR-035)
+- [ ] T083 [US1] Update owner-scoped status and atomic review endpoints to the 0.5 OpenAPI contract in
+  `apps/web/app/api/imports/[runId]/` (FR-015, FR-024, FR-031, FR-037)
+- [ ] T084 [P] [US1] Add UI tests for source-adjacent issues, automatic focus/scroll to first blocker,
+  confidence, supported-type editing, keyboard use and human-readable provider/validation messages
+  in `apps/web/components/review/unknown-layout-review.test.tsx` (FR-017, FR-024, FR-037)
+- [ ] T085 [US1] Implement the structural-review workspace and persist classify/reference/example/
+  teacher-exclusion decisions with SourceRefs and teacher provenance in
+  `apps/web/components/review/unknown-layout-review.tsx` and
+  `apps/web/src/imports/apply-layout-review.ts` (FR-012, FR-015, FR-017, FR-020, FR-037, SC-009, SC-016)
+- [ ] T086 [P] [US1] Add cross-tenant, service-role boundary, duplicate event, stale revision and retry
+  tests in `tests/security/structural-review-isolation.test.ts` and
+  `tests/resilience/structural-review-idempotency.test.ts` (FR-024)
+
+**Checkpoint**: A model outage or invalid structure is recoverable entirely in teacher review.
+
+---
+
+## Phase 4: User Stories 2–3 — canonical assembly and supported interactions
+
+**Goal**: Convert valid reconciled structure into complete source-faithful drafts for placement,
+matching, gaps, ordering, choice and multilingual material.
+
+- [ ] T087 [P] [US2] Add placement golden/model evals for exact groups, questions 21–70, four options,
+  source ordinals, gap positions, boilerplate exclusion and full block coverage in
+  `packages/evals/src/fixtures/placement-test.eval.test.ts` (FR-003, FR-005, FR-006, FR-007,
+  SC-003, SC-004, SC-014, SC-018)
+- [ ] T088 [P] [US3] Add matching golden/model evals for example 0, items 1–5, one A–F bank, `useOnce`,
+  stable entry IDs and zero local option copies in
+  `packages/evals/src/fixtures/vocab-matching.eval.test.ts` (FR-009–FR-012, SC-001, SC-002)
+- [ ] T089 [P] Add multilingual PDF/pasted-text golden and live-model evals for reference blocks,
+  choice, shared word bank, ordering, true/false-as-choice and character-entry gaps without
+  fixture-specific code in `packages/evals/src/fixtures/multilingual-structure.eval.test.ts`
+  (FR-008, FR-034, FR-038, SC-017)
+- [ ] T090 [P] [US3] Add LessonSpec/ReviewDraft/StudentLessonSpec 1.2 sync, conditional-invariant,
+  upcast and answer-leakage tests in `packages/contracts/src/matching-contract.test.ts` and
+  `packages/contracts/src/compatibility.test.ts` (FR-009–FR-011, FR-019, FR-021, SC-010)
+- [ ] T091 [US3] Complete canonical 1.2 matching/sourceOrdinal schemas, generated JSON schemas,
+  upcasters and student-safe projection in `packages/contracts/src/` and
+  `packages/lesson-pipeline/src/student-projection.ts` (FR-009–FR-011, FR-021)
+- [ ] T092 [US2] Assemble groups, instructions, prompts, gaps, local options, shared resources,
+  reference blocks and unresolved answer fields exclusively from reconciled IR spans in
+  `packages/exercise-extraction/src/assemble-draft.ts` (FR-005–FR-008, FR-012, FR-019, FR-020)
+- [ ] T093 Keep structural classification and answer suggestion as separate workflow steps/contracts;
+  preserve `modelInferred/needsReview` and teacher confirmation behavior in ingestion/review code
+  (FR-018, FR-019, FR-026, FR-032, SC-010, SC-013)
+- [ ] T094 [US3] Render matching/word banks once above the group and enforce stable-ID `useOnce`
+  selection in teacher/student UI and attempt grading (FR-010, FR-011, SC-002)
+- [ ] T095 [P] Add authenticated upload-review-publish-anonymous-student Playwright journeys for
+  placement, matching and multilingual sources in `apps/web/tests/e2e/` (FR-024, SC-009, SC-012)
+
+**Checkpoint**: All acceptance interaction shapes assemble, render and remain publication-safe.
+
+---
+
+## Phase 5: User Story 4 — remove fixture routing and preserve compatibility (Priority: P4)
+
+- [ ] T096 [P] [US4] Add a source scan test that fails on production exact-match constants or
+  recognizers named after fixtures, publishers, textbooks or exercise titles in
+  `packages/exercise-extraction/src/no-fixture-routing.test.ts` (FR-033)
+- [ ] T097 [US4] Remove `READING_TITLE`, `CHOICE_READING_TITLE`, `GAP_HEADING`, `CHOICE_HEADING` and
+  equivalent fixture/specialized routing; route PDF and text only through IR → windows → structural
+  model → reconciliation → validation in `packages/exercise-extraction/src/` and ingestion
+  (FR-004, FR-013, FR-033, FR-038)
+- [ ] T098 [P] [US4] Pin and run all feature 001 golden outputs plus 1.0/1.1 published-reader tests;
+  do not update baselines automatically in `packages/evals/src/fixtures/` and
+  `packages/contracts/src/compatibility.test.ts` (FR-021, FR-022, SC-008)
+- [ ] T099 [US4] Reconcile only intentional versioned baseline migrations with human review and
+  document every changed fixture in `tests/golden/baseline-report.json` (FR-022)
+
+**Checkpoint**: No production fixture recognizer remains and old lessons remain readable.
+
+---
+
+## Phase 6: Release validation
+
+- [ ] T100 [P] Run mocked provider failure matrix and verify every case retains IR, emits redacted
+  usage/cost telemetry and opens review with zero automatic drafts; include adversarial embedded
+  instructions that cannot change schema or trigger actions (FR-024, FR-031, FR-039, FR-040,
+  SC-006, SC-007, SC-019)
+- [ ] T101 [P] Run performance evaluation and assert `runId <=2s p95` and complete structural path
+  `<=60s p95` for every acceptance source under the pinned profile in
+  `packages/evals/src/performance.eval.test.ts` (SC-011)
+- [ ] T102 [P] Validate exact SourceRef projection and 100% significant-block coverage across all
+  acceptance sources in `packages/evals/src/source-fidelity.eval.test.ts` (SC-005, SC-018)
+- [ ] T103 Run the opt-in live provider eval for PDF and pasted text; record model/profile/prompt
+  versions without changing expected manifests in `specs/002-universal-pdf-extraction/validation-report.md`
+  (SC-001–SC-004, SC-017, SC-018)
+- [ ] T104 Run contract, unit, golden, integration, security, resilience, typecheck, lint, format and
+  production build gates from `quickstart.md` (FR-024)
+- [ ] T105 Run full browser journeys for limits, provider failure/review, placement, matching,
+  multilingual text, publication and anonymous student completion; record accessibility/mobile
+  evidence in `validation-report.md` (SC-009, SC-010, SC-012, SC-016)
+- [ ] T106 Re-run `$speckit-analyze`, resolve every CRITICAL/HIGH finding and record the release
+  decision in `validation-report.md`
+
+## Phase 7: Mixed workbook interactions
+
+- [x] T121 Add immutable `workbook_mixed_interactions_3_pages.pdf` source and a human-labelled
+  expected manifest covering 1D, 2A and Reading boundaries (FR-044–FR-048, SC-023)
+- [x] T122 Extend the canonical 1.2 matching resource invariants, student-safe projection and
+  server-side stable-entry grading; add contract/grader regression tests (FR-045)
+- [x] T123 Render one shared matching bank with use-once disabling and render word order as
+  reorderable tokens; both controls support drag/drop plus keyboard selection in student UI (FR-045)
+- [ ] T124 Add source-addressed visual regions, immutable detector crops, neutral alt labels,
+  owner-scoped persistence and Storage isolation for `imageChoice` and image-backed matching banks
+  (FR-046, FR-049)
+- [ ] T125 Add independent presentation/stimulus contracts and teacher-led listening rendering;
+  reserve attached audio for a later version without accepting invented URLs (FR-044, FR-047)
+- [ ] T126 Extend structural model/reconciliation/assembly and teacher review for `shortText`,
+  `imageChoice`, image matching and cross-column table/dialogue boundaries (FR-044–FR-048)
+- [ ] T127 Add golden/model/browser journeys through review, publication and grading for the mixed
+  workbook, including publication blocking when required image assets are unresolved (SC-023)
+- [ ] T128 Implement the PDF-overlay fixed-crop confirmation UI with confirm/reject only, CAS save,
+  reload persistence and teacher-decision provenance; explicitly reject move/resize/create API
+  fields and add keyboard/mobile accessibility and cross-tenant isolation tests (FR-049, SC-024)
+- [ ] T129 Add immutable `PublishedMediaBinding`, the anonymous lesson/version/asset media endpoint,
+  ETag/cache behavior and uniform not-found responses; cover cross-tenant, cross-version, path
+  disclosure and direct-Storage denial in contract/security tests (FR-050, SC-025)
+- [ ] T130 Add deterministic neutral image labels with zero vision calls, payload/renderer parity
+  tests and an explicit image-only non-visual accessibility release gate and report (FR-051, SC-026)
+- [ ] T131 Preserve explicit source labels, derive missing labels through a versioned visual-order
+  adapter and keep stable option IDs across teacher reordering; add deterministic and grading
+  regression tests (FR-052, SC-027)
 
 ---
 
 ## Dependencies and execution order
 
-- Phase 0 contains only accepted compatibility hotfixes with dedicated regressions; it does not
-  unblock or complete any user story.
-- Phase 1 freezes human-labelled manifests before remaining generic coordinator/classifier work.
-- Phase 2 blocks every user story.
-- US1 is the MVP safety boundary and precedes live imports of US2/US3.
-- US2 and US3 may proceed independently after Phase 2 and the US1 fallback boundary.
-- US4 runs after coordinator integration from US1 and before release.
-- Phase 7 requires all selected user stories and US4.
-- Within each story, failing tests precede implementation; contracts/models precede services/routes;
-  deterministic assembly precedes model enrichment.
+- Completed Phases 0–1 are evidence only.
+- Phase 2 blocks every new implementation task.
+- Phase 3 depends on structural contracts, provider adapter and validator failure outcomes.
+- Phase 4 depends on globally valid reconciled structure and review persistence.
+- Phase 5 removal of old routing occurs only after model-first golden paths pass, but no release may
+  retain the old recognizers.
+- Phase 6 requires all prior phases. Contract/model tests precede implementations; pinned evals
+  precede live evals; live evals never rewrite baselines.
 
 ## Parallel opportunities
 
-- T002 and T003 can run after T001 without touching the same files.
-- T004/T006/T008/T010 can establish independent foundational failing tests in parallel.
-- US1 contract, integration, security and resilience tests T014–T018 are independent.
-- US2 tests T028–T030 and US3 tests T036–T038 can run in parallel after Foundation.
-- US4 regression, property and compatibility tests T046–T048 are independent.
-- Performance, privacy and model-failure tests T051/T053/T054 are independent after story code.
+- T066, T068, T070, T072, T074 and T076 can establish independent failing foundation tests.
+- T078, T079, T082, T084 and T086 cover distinct review boundaries after Foundation.
+- T087–T090 can build independent acceptance evidence before assembly.
+- T096 and T098 can run in parallel before routing removal.
+- T100–T102 are independent release gates; T103–T105 follow a green deterministic suite.
 
 ## Implementation strategy
 
-1. Treat Phase 0 as accepted prerequisite evidence, not a completed story.
-2. Complete Setup and Foundation.
-3. Deliver US1 as the safety MVP and stop for teacher browser validation.
-4. Deliver US2, stop for `placement_test.pdf` validation.
-5. Deliver US3, stop for `vocab.pdf` review/publish/student validation.
-6. Run US4 regression and release gates without auto-updating baselines.
-
-The user validates each browser checkpoint before the next story proceeds.
+1. Freeze the strict structural contract, common IR boundary, limits and window profile.
+2. Implement model calls, reconciliation and global validation with mocked failure coverage.
+3. Stop for teacher validation of the recoverable structural-review journey.
+4. Implement canonical assembly and stop for placement/matching/multilingual browser validation.
+5. Remove fixture-specific routing and run the complete compatibility baseline.
+6. Run live-provider, performance, security and browser release gates, then analyze again.

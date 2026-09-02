@@ -15,7 +15,8 @@
     "schemaVersion": {
       "enum": [
         "1.0.0",
-        "1.1.0"
+        "1.1.0",
+        "1.2.0"
       ]
     },
     "publicLessonId": {
@@ -66,6 +67,10 @@
         },
         "value": {
           "type": "string"
+        },
+        "sourceLabel": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
@@ -117,7 +122,10 @@
             "bracketGap",
             "oddOneOut",
             "wordBankGap",
-            "inlineGap"
+            "inlineGap",
+            "shortText",
+            "matching",
+            "imageChoice"
           ]
         },
         "prompt": {
@@ -268,6 +276,8 @@
       }
     },
     "sharedResource": {
+      "oneOf": [
+        {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -307,9 +317,54 @@
           ]
         }
       }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "ordinal", "kind", "entries", "usagePolicy"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "ordinal": { "type": "integer", "minimum": 1 },
+            "kind": { "const": "matchingBank" },
+            "label": { "type": "string" },
+            "entries": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/option" } },
+            "usagePolicy": { "const": "useOnce" }
+          }
+        }
+      ]
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": { "schemaVersion": { "const": "1.2.0" } },
+        "required": ["schemaVersion"]
+      },
+      "then": {
+        "properties": {
+          "groups": {
+            "items": {
+              "required": ["sharedResources"],
+              "properties": {
+                "exercises": {
+                  "items": {
+                    "if": {
+                      "properties": { "interactionKind": { "enum": ["wordBankGap", "matching"] } },
+                      "required": ["interactionKind"]
+                    },
+                    "then": {
+                      "required": ["sharedResourceId"],
+                      "properties": { "options": { "maxItems": 0 } }
+                    },
+                    "else": { "not": { "required": ["sharedResourceId"] } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     {
       "if": {
         "properties": {

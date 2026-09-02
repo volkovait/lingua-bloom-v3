@@ -142,6 +142,13 @@ attempt itself remains durable.
   `scrollIntoView`; reduced motion uses immediate scrolling.
 - The UI never computes the authoritative score. Client-side state maps only the server response to
   presentation.
+- The authenticated public-lesson preview provides a server-derived return link to `/lessons`;
+  anonymous student rendering remains free of teacher navigation.
+- `/lessons` renders published lessons before editable imports and applies URL-backed title/status
+  filters through an owner-authenticated read endpoint. The endpoint returns stable ordered pages of
+  at most 24 cards and an opaque continuation cursor. A client boundary observes the scroll sentinel
+  and exposes the same next-page action as an accessible button. Filtering introduces no new
+  persistence.
 
 ## Security and Privacy
 
@@ -196,9 +203,13 @@ packages/lesson-pipeline/src/
 apps/web/app/api/lessons/[publicLessonId]/attempts/route.ts
 apps/web/app/api/settings/telegram/route.ts
 apps/web/app/api/settings/telegram/test/route.ts
+apps/web/app/api/lessons/library/route.ts
 apps/web/app/settings/telegram/page.tsx
 apps/web/components/lesson/lesson-renderer.tsx
+apps/web/components/lesson/lesson-library-results.tsx
 apps/web/components/settings/telegram-settings-form.tsx
+apps/web/src/lessons/library-filter.ts
+apps/web/src/lessons/library-repository.ts
 apps/web/src/telegram/
 ├── credentials.ts
 ├── client.ts

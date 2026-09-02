@@ -1,89 +1,110 @@
-# Research: Universal PDF Extraction
+# Research: Model-Based Structural Extraction
 
-## Decision 1: Layered deterministic extraction
+## Decision 1: Canonical DocumentIR precedes semantic classification
 
-**Decision**: Separate reconstructed lines, boilerplate/layout regions, candidate segmentation and
-interaction classification into independently versioned stages.
+**Decision**: PDF and pasted text use separate deterministic source adapters but converge on one
+immutable, versioned `DocumentIR` before semantic classification.
 
-**Rationale**: The current parser couples exact headings, group ordinals and exercise types. A
-candidate-first pipeline preserves coverage when classification fails and makes individual stages
-golden-testable.
+**Rationale**: A common boundary makes provenance, validation and model contracts independent of
+input format. It also prevents a model from reading raw uploads or rewriting canonical source text.
 
-**Alternatives considered**: More fixture-specific extractors would solve only the supplied PDFs;
-one model call over raw blocks would violate deterministic coverage and make failure nondiagnostic.
+**Alternatives considered**: Separate PDF/text classifiers would drift; sending raw PDF to the model
+would weaken block-level lineage; keeping text on regex heuristics reproduces the current defect.
 
-## Decision 2: Strategy coordinator during migration
+## Decision 2: Model proposes all semantic structure
 
-**Decision**: Retain existing high-specificity article/reading strategies behind one coordinator,
-then run generic segmentation only on unclaimed regions. Enforce exclusive region ownership.
+**Decision**: A required bounded model call proposes regions, groups, exercises, prompts, gaps,
+options, shared banks, examples, answer-key regions, boilerplate, unknowns and their relationships.
+Production routing contains no exact-title, fixture, publisher or textbook recognizers.
 
-**Rationale**: This protects feature 001 baselines while generic capabilities mature and prevents
-duplicate exercises when two recognizers match the same content.
+**Rationale**: Exercise boundaries and roles are semantic and multilingual. Hard-coded titles solve
+individual fixtures but cannot generalize and routinely omit answer fields or reference blocks.
 
-**Alternatives considered**: Immediate replacement risks regressions; running all extractors and
-merging by text cannot guarantee stable identity or complete provenance.
+**Alternatives considered**: Deterministic candidate detection before the model was rejected because
+it still decides the most failure-prone boundary. Specialized recognizers with precedence were
+rejected because they preserve fixture-specific behavior and create dual sources of truth.
 
-## Decision 3: Matching contract version 1.2.0
+## Decision 3: Deterministic validation remains authoritative
 
-**Decision**: Add `matching` interaction and `matchingBank` shared resource in LessonSpec and
-StudentLessonSpec 1.2.0. Each answer stores a stable bank-entry ID; the source label remains metadata.
+**Decision**: The model returns IDs, spans, roles, relations, confidence and concise evidence through
+a strict versioned schema. Deterministic code reconstructs displayed text from IR, reconciles windows,
+checks global ownership/coverage and alone decides whether draft assembly is allowed.
 
-**Rationale**: Matching has group-level `useOnce` semantics and cannot be represented faithfully as
-single choice or gaps. Stable IDs survive relabelling while labels retain source fidelity.
+**Rationale**: Model-based segmentation can generalize while source fidelity and publication safety
+remain reproducible and auditable.
 
-**Alternatives considered**: Reusing `wordBankGap` obscures interaction semantics; label-only
-answers are unstable; rewriting 1.1.0 would break the versioning constitution.
+**Alternatives considered**: Accepting model-authored prompt text permits invention; schema-only
+validation misses lost blocks and conflicting ownership; letting the model publish violates the
+constitution.
 
-## Decision 4: Unknown layout is a separate review artifact
+## Decision 4: Bounded overlapping windows
 
-**Decision**: Persist a revisioned `UnknownLayoutReview` on the pipeline run. Do not create a
-ReviewDraft until at least one valid group exists and every candidate is accounted.
+**Decision**: Classify stable overlapping windows of ordered blocks and reconcile proposals by source
+identity. Window size, overlap and confidence threshold are pinned in a versioned extraction profile
+and calibrated with golden/model evals.
 
-**Rationale**: `groups.min(1)` is a correct LessonSpec invariant. Relaxing it would move invalid
-state downstream. A separate artifact gives the teacher recovery without inventing exercises.
+**Rationale**: This bounds cost and latency while retaining context for a heading, shared bank or
+exercise that crosses a page/window boundary.
 
-**Alternatives considered**: A terminal error loses an actionable workflow; unknown pseudo-exercises
-pollute LessonSpec; an in-memory fallback is not durable or resumable.
+**Alternatives considered**: One whole-document call risks token and timeout failures; independent
+page calls lose cross-page relationships; splitting only after a failure makes behavior nondeterministic.
 
-## Decision 5: Atomic owner-scoped review mutations
+## Decision 5: Strict admission limits
 
-**Decision**: Store unknown review payload/revision at the run boundary and mutate it via one
-owner-checked, idempotent CAS operation that also appends ReviewDecision records.
+**Decision**: Reject PDFs above 5 pages and pasted text above 30,000 Unicode code points, including
+whitespace after newline normalization, before `DocumentIR` construction and model calls.
 
-**Rationale**: This reuses established ownership, revision and audit patterns and prevents lost
-updates or cross-tenant access.
+**Rationale**: Product scope explicitly favors predictable bounded imports over unbounded batching.
+Early rejection avoids partial state and unnecessary provider cost.
 
-**Alternatives considered**: Direct client updates bypass server validation; a second workflow
-service duplicates state machinery; last-write-wins can silently lose teacher decisions.
+**Alternatives considered**: The previous 20-page/50-MiB limit did not bound semantic workload;
+truncation would silently lose source material; asynchronous unlimited chunking is outside scope.
 
-## Decision 6: Boilerplate detection uses repeated geometry and normalized text
+## Decision 6: Provider failure opens durable structural review
 
-**Decision**: Mark page-edge lines as boilerplate only with repeated cross-page evidence, tolerating
-page-number variation. Preserve marked regions for coverage/provenance.
+**Decision**: Timeout, rate limit, 401/402, invalid/partial schema or reconciliation failure preserves
+`DocumentIR` and opens owner-scoped review containing every significant unclassified block. No
+automatic draft and no deterministic/fixture fallback is run.
 
-**Rationale**: Exact string filters miss variable page numbers; deleting all page-edge text risks
-removing real questions.
+**Rationale**: The teacher retains a recoverable path without silently trusting incomplete structure.
+It also makes provider outages observable rather than presenting raw validation errors.
 
-**Alternatives considered**: Hard-coded publisher strings do not scale; pure coordinate thresholds
-are unsafe; model classification is unnecessary for repeated layout signals.
+**Alternatives considered**: Terminal failure discards useful extraction; heuristic fallback repeats
+the original problem; partially assembled drafts can pass incomplete material downstream.
 
-## Decision 7: Model remains optional enrichment
+## Decision 7: Selective structural confirmation
 
-**Decision**: A model may receive only bounded ambiguous candidate evidence and return typed type
-suggestions. Missing, invalid, 402/401 or incomplete responses leave candidates in teacher review.
+**Decision**: Globally valid high-confidence proposals create an editable draft. `unknown`, conflicts
+and below-threshold elements become blocking review issues. Correct-answer confirmation remains a
+separate publication gate.
 
-**Rationale**: Imports must reach a useful review state without provider availability or credits.
+**Rationale**: Confirming every boundary creates excessive teacher work, while accepting all
+schema-valid output hides ambiguity. Separating structure and answers avoids accidental verification.
 
-**Alternatives considered**: Model-first segmentation breaks deterministic coverage; requiring a
-model for fallback recreates the current terminal failure mode.
+**Alternatives considered**: Confirmation of every model field was too costly; automatic trust of all
+valid JSON ignored semantic uncertainty; mixing answer solving into structural classification made
+failures and provenance inseparable.
 
-## Decision 8: Acceptance fixtures and compatibility gates
+## Decision 8: Matching and shared resources remain canonical domain concepts
 
-**Decision**: Copy the two source PDFs byte-for-byte into immutable fixtures, create human-labelled
-manifests, add characterization tests before parser changes, and run all feature 001 baselines.
+**Decision**: LessonSpec 1.2.0 adds `matching` and `matchingBank`; stable entry IDs are answers and
+source labels remain display/provenance. Existing canonical interaction kinds are reused for ordering,
+choice and gaps.
 
-**Rationale**: The constitution requires a production defect to become a regression case and schema
-changes to carry compatibility tests.
+**Rationale**: The classifier should map source structure into explicit domain semantics, not create
+fixture-shaped payloads or duplicate shared options per exercise.
 
-**Alternatives considered**: Synthetic PDFs cannot capture the geometry defect; snapshot-only tests
-can approve omissions without explicit candidate and SourceRef assertions.
+**Alternatives considered**: Reusing local single-choice options loses `useOnce`; label-only identity
+is unstable; free-form model interaction names cannot be rendered or graded safely.
+
+## Decision 9: Evaluation combines pinned and live evidence
+
+**Decision**: Human-labelled fixtures assert exact structure, coverage and SourceRefs. Mocked contract
+tests cover every failure shape. Live-model eval verifies the configured provider against the same
+schemas but never updates baselines automatically.
+
+**Rationale**: Deterministic fixtures catch regressions; live tests catch provider/prompt drift. Both
+are required for a model-dependent structural stage.
+
+**Alternatives considered**: Live-only tests are variable and credit-dependent; snapshots can bless
+omissions; synthetic-only fixtures miss real PDF geometry and multilingual behavior.

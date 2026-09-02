@@ -1,84 +1,166 @@
-# Quickstart: Validate Universal PDF Extraction
+# Quickstart: Validate Universal Structural Extraction
 
-## Preconditions
+## 1. Prerequisites
 
-- Node.js 22+, pnpm 11 and project dependencies are installed.
-- Local web/Inngest services and the configured Supabase project are available for live journeys.
-- Source files are copied byte-for-byte to `tests/fixtures/sources/vocab.pdf` and
-  `tests/fixtures/sources/placement_test.pdf`; their checksums and human labels are committed.
-- No model credential is required for deterministic acceptance tests.
+- Node.js 22+ and pnpm
+- local environment configured for Supabase and the Responses-compatible provider
+- immutable fixtures registered in `tests/fixtures/fixtures.json`
+- structural-review migration applied for live integration/browser checks
 
-## 1. Contract and characterization gate
-
-```bash
-pnpm contracts:check
-pnpm test -- packages/document-ingestion packages/exercise-extraction
-```
-
-Expected: 1.0/1.1 fixtures remain readable, 1.2 matching conditional invariants pass, invalid bank
-references fail, and readable unknown layouts produce a typed review result rather than a raw Zod
-error.
-
-## 2. New golden fixtures
+Install dependencies and verify the repository before focused tests:
 
 ```bash
-pnpm test -- packages/evals/src/fixtures/vocab-matching.eval.test.ts
-pnpm test -- packages/evals/src/fixtures/placement-test.eval.test.ts
+pnpm install
+pnpm typecheck
+pnpm lint
+pnpm format:check
 ```
 
-Expected `vocab.pdf`: exactly one matching group, five student exercises, example 0 accounted but
-not student-answerable, one A–F matching bank, no local option copies, `useOnce`, complete SourceRefs.
+## 2. Contract and admission gates
 
-Expected `placement_test.pdf`: exactly 50 single-choice exercises with source ordinals 21–70, four
-ordered options each, Grammar/Vocabulary boundaries preserved, multi-line prompts complete, and no
-page boilerplate in prompts/options. With no answer key, every answer remains unverified.
+Run structural schema sync, source limits and LessonSpec compatibility tests:
 
-## 3. Full regression and quality gates
+```bash
+pnpm --filter @lingua-bloom/contracts test -- structural-classification matching-contract compatibility schema-sync
+pnpm --filter @lingua-bloom/document-ingestion test -- source-limits reconstructed-lines
+pnpm --filter @lingua-bloom/lesson-pipeline test -- observability-repository
+```
+
+Expected:
+
+- PDF page 6 and pasted-text character 30,001 are rejected before IR/model dispatch;
+- PDF page 5 and text character 30,000 remain admissible;
+- structural request/proposal reject unknown fields, unsupported kinds and invalid version pins;
+- ReconciledStructure 1.0 upcasts to 1.1 without changing historical profile lineage;
+- model/window/reconciliation manifests reject sensitive fields, mismatched lineage and altered
+  aggregate metrics;
+- old LessonSpec 1.0/1.1 readers remain green and new 1.2 invariants are enforced.
+
+## 3. Window, provider and deterministic validation gates
+
+```bash
+pnpm --filter @lingua-bloom/exercise-extraction test -- window-planner reconcile-structure validate-structure
+pnpm --filter web test -- structural-classifier structural-review
+```
+
+Expected:
+
+- every significant block belongs to a stable bounded window;
+- cross-page prompts/shared banks survive overlap reconciliation;
+- invented text, dangling IDs, missing blocks, conflicts and empty answer fields are rejected;
+- overlapping exercise prompts and instruction spans that contain student items create blocking
+  `NON_ATOMIC_EXERCISE` / `MIXED_INSTRUCTION_AND_ITEMS` conflicts;
+- timeout, 401, 402, 429, malformed and partial output preserve IR and create structural review;
+- no provider failure creates an automatic draft or invokes fixture-specific fallback.
+- embedded source instructions cannot change the schema, call tools or trigger persistence/publication.
+
+## 4. Answer-suggestion cost safety
+
+Apply migration `0019_answer_suggestion_cost_safety.sql` before testing the live review UI. Then run:
+
+```bash
+pnpm exec vitest run --config vitest.workspace.ts \
+  apps/web/src/ai/answer-suggestion-plan.test.ts \
+  apps/web/src/ai/openai-answer-suggester.test.ts \
+  apps/web/tests/api/answer-suggestion-cost-safety.contract.test.ts
+```
+
+Validate the applied migration against the linked Supabase project without provider calls:
+
+```bash
+pnpm --filter @lingua-bloom/web exec node scripts/verify-live-cost-safety.mjs
+```
+
+Expected:
+
+- GET preflight causes zero provider calls;
+- groups are densely packed without exceeding 64 answer fields per request;
+- plans above 64 fields, two batches or USD 1 require exact plan-hash confirmation;
+- plans above the configured hard limit cause zero provider calls;
+- completed owner-scoped batches are reused after retry;
+- automatic ingestion performs zero paid answer-suggestion calls;
+- plan hashes change with draft payload/revision, prompt/schema/model or pricing policy;
+- cancellation causes zero provider calls.
+
+For unknown-layout review, verify that the teacher can choose six supported exercise kinds,
+`reference`, `example` or exclusion. `GET /layout-review/suggest` must show one-request token/cost
+estimate in RUB; cancelling makes zero calls, POST requires the exact plan hash, returns editable
+suggestions without changing review revision and reuses the completed checkpoint.
+
+## 5. Golden and model evals
+
+Run pinned deterministic assertions first:
+
+```bash
+pnpm --filter @lingua-bloom/evals test
+```
+
+Expected:
+
+- `placement_test.pdf`: 50 items, ordinals 21–70, four options and correct gap projection;
+- `vocab.pdf`: one matching group, five student items, one A–F bank and example 0;
+- multilingual PDF/text: reference material, choices, shared bank, ordering and entry gaps are
+  classified without title-specific code;
+- all feature 001 fixtures retain version-pinned compatibility;
+- 100% significant blocks have a coverage outcome and all canonical text resolves to IR spans.
+- atomicity fixtures have one Exercise per independently answerable item, zero prompt-span overlap
+  and zero exercise-item spans inside group instructions.
+
+Then run the opt-in live-provider eval with explicitly configured credentials:
+
+```bash
+RUN_LIVE_OPENAI=1 pnpm --filter @lingua-bloom/evals test -- multilingual-structure placement-test vocab-matching
+```
+
+Record provider/model/profile/prompt versions and results in `validation-report.md`. Never update a
+golden manifest automatically from live output.
+
+## 5. Integration, security and resilience
+
+```bash
+pnpm test:integration
+pnpm test:security
+pnpm test:resilience
+```
+
+Expected:
+
+- structural review is owner-scoped and mutually exclusive with an automatic draft;
+- teacher decisions use CAS revision and idempotency and survive reload;
+- stale/duplicate dispatch cannot create duplicate drafts or decisions;
+- logs contain versions, counts, timings and outcomes but no source text, answers, URLs or secrets.
+- each model call records provider usage and cost or explicit `costUnavailable`; new derived artifacts
+  retain `retainForProvenance` with no TTL/delete path.
+
+## 6. Browser journeys
+
+Start the app and worker using the repository scripts, then run Playwright:
+
+```bash
+pnpm dev
+pnpm --filter web test:e2e
+```
+
+Validate these journeys:
+
+1. A six-page PDF and 30,001-character text show readable limit errors without model activity.
+2. Provider failure opens source-adjacent structural review and focuses the first blocking issue.
+3. Teacher resolves unknown/reference/example/exclusion decisions; reload preserves them.
+4. Placement, matching and multilingual sources reach editable drafts with no empty answer fields.
+5. Answers are confirmed separately, publication succeeds and anonymous student rendering/grading
+   contains no answer leakage.
+6. Keyboard-only and narrow viewport operation remains usable.
+
+## 7. Full release gate
 
 ```bash
 pnpm test
 pnpm typecheck
 pnpm lint
 pnpm format:check
-pnpm test:integration
-pnpm test:security
-pnpm test:resilience
 pnpm build
 ```
 
-Expected: feature 001 golden counts and SourceRefs are unchanged; no unsupported additions; tenant
-isolation, idempotent review and student answer leakage tests pass; deterministic extraction stays
-within the established performance gate.
-
-## 4. Browser journey: unknown layout recovery
-
-1. Run `pnpm dev`, sign in as a teacher and upload a readable unsupported PDF.
-2. Confirm source preview and ordered unknown candidates appear without an internal error.
-3. Choose a supported interaction for one candidate, edit its required fields, and assign
-   `reference`, `example` and `teacher exclusion` to other candidates; reload and confirm every
-   decision persists beside the same source evidence.
-4. Confirm dispatch remains blocked for invalid structural fields and resumes only with at least one
-   valid group and complete candidate accounting.
-5. Open the same run as another tenant and confirm the response is indistinguishable from not found.
-6. Submit from two tabs: the stale revision must receive `409` and must not overwrite the first edit.
-
-## 5. Browser journey: placement test
-
-1. Upload `placement_test.pdf` through `/imports/new`.
-2. Confirm the review page contains Grammar and Vocabulary, questions 21–70 and four options each.
-3. Confirm repeated headers/footers are absent and the PDF remains visible beside the result.
-4. Confirm publication stays blocked until all correct answers are teacher supplied and verified.
-
-## 6. Browser journey: matching
-
-1. Upload `vocab.pdf` and confirm the A–F bank appears once above five exercises.
-2. Confirm item 0 is shown only as source/example context and is not answerable.
-3. Supply and verify correct bank-entry IDs, save, reload and publish.
-4. Open the public link anonymously; assign an entry and confirm it cannot be reused in that attempt.
-5. Inspect the student response and confirm accepted IDs/answer provenance are absent.
-
-## 7. Live release evidence
-
-Record fixture checksums, commands, timings, counts, browser results, migration/RLS evidence and any
-model-enrichment outcome in the validation report. Model-provider failure must be recorded as an
-optional warning and must not prevent deterministic draft or fallback review creation.
+Release remains blocked until `validation-report.md` records exact counts, coverage, SourceRef
+resolution, provider-failure behavior, performance p95, RLS/isolation and browser evidence, and a
+final `$speckit-analyze` contains no CRITICAL or HIGH findings.

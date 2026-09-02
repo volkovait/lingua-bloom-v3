@@ -122,3 +122,81 @@ the next gate.
 
 US1 safety evidence is complete. Full release validation remains pending T055–T059 and the
 placement/matching implementations.
+
+## Atomic exercise ownership regression — 2026-09-02
+
+A read-only inspection of run `1b50727c-a94c-430d-ab5f-a88a61a684c5` isolated the defect:
+nine persisted exercises already had distinct prompts and one answer field each, while the group
+instruction incorrectly repeated all nine source items. The source was pasted text, so the failure
+was instruction projection rather than sentence/exercise segmentation.
+
+The remediation:
+
+- reconstructs pasted-text group instruction only from the source prefix before the first detected
+  item boundary;
+- pins `structural-classifier-v2` in `structure-v2`;
+- adds ReconciledStructure 1.1.0 conflicts `NON_ATOMIC_EXERCISE` and
+  `MIXED_INSTRUCTION_AND_ITEMS`;
+- deterministically rejects overlapping prompt spans, instruction/prompt span overlap and
+  non-`exercisePrompt` ownership;
+- preserves multi-sentence dialogue/context when it represents one inseparable response unit,
+  without punctuation- or language-specific splitting.
+
+Deterministic validation passed 268 tests with 3 opt-in tests skipped, plus lint, typecheck and the
+Next.js production build. Existing persisted drafts are immutable review artifacts; a fresh import
+is required to observe the corrected instruction projection.
+
+## ReconciledStructure compatibility and Phase 2 observability — 2026-09-02
+
+C1 is closed with an explicit compatibility path. Repository-wide inspection found no persistence,
+API or production ingestion usage of ReconciledStructure 1.0; it existed only as a pre-release
+contract/test artifact. Consequently the database migration is `not applicable`. The immutable
+1.0 JSON Schema is committed in package and governing-spec mirrors, the reader accepts both 1.0 and
+1.1, and `upcastReconciledStructure` converts 1.0 to 1.1 in memory without rewriting the historical
+`structure-v1` profile. New reconciliation writers emit 1.1 only.
+
+T076–T077 add strict model-call, window, reconciliation and aggregate pipeline manifests. Tests prove
+recursive redaction of source/answer/evidence/credential/URL fields, strict rejection of unknown
+source-content fields, exact model/window/reconciliation lineage, one-time model-call ownership and
+deterministically recomputed window/attempt/duration/token/cost/conflict/coverage aggregates.
+Provider cost is never estimated: each call records reported cost with currency or
+`costUnavailable=true`.
+
+## Answer-suggestion cost-safety remediation — 2026-09-02
+
+Run `edb57ada-3545-4158-96a4-26eefbf37d5c` exposed an unbounded-spend path: 369 answer fields were
+sent in 11 group-isolated paid requests, consuming 42,962 tokens and USD 7.39233908 before the draft
+entered teacher review. The workflow had no preflight, confirmation, budget or per-batch durability.
+
+The remediation adds a zero-call immutable preflight, dense group-preserving packing, configurable
+token/cost estimation, mandatory confirmation for large plans, a default USD 10 hard ceiling,
+owner-scoped leased/completed batch checkpoints and exact plan-hash validation. Automatic ingestion
+now skips large suggestion plans and persists the draft for teacher review. Completed batches of the
+same run/draft revision/plan are reused; cross-draft checkpoint reuse is deliberately forbidden.
+
+Deterministic unit/API/security tests run without provider credentials. Migration 0019 must be applied
+before a browser test of the confirmed paid path; no live model call is part of this validation.
+
+
+## Cost-safety analyze remediation — 2026-09-02
+
+C1/C2 and H1–H5 were addressed in code/contracts: automatic answer suggestions were removed from ingestion; exact plan identity now includes revision, payload digests and model/prompt/schema/pricing versions; cross-run batch uniqueness was removed; expiring claims use completion tokens; paid checkpoints have indefinite `retainForProvenance`; runtime/OpenAPI responses are strict; unknown-layout review supports multiple teacher outcomes and optional checkpointed RUB-confirmed AI suggestions.
+
+Migration `0019_answer_suggestion_cost_safety.sql` was applied to linked Supabase project
+`cuuefjpbgzulpaddczkk` on 2026-09-02 after a dry-run proved that it was the only migration in the
+push. `verify-live-cost-safety.mjs` then used two temporary authenticated teacher accounts and
+isolated source/run/review/draft records to prove:
+
+- concurrent answer and layout claims produce exactly one `claimed` and one `in_progress` result;
+- an expired layout lease is reclaimed with a new generation token;
+- completed answer and layout results return `completed` and are reused;
+- checkpoint RLS hides rows from another teacher and owner-derived RPC rejects the foreign claim;
+- AI checkpoint execution leaves the unknown-layout review revision unchanged;
+- the test path performs no provider request and reports no cost.
+
+Temporary checkpoints, reviews, drafts and runs were removed after the assertions. Immutable source
+and DocumentIR records remain as provenance evidence; their temporary owner account was indefinitely
+banned and marked `liveValidationOnly`. The outsider account without retained lineage was removed.
+Two owner accounts from earlier cleanup attempts were also explicitly authorized for cleanup and
+indefinitely banned. A final read-only audit confirmed that all three retained validation-lineage
+owners are blocked through August 2126. T120 is complete.

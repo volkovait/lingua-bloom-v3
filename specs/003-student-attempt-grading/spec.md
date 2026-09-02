@@ -30,6 +30,14 @@ The teacher confirmed the following product decisions:
 7. Anonymous students remain unauthenticated. The public endpoint is protected with body limits,
    idempotency and privacy-preserving rate limits.
 
+### Session 2026-09-02
+
+- Q: Should `К списку уроков` be visible only to an authenticated teacher or also to anonymous
+  students? → A: Only to an authenticated teacher; anonymous students do not see teacher-library
+  navigation.
+- Q: How should a library with hundreds of lessons load? → A: Load ordered pages of 24 items
+  automatically on scroll, with an accessible `Показать ещё` fallback.
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Student checks a published lesson (Priority: P1)
@@ -124,6 +132,30 @@ disabled, invalid and unavailable Telegram configurations and verify grading rem
 4. **Given** untrusted student text contains HTML or Telegram markup, **When** the notification is
    built, **Then** all dynamic content is escaped and cannot alter message structure.
 
+### User Story 4 - Teacher navigates and searches the lesson library (Priority: P2)
+
+An authenticated teacher returns from a published lesson preview to the lesson library, sees
+published lessons before editable imports, and narrows the library by title and lifecycle status.
+
+**Independent Test**: Sign in as a teacher with published lessons and active imports, open a public
+lesson, return to `/lessons`, then verify published items precede drafts and title/status filters
+produce only matching owner-scoped items while an anonymous student sees no teacher navigation.
+
+**Acceptance Scenarios**:
+
+1. **Given** an authenticated teacher viewing a public lesson, **When** the page renders, **Then** it
+   provides a direct `К списку уроков` link; the same teacher-only navigation is absent anonymously.
+2. **Given** published lessons and editable imports, **When** `/lessons` renders, **Then** the
+   published section appears before the drafts/imports section regardless of creation time.
+3. **Given** a title query and/or status filter, **When** the teacher applies the filters, **Then**
+   only case-insensitive title matches with the selected exact status remain and the filter state is
+   represented in the URL.
+4. **Given** no matching lessons, **When** filtering completes, **Then** an explicit empty result and
+   a reset action are shown without losing the original lessons.
+5. **Given** more than 24 matching items, **When** the teacher approaches the end of the current
+   results, **Then** the next ordered page of 24 loads automatically while a keyboard-operable
+   `Показать ещё` action provides the same behavior without requiring scroll observation.
+
 ### Edge Cases
 
 - Blank fields count as incorrect and participate in first-error navigation.
@@ -186,6 +218,17 @@ disabled, invalid and unavailable Telegram configurations and verify grading rem
   adapters MUST be selected by explicit lesson/contract/grader version rather than mutable defaults.
 - **FR-020**: Telegram notification settings MUST NOT be disclosed to anonymous students, and all
   teacher settings routes MUST derive ownership from the authenticated server session.
+- **FR-021**: An authenticated teacher viewing a public lesson MUST have direct navigation to
+  `/lessons`; anonymous visitors MUST NOT see teacher-library navigation.
+- **FR-022**: The owner-scoped lesson library MUST render published lessons before editable imports
+  and drafts, independent of their timestamps.
+- **FR-023**: The lesson library MUST support combinable, URL-backed filtering by case-insensitive
+  title substring and exact lifecycle status, including `published`, and MUST provide explicit empty
+  and reset states.
+- **FR-024**: The lesson library MUST request owner-scoped results in ordered pages of at most 24
+  items, automatically request the next page near the scroll boundary, and retain a keyboard-
+  operable `Показать ещё` fallback. Pagination MUST preserve the active title/status filters and the
+  invariant that all matching published lessons precede editable imports.
 
 ### Non-Goals
 
@@ -230,6 +273,13 @@ disabled, invalid and unavailable Telegram configurations and verify grading rem
   excluding asynchronous Telegram delivery, in the project performance environment.
 - **SC-008**: The settings browser journey saves credentials, reloads without revealing the token,
   sends a test message and supports enable/disable without cross-tenant leakage.
+- **SC-009**: In library regression tests, published cards precede editable cards in 100% of mixed
+  datasets and every title/status combination returns exactly the matching owner-scoped items.
+- **SC-010**: Authenticated preview tests expose one working `/lessons` navigation control while
+  anonymous public lesson HTML contains no teacher-library navigation.
+- **SC-011**: A library fixture with more than 48 mixed items loads in 24-item pages without
+  duplicates or omissions; automatic scroll loading and the manual fallback produce the same order,
+  with published matches preceding editable matches.
 
 ## Assumptions and Dependencies
 

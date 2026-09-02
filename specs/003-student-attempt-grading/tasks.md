@@ -108,6 +108,25 @@
   result → retake, on desktop/mobile and keyboard-only
 - [ ] T035 Run `$speckit-analyze`, resolve CRITICAL/HIGH findings and obtain final release approval
 
+## Phase 7: Teacher lesson-library navigation
+
+- [x] T036 Add deterministic title/status library filtering with unit coverage in
+  `apps/web/src/lessons/library-filter.ts`
+- [x] T037 Render published lessons before editable imports and add accessible URL-backed search,
+  exact status selection, empty state and reset action on `/lessons`
+- [x] T038 Add authenticated-only navigation from public lesson preview to `/lessons` without
+  exposing teacher navigation to anonymous students
+- [x] T039 Add regression contracts for ordering, filters and preview navigation; run focused tests,
+  typecheck, lint and format checks
+- [x] T040 Add a typed owner-authenticated lesson-library endpoint with stable 24-item pagination,
+  title/status filters and an opaque continuation cursor
+- [x] T041 Replace whole-library loading with initial server page plus an infinite-scroll client
+  boundary and keyboard-operable `Показать ещё` fallback
+- [x] T042 Add pagination regressions for 49+ mixed items, no duplicates/omissions, filter retention,
+  published-first ordering and anonymous endpoint rejection
+- [x] T043 Re-run unit, API contract, accessibility, typecheck, lint, format and production build
+  gates for paginated lesson-library delivery
+
 ## Dependencies and order
 
 - Product confirmation T001 precedes every implementation task.

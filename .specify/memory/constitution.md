@@ -1,17 +1,21 @@
 <!--
 Sync Impact Report
-- Version change: template -> 1.0.0
+- Version change: 1.0.0 -> 1.1.0
+- Version change date: 2026-09-02
 - Added principles:
   - I. Source Fidelity and Provenance
   - II. Versioned Specifications Are Canonical
   - III. Deterministic Core, Bounded AI
   - IV. Evaluation Before Release
   - V. Secure, Durable, Observable Execution
+  - VI. Extensible Exercise Architecture, No Format Hardcoding
 - Added sections:
   - Product and Data Constraints
   - Spec-Driven Development Workflow
 - Removed sections: none
 - Deferred TODOs: none
+- Amendment rationale: new exercise formats must extend declarative contracts and adapters instead
+  of accumulating fixture-specific or subject-specific branches across the pipeline.
 -->
 # Lingua-Bloom Constitution
 
@@ -55,6 +59,19 @@ privilege. Long-running work MUST be resumable and idempotent across retries, re
 events, and deployments. Every run MUST record traceable step outcomes, model/prompt versions,
 validation results, latency, cost, warnings, and review decisions without exposing sensitive data.
 
+### VI. Extensible Exercise Architecture, No Format Hardcoding
+New exercise formats MUST be implemented through explicit, versioned capabilities and extension
+points such as schemas, registries, adapters, renderers, and grader policies. Shared extraction,
+validation, rendering, and grading code MUST NOT gain branches tied to a particular fixture, source
+filename, page, exercise number, exact prompt text, language, or one-off layout. A deterministic
+heuristic is permitted only when it is derived from general structural evidence, is named and
+versioned, and is validated against representative positive, negative, and cross-format fixtures.
+Adding a format MUST include its contract, provenance rules, renderer, grader behavior, fallback,
+and evaluation coverage without weakening existing formats. When a format cannot be represented by
+the current capability model, the system MUST preserve it as an unsupported or teacher-reviewable
+candidate while the model is extended; it MUST NOT force the source into the nearest hardcoded type.
+This principle keeps the architecture scalable across exercise families, languages, and disciplines.
+
 ## Product and Data Constraints
 
 - The first validated subject profile is foreign-language learning, but core schemas MUST avoid
@@ -94,4 +111,4 @@ expanded principles, and PATCH for clarifications. Every feature plan and implem
 perform a constitution check. Any temporary exception MUST identify its owner, scope, risk,
 compensating control, and expiry condition in the relevant plan.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-21 | **Last Amended**: 2026-08-21
+**Version**: 1.1.0 | **Ratified**: 2026-08-21 | **Last Amended**: 2026-09-02

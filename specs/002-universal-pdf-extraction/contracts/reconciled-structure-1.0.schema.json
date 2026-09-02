@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lingua-bloom.local/contracts/reconciled-structure-1.0.0.schema.json",
+  "title": "Legacy Reconciled Structural Extraction 1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "documentIrId",
+    "profileVersion",
+    "proposalIds",
+    "regions",
+    "groups",
+    "exercises",
+    "sharedResources",
+    "conflicts",
+    "coverage",
+    "validationStatus"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "documentIrId": {
+      "$ref": "#/$defs/id"
+    },
+    "profileVersion": {
+      "const": "structure-v1"
+    },
+    "proposalIds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/id"
+      }
+    },
+    "regions": {
+      "type": "array",
+      "items": {
+        "$ref": "structural-classification.schema.json#/$defs/region"
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "$ref": "structural-classification.schema.json#/$defs/group"
+      }
+    },
+    "exercises": {
+      "type": "array",
+      "items": {
+        "$ref": "structural-classification.schema.json#/$defs/exercise"
+      }
+    },
+    "sharedResources": {
+      "type": "array",
+      "items": {
+        "$ref": "structural-classification.schema.json#/$defs/sharedResource"
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/conflict"
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "significantBlockCount",
+        "accountedBlockCount",
+        "outcomes"
+      ],
+      "properties": {
+        "significantBlockCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "accountedBlockCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "outcomes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/coverageOutcome"
+          }
+        }
+      }
+    },
+    "validationStatus": {
+      "enum": [
+        "valid",
+        "needsReview",
+        "blocked"
+      ]
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "conflict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "code",
+        "blockIds",
+        "proposalIds",
+        "resolution"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "code": {
+          "enum": [
+            "OVERLAPPING_OWNERSHIP",
+            "INCOMPATIBLE_CONTINUATION",
+            "DANGLING_RELATION",
+            "ORDER_CONFLICT",
+            "MISSING_BLOCK",
+            "INVALID_INTERACTION",
+            "LOW_CONFIDENCE",
+            "UNKNOWN_STRUCTURE"
+          ]
+        },
+        "blockIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "proposalIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "resolution": {
+          "enum": [
+            "open",
+            "resolvedByIdentity",
+            "teacherResolved"
+          ]
+        }
+      }
+    },
+    "coverageOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "blockId",
+        "kind",
+        "entityIds"
+      ],
+      "properties": {
+        "blockId": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "exerciseComponent",
+            "reference",
+            "example",
+            "answerKey",
+            "boilerplate",
+            "teacherExclusion",
+            "issue"
+          ]
+        },
+        "entityIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        }
+      }
+    }
+  }
+}

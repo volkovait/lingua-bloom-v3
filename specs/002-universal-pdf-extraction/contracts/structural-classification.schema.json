@@ -1,0 +1,256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lingua-bloom.local/contracts/structural-classification-1.0.0.schema.json",
+  "title": "Structural Classification Request and Proposal",
+  "oneOf": [
+    { "$ref": "#/$defs/request" },
+    { "$ref": "#/$defs/proposal" }
+  ],
+  "$defs": {
+    "id": { "type": "string", "minLength": 1 },
+    "blockRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["blockId"],
+      "properties": {
+        "blockId": { "$ref": "#/$defs/id" },
+        "charStart": { "type": "integer", "minimum": 0 },
+        "charEnd": { "type": "integer", "minimum": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "required": ["charStart"] },
+          "then": { "required": ["charEnd"] }
+        },
+        {
+          "if": { "required": ["charEnd"] },
+          "then": { "required": ["charStart"] }
+        }
+      ]
+    },
+    "inputBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "ordinal", "rawText", "pageIndex", "bbox", "style"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "ordinal": { "type": "integer", "minimum": 0 },
+        "rawText": { "type": "string" },
+        "pageIndex": { "type": ["integer", "null"], "minimum": 0 },
+        "bbox": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["x", "y", "width", "height"],
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" },
+                "width": { "type": "number", "minimum": 0 },
+                "height": { "type": "number", "minimum": 0 }
+              }
+            }
+          ]
+        },
+        "style": { "type": ["object", "null"], "additionalProperties": true }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "schemaVersion",
+        "proposalId",
+        "documentIrId",
+        "windowId",
+        "windowOrdinal",
+        "profileVersion",
+        "promptVersion",
+        "modelId",
+        "inputVersion",
+        "outputVersion",
+        "blocks",
+        "overlapBefore",
+        "overlapAfter"
+      ],
+      "properties": {
+        "kind": { "const": "structuralClassificationRequest" },
+        "schemaVersion": { "const": "1.0.0" },
+        "proposalId": { "$ref": "#/$defs/id" },
+        "documentIrId": { "$ref": "#/$defs/id" },
+        "windowId": { "$ref": "#/$defs/id" },
+        "windowOrdinal": { "type": "integer", "minimum": 0 },
+        "profileVersion": { "$ref": "#/$defs/id" },
+        "promptVersion": { "$ref": "#/$defs/id" },
+        "modelId": { "$ref": "#/$defs/id" },
+        "inputVersion": { "const": "1.0.0" },
+        "outputVersion": { "const": "1.0.0" },
+        "blocks": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/inputBlock" }
+        },
+        "overlapBefore": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        },
+        "overlapAfter": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        }
+      }
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "role", "source", "confidence", "evidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "role": {
+          "enum": [
+            "sectionHeading",
+            "instruction",
+            "referenceMaterial",
+            "example",
+            "exercisePrompt",
+            "gapSegment",
+            "localOption",
+            "sharedBankEntry",
+            "answerKey",
+            "boilerplate",
+            "unknown"
+          ]
+        },
+        "source": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/blockRef" }
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "evidence": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "ordinal", "regionIds", "exerciseIds", "sharedResourceIds", "confidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "ordinal": { "type": "integer", "minimum": 1 },
+        "regionIds": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "exerciseIds": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/id" } },
+        "sharedResourceIds": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "exercise": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "ordinal",
+        "interactionKind",
+        "promptRegionIds",
+        "gapRegionIds",
+        "optionRegionIds",
+        "sharedResourceIds",
+        "answerFieldCount",
+        "confidence"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "ordinal": { "type": "integer", "minimum": 1 },
+        "sourceOrdinal": {
+          "oneOf": [
+            { "type": "integer", "minimum": 0 },
+            { "type": "string", "minLength": 1 }
+          ]
+        },
+        "interactionKind": {
+          "enum": [
+            "singleChoice",
+            "wordOrder",
+            "bracketGap",
+            "oddOneOut",
+            "wordBankGap",
+            "inlineGap",
+            "shortText",
+            "imageChoice",
+            "matching",
+            "unknown"
+          ]
+        },
+        "promptRegionIds": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/id" } },
+        "gapRegionIds": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "optionRegionIds": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "sharedResourceIds": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+        "answerFieldCount": { "type": "integer", "minimum": 1 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "sharedResource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "entryRegionIds", "usagePolicy", "confidence"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "kind": { "enum": ["wordBank", "matchingBank"] },
+        "entryRegionIds": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/id" } },
+        "usagePolicy": { "enum": ["useOnce", "reusable", "unspecified"] },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "coverageClaim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["blockId", "outcome", "regionIds"],
+      "properties": {
+        "blockId": { "$ref": "#/$defs/id" },
+        "outcome": {
+          "enum": ["exerciseComponent", "reference", "example", "answerKey", "boilerplate", "unknown"]
+        },
+        "regionIds": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/id" } }
+      }
+    },
+    "proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "schemaVersion",
+        "documentIrId",
+        "windowId",
+        "profileVersion",
+        "promptVersion",
+        "modelId",
+        "inputVersion",
+        "outputVersion",
+        "regions",
+        "groups",
+        "exercises",
+        "sharedResources",
+        "coverageClaims"
+      ],
+      "properties": {
+        "kind": { "const": "structuralClassificationProposal" },
+        "schemaVersion": { "const": "1.0.0" },
+        "documentIrId": { "$ref": "#/$defs/id" },
+        "windowId": { "$ref": "#/$defs/id" },
+        "profileVersion": { "$ref": "#/$defs/id" },
+        "promptVersion": { "$ref": "#/$defs/id" },
+        "modelId": { "$ref": "#/$defs/id" },
+        "inputVersion": { "const": "1.0.0" },
+        "outputVersion": { "const": "1.0.0" },
+        "regions": { "type": "array", "items": { "$ref": "#/$defs/region" } },
+        "groups": { "type": "array", "items": { "$ref": "#/$defs/group" } },
+        "exercises": { "type": "array", "items": { "$ref": "#/$defs/exercise" } },
+        "sharedResources": { "type": "array", "items": { "$ref": "#/$defs/sharedResource" } },
+        "coverageClaims": { "type": "array", "items": { "$ref": "#/$defs/coverageClaim" } }
+      }
+    }
+  }
+}

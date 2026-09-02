@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://lingua-bloom.local/schemas/lesson-spec/1-1-0",
+  "$id": "https://lingua-bloom.local/schemas/lesson-spec/1-2-0",
   "title": "LessonSpec",
   "type": "object",
   "additionalProperties": false,
@@ -18,7 +18,8 @@
     "schemaVersion": {
       "enum": [
         "1.0.0",
-        "1.1.0"
+        "1.1.0",
+        "1.2.0"
       ]
     },
     "lessonId": {
@@ -210,6 +211,10 @@
         "value": {
           "type": "string"
         },
+        "sourceLabel": {
+          "type": "string",
+          "minLength": 1
+        },
         "provenance": {
           "$ref": "#/$defs/provenanceLink"
         }
@@ -319,7 +324,10 @@
             "bracketGap",
             "oddOneOut",
             "wordBankGap",
-            "inlineGap"
+            "inlineGap",
+            "shortText",
+            "matching",
+            "imageChoice"
           ]
         },
         "prompt": {
@@ -353,7 +361,8 @@
               "interactionKind": {
                 "enum": [
                   "singleChoice",
-                  "oddOneOut"
+                  "oddOneOut",
+                  "imageChoice"
                 ]
               }
             }
@@ -526,6 +535,8 @@
       }
     },
     "sharedResource": {
+      "oneOf": [
+        {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -569,9 +580,55 @@
           "$ref": "#/$defs/provenanceLink"
         }
       }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "ordinal", "kind", "entries", "usagePolicy", "provenance"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "ordinal": { "type": "integer", "minimum": 1 },
+            "kind": { "const": "matchingBank" },
+            "label": { "type": "string" },
+            "entries": { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/option" } },
+            "usagePolicy": { "const": "useOnce" },
+            "provenance": { "$ref": "#/$defs/provenanceLink" }
+          }
+        }
+      ]
     }
   },
   "allOf": [
+    {
+      "if": {
+        "properties": { "schemaVersion": { "const": "1.2.0" } },
+        "required": ["schemaVersion"]
+      },
+      "then": {
+        "properties": {
+          "groups": {
+            "items": {
+              "required": ["sharedResources"],
+              "properties": {
+                "exercises": {
+                  "items": {
+                    "if": {
+                      "properties": { "interactionKind": { "enum": ["wordBankGap", "matching"] } },
+                      "required": ["interactionKind"]
+                    },
+                    "then": {
+                      "required": ["sharedResourceId"],
+                      "properties": { "options": { "maxItems": 0 } }
+                    },
+                    "else": { "not": { "required": ["sharedResourceId"] } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     {
       "if": {
         "properties": {
