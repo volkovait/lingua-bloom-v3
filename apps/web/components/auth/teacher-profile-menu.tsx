@@ -25,6 +25,7 @@ export function TeacherProfileMenu({ profile }: { readonly profile: TeacherProfi
         </div>
         <nav aria-label="Меню профиля">
           <Link href="/lessons">Мои уроки</Link>
+          <Link href="/attempts">Попытки</Link>
           <Link href="/imports/new">Создать урок</Link>
           <Link href="/settings/telegram">Настройки Telegram</Link>
         </nav>

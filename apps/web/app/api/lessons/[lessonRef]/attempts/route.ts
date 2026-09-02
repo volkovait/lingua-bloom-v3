@@ -45,7 +45,9 @@ export async function POST(
         name: "student/attempt.completed",
         data: { attemptId: result.attemptId }
       })
-      .catch(() => undefined);
+      .catch(() => {
+        console.error("Student attempt dispatch failed", { code: "INNGEST_DISPATCH_FAILED" });
+      });
     return NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
   } catch (failure) {
     if (failure instanceof AttemptNotFoundError)

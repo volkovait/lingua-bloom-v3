@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { createAdminSupabaseClient } from "@/src/supabase/admin";
 import { sendTelegramMessage, TelegramProviderError } from "@/src/telegram/client";
-import { buildTelegramAttemptMessage } from "@/src/telegram/message";
+import { buildTelegramAttemptMessages } from "@/src/telegram/message";
 import { resolveTelegramCredentials } from "@/src/telegram/settings-repository";
 
 import { inngest } from "./client";
@@ -60,26 +60,27 @@ export const telegramAttemptDelivery = inngest.createFunction(
       ]);
       if (lessonResult.error || rowsResult.error) throw new Error("attempt_detail_read");
       const rows = z.array(ResponseSchema).parse(rowsResult.data);
-      const providerMessageId = await sendTelegramMessage({
-        ...credentials,
-        text: buildTelegramAttemptMessage({
-          lessonTitle: z.object({ title: z.string() }).parse(lessonResult.data).title,
-          lessonVersion: attempt.lesson_version,
-          studentName: attempt.student_display_name,
-          correctCount: attempt.correct_count,
-          totalCount: attempt.total_count,
-          rows: rows.map((row) => ({
-            ordinal: row.ordinal,
-            submitted: formatSubmitted(row.submitted_value),
-            correct: row.is_correct,
-            acceptedValues: row.accepted_display_values
-          }))
-        })
+      const messages = buildTelegramAttemptMessages({
+        lessonTitle: z.object({ title: z.string() }).parse(lessonResult.data).title,
+        lessonVersion: attempt.lesson_version,
+        studentName: attempt.student_display_name,
+        correctCount: attempt.correct_count,
+        totalCount: attempt.total_count,
+        rows: rows.map((row) => ({
+          ordinal: row.ordinal,
+          submitted: formatSubmitted(row.submitted_value),
+          correct: row.is_correct,
+          acceptedValues: row.accepted_display_values
+        }))
       });
+      const providerMessageIds: string[] = [];
+      for (const text of messages) {
+        providerMessageIds.push(await sendTelegramMessage({ ...credentials, text }));
+      }
       await complete(supabase, claimRow.outbox_id, "sent", {
-        provider_message_id: providerMessageId
+        provider_message_id: providerMessageIds.join(",")
       });
-      return { claimed: true, status: "sent" };
+      return { claimed: true, status: "sent", parts: messages.length };
     } catch (error) {
       await complete(supabase, claimRow.outbox_id, "failed", {
         failure_category: error instanceof TelegramProviderError ? error.category : "internal"
