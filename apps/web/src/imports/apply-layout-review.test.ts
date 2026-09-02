@@ -92,6 +92,69 @@ describe("applyLayoutReviewSubmission", () => {
     expect(result.answerIssues).toHaveLength(2);
   });
 
+  it("upcasts legacy review and supports open tasks plus reference outcomes", () => {
+    const result = applyLayoutReviewSubmission({
+      review: review(),
+      actorId: "teacher-1",
+      title: "Mixed material",
+      submission: {
+        expectedRevision: 1,
+        idempotencyKey: "mixed-decisions-0001",
+        decisions: [
+          {
+            candidateId: "candidate-21",
+            action: "mark",
+            outcome: "reference",
+            reason: "Reading material"
+          },
+          {
+            candidateId: "candidate-22",
+            action: "classify",
+            interactionKind: "wordOrder",
+            reason: "Teacher confirmed"
+          }
+        ]
+      }
+    });
+    expect(result.review.schemaVersion).toBe("1.1.0");
+    expect(result.draft?.referenceBlocks).toHaveLength(1);
+    expect(result.draft?.groups[0]?.exercises[0]).toMatchObject({
+      interactionKind: "wordOrder",
+      options: []
+    });
+  });
+
+  it("creates an editable short-text exercise without inventing answer values", () => {
+    const result = applyLayoutReviewSubmission({
+      review: review(),
+      actorId: "teacher-1",
+      title: "Short answers",
+      submission: {
+        expectedRevision: 1,
+        idempotencyKey: "short-text-decisions-0001",
+        decisions: [
+          {
+            candidateId: "candidate-21",
+            action: "classify",
+            interactionKind: "shortText",
+            reason: "Teacher confirmed"
+          },
+          {
+            candidateId: "candidate-22",
+            action: "mark",
+            outcome: "example",
+            reason: "Worked example"
+          }
+        ]
+      }
+    });
+    expect(result.draft?.groups[0]?.exercises[0]).toMatchObject({
+      interactionKind: "shortText",
+      options: [],
+      answerFields: [{ acceptedValues: [], reviewStatus: "needsReview" }]
+    });
+  });
+
   it("keeps an all-excluded source in fallback instead of creating groups zero", () => {
     expect(() =>
       applyLayoutReviewSubmission({

@@ -2,6 +2,7 @@ import {
   ReviewDraftSchema,
   UnknownLayoutReviewSchema,
   type LayoutReviewSubmission,
+  type TeacherClassifiableInteractionKind,
   type UnknownCandidateDecision,
   type UnknownExerciseCandidate,
   type UnknownLayoutReview
@@ -22,12 +23,7 @@ export function applyLayoutReviewSubmission(input: {
     if (seen.has(decision.candidateId)) throw new Error("CANDIDATE_DECISION_DUPLICATED");
     if (!candidates.has(decision.candidateId)) throw new Error("CANDIDATE_NOT_FOUND");
     seen.add(decision.candidateId);
-    return {
-      id: crypto.randomUUID(),
-      ...decision,
-      actorId: input.actorId,
-      createdAt: now
-    };
+    return { id: crypto.randomUUID(), ...decision, actorId: input.actorId, createdAt: now };
   });
   const allDecisions = [...input.review.decisions, ...decisions];
   const complete = allDecisions.length === input.review.candidates.length;
@@ -36,13 +32,11 @@ export function applyLayoutReviewSubmission(input: {
 
   const nextReview = UnknownLayoutReviewSchema.parse({
     ...input.review,
+    schemaVersion: "1.1.0",
     revision: input.review.revision + 1,
     status: complete ? "resolved" : "active",
     decisions: allDecisions,
-    coverage: {
-      ...input.review.coverage,
-      accountedCandidateCount: allDecisions.length
-    },
+    coverage: { ...input.review.coverage, accountedCandidateCount: allDecisions.length },
     updatedAt: now
   });
   if (!complete) return { review: nextReview, draft: null, decisions, answerIssues: [] };
@@ -50,9 +44,28 @@ export function applyLayoutReviewSubmission(input: {
   const exercises = classified.map((decision, index) => {
     const candidate = candidates.get(decision.candidateId);
     if (!candidate) throw new Error("CANDIDATE_NOT_FOUND");
-    return candidateToSingleChoice(candidate, decision.id, index + 1);
+    return candidateToExercise(candidate, decision.id, index + 1, decision.interactionKind);
   });
-  const excluded = allDecisions.filter((decision) => decision.action === "exclude");
+  const referenceDecisions = allDecisions.filter(
+    (decision) => decision.action === "mark" && decision.outcome === "reference"
+  );
+  const referenceBlocks = referenceDecisions.map((decision, index) => {
+    const candidate = candidates.get(decision.candidateId);
+    if (!candidate) throw new Error("CANDIDATE_NOT_FOUND");
+    return {
+      id: `candidate:${candidate.id}:reference`,
+      ordinal: index + 1,
+      sourceOrder: index,
+      lines: [
+        {
+          id: `candidate:${candidate.id}:reference:line:1`,
+          ordinal: 1,
+          rawText: candidate.rawPrompt,
+          provenance: { reviewDecisionIds: [decision.id] }
+        }
+      ]
+    };
+  });
   const draft = ReviewDraftSchema.parse({
     schemaVersion: "1.1.0",
     title: input.title,
@@ -62,12 +75,13 @@ export function applyLayoutReviewSubmission(input: {
       {
         id: `layout-review:${input.review.runId}:group:1`,
         ordinal: 1,
-        instruction: "Выберите правильный вариант.",
+        instruction: "Выполните задания.",
         provenance: { reviewDecisionIds: classified.map((decision) => decision.id) },
         sharedResources: [],
         exercises
       }
     ],
+    ...(referenceBlocks.length > 0 ? { referenceBlocks } : {}),
     coverage: {
       entries: allDecisions.map((decision) => ({
         candidateId: decision.candidateId,
@@ -82,10 +96,8 @@ export function applyLayoutReviewSubmission(input: {
       status: "needsReview"
     }
   });
-  const answerIssues = exercises.map((exercise) => {
-    const answer = exercise.answerFields[0];
-    if (!answer) throw new Error("ANSWER_FIELD_NOT_CREATED");
-    return {
+  const answerIssues = exercises.flatMap((exercise) =>
+    exercise.answerFields.map((answer) => ({
       id: crypto.randomUUID(),
       code: "ANSWER_UNVERIFIED" as const,
       severity: "blocking" as const,
@@ -93,51 +105,29 @@ export function applyLayoutReviewSubmission(input: {
       evidence: answer.evidence.sourceRefs,
       message: "The source has no verified answer key for this answer field",
       resolution: "open" as const
-    };
-  });
-  return { review: nextReview, draft, decisions, answerIssues, excludedCount: excluded.length };
+    }))
+  );
+  const excludedCount = allDecisions.filter((decision) => decision.action === "exclude").length;
+  return { review: nextReview, draft, decisions, answerIssues, excludedCount };
 }
 
-function candidateToSingleChoice(
+function candidateToExercise(
   candidate: UnknownExerciseCandidate,
   decisionId: string,
-  ordinal: number
+  ordinal: number,
+  interactionKind: TeacherClassifiableInteractionKind
 ) {
-  const lines = candidate.rawPrompt.split(/\r?\n/).map((line) => line.trim());
-  const firstOption = lines.findIndex((line) => /^[a-d][.)]?\s+/i.test(line));
-  if (firstOption < 1) throw new Error("CANDIDATE_OPTIONS_NOT_FOUND");
-  const promptLines = lines.slice(0, firstOption);
-  const hasExplicitBlank = promptLines.some((line) => line.includes("___"));
-  const prompt = promptLines
-    .join(" ")
-    .replace(/^(?:question\s*)?\d{1,3}[.)\s]+/i, "")
-    .replace(/\t+/g, hasExplicitBlank ? " " : " ___ ")
-    .replace(/\s+/g, " ")
-    .replace(/\s+([,.!?;:])/g, "$1")
-    .trim();
-  const optionLines = lines.slice(firstOption);
-  const options = optionLines.flatMap((line, index) => {
-    const match = line.match(/^([a-d])[.)]?\s+(.+)$/i);
-    const label = match?.[1];
-    return label && match[2]
-      ? [
-          {
-            id: `candidate:${candidate.id}:option:${label.toLowerCase()}`,
-            ordinal: index + 1,
-            value: match[2].trim(),
-            provenance: { sourceRefs: candidate.sourceRefs }
-          }
-        ]
-      : [];
-  });
-  if (!prompt || options.length < 2) throw new Error("CANDIDATE_OPTIONS_NOT_FOUND");
+  const choice = interactionKind === "singleChoice" || interactionKind === "oddOneOut";
+  const parsed = choice ? parseChoiceCandidate(candidate) : null;
+  const prompt = parsed?.prompt ?? cleanPrompt(candidate.rawPrompt);
+  if (!prompt) throw new Error("CANDIDATE_PROMPT_NOT_FOUND");
   return {
     id: `candidate:${candidate.id}:exercise`,
     ordinal,
-    interactionKind: "singleChoice" as const,
+    interactionKind,
     prompt,
     provenance: { reviewDecisionIds: [decisionId] },
-    options,
+    options: parsed?.options ?? [],
     answerFields: [
       {
         id: `candidate:${candidate.id}:answer:1`,
@@ -148,4 +138,39 @@ function candidateToSingleChoice(
       }
     ]
   };
+}
+
+function parseChoiceCandidate(candidate: UnknownExerciseCandidate) {
+  const lines = candidate.rawPrompt.split(/\r?\n/).map((line) => line.trim());
+  const firstOption = lines.findIndex((line) => /^[a-zа-яё][.)]?\s+/iu.test(line));
+  if (firstOption < 1) throw new Error("CANDIDATE_OPTIONS_NOT_FOUND");
+  const promptLines = lines.slice(0, firstOption);
+  const hasExplicitBlank = promptLines.some((line) => line.includes("___"));
+  const prompt = cleanPrompt(
+    promptLines.join(" ").replace(/\t+/gu, hasExplicitBlank ? " " : " ___ ")
+  );
+  const options = lines.slice(firstOption).flatMap((line, index) => {
+    const match = line.match(/^([a-zа-яё])[.)]?\s+(.+)$/iu);
+    const label = match?.[1];
+    return label && match[2]
+      ? [
+          {
+            id: `candidate:${candidate.id}:option:${label.toLocaleLowerCase()}`,
+            ordinal: index + 1,
+            value: match[2].trim(),
+            provenance: { sourceRefs: candidate.sourceRefs }
+          }
+        ]
+      : [];
+  });
+  if (!prompt || options.length < 2) throw new Error("CANDIDATE_OPTIONS_NOT_FOUND");
+  return { prompt, options };
+}
+
+function cleanPrompt(value: string): string {
+  return value
+    .replace(/^(?:question\s*)?\d{1,3}[.)\s]+/iu, "")
+    .replace(/\s+/gu, " ")
+    .replace(/\s+([,.!?;:])/gu, "$1")
+    .trim();
 }

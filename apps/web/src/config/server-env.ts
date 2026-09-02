@@ -11,6 +11,10 @@ const ServerEnvironmentSchema = z.object({
   OPENAI_API_KEY: z.string().min(1).optional(),
   OPENAI_BASE_URL: z.url().default("https://api.openai.com/v1"),
   OPENAI_MODEL: z.string().min(1).default("gpt-5.4-mini"),
+  ANSWER_SUGGESTION_ESTIMATED_USD_PER_1K_TOKENS: z.coerce.number().positive().default(0.2),
+  ANSWER_SUGGESTION_HARD_LIMIT_USD: z.coerce.number().positive().default(10),
+  LAYOUT_CLASSIFICATION_ESTIMATED_RUB_PER_1K_TOKENS: z.coerce.number().positive().default(20),
+  LAYOUT_CLASSIFICATION_HARD_LIMIT_RUB: z.coerce.number().positive().default(1500),
   TELEGRAM_CREDENTIALS_ENCRYPTION_KEY: z.string().min(1).optional(),
   ATTEMPT_RATE_LIMIT_SECRET: z.string().min(16).optional()
 });

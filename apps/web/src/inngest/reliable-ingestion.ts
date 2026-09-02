@@ -15,10 +15,7 @@ import { z } from "zod";
 import {
   ANSWER_SUGGESTION_INPUT_SCHEMA_VERSION,
   ANSWER_SUGGESTION_OUTPUT_SCHEMA_VERSION,
-  ANSWER_SUGGESTION_PROMPT_VERSION,
-  ModelSuggestionError,
-  applyAnswerSuggestions,
-  suggestUnverifiedAnswersWithTelemetry
+  ANSWER_SUGGESTION_PROMPT_VERSION
 } from "@/src/ai/openai-answer-suggester.server";
 import { getServerEnvironment } from "@/src/config/server-env";
 import { buildReviewDraft } from "@/src/imports/build-review-draft";
@@ -124,7 +121,7 @@ export const reliableIngestion = inngest.createFunction(
         if (extraction.groups.length === 0 && unknownCandidates?.length) {
           const now = new Date().toISOString();
           const review = UnknownLayoutReviewSchema.parse({
-            schemaVersion: "1.0.0",
+            schemaVersion: "1.1.0",
             runId,
             sourceDocumentId,
             documentIrId,
@@ -212,93 +209,28 @@ export const reliableIngestion = inngest.createFunction(
           issues
         );
         const environment = getServerEnvironment();
-        let draft = baseDraft;
-        let modelSuggestionCount = 0;
-        let modelWarning: string | null = null;
-        let modelOutcome: "succeeded" | "failed" | "skipped" = environment.OPENAI_API_KEY
-          ? "failed"
-          : "skipped";
-        let modelLatencyMs: number | undefined;
-        let modelTelemetry:
-          | {
-              latencyMs: number;
-              totalTokens: number | null;
-              costUsd: number | null;
-              costStatus: "reported" | "unavailable";
-            }
-          | undefined;
+        const draft = baseDraft;
+        const modelSuggestionCount = 0;
+        const modelOutcome = "skipped" as const;
+        const modelWarning = environment.OPENAI_API_KEY
+          ? "Answer suggestions are teacher-triggered and require checkpointed execution"
+          : "OPENAI_API_KEY is not configured; answer suggestions are unavailable";
         if (environment.OPENAI_API_KEY) {
-          await updateRun(supabase, runId, ownerId, {
-            current_step: "suggest-unresolved-answers",
-            last_successful_checkpoint: "validate-coverage"
-          });
-          try {
-            const result = await suggestUnverifiedAnswersWithTelemetry({
-              apiKey: environment.OPENAI_API_KEY,
-              baseUrl: environment.OPENAI_BASE_URL,
+          await appendRunEvent(
+            supabase,
+            ownerId,
+            runId,
+            "processing",
+            "model-answer-suggestions-await-teacher",
+            {
               model: environment.OPENAI_MODEL,
-              draft: baseDraft,
-              document,
-              excludedAnswerFieldIds: issues
-                .filter((issue) => issue.code === "ANSWER_AMBIGUOUS")
-                .flatMap((issue) => issue.entityIds)
-            });
-            draft = applyAnswerSuggestions(baseDraft, result.suggestions);
-            modelSuggestionCount = result.suggestions.length;
-            modelOutcome = "succeeded";
-            modelLatencyMs = result.telemetry.latencyMs;
-            modelTelemetry = result.telemetry;
-            await appendRunEvent(
-              supabase,
-              ownerId,
-              runId,
-              "processing",
-              "model-answer-suggestions",
-              {
-                model: environment.OPENAI_MODEL,
-                promptVersion: ANSWER_SUGGESTION_PROMPT_VERSION,
-                inputSchemaVersion: ANSWER_SUGGESTION_INPUT_SCHEMA_VERSION,
-                outputSchemaVersion: ANSWER_SUGGESTION_OUTPUT_SCHEMA_VERSION,
-                latencyMs: result.telemetry.latencyMs,
-                tokenUsage: result.telemetry.totalTokens,
-                costUsd: result.telemetry.costUsd,
-                costStatus: result.telemetry.costStatus,
-                outcome: "succeeded"
-              }
-            );
-          } catch (error) {
-            const failure =
-              error instanceof ModelSuggestionError
-                ? error
-                : new ModelSuggestionError(
-                    "MODEL_NETWORK_FAILURE",
-                    "retriable",
-                    error instanceof Error ? error.message : "Model suggestions failed",
-                    0
-                  );
-            modelOutcome = "failed";
-            modelLatencyMs = failure.latencyMs;
-            modelWarning = `Answer suggestions were skipped (${failure.code}); teacher review is required`;
-            await appendRunEvent(
-              supabase,
-              ownerId,
-              runId,
-              "processing",
-              "model-answer-suggestions-skipped",
-              {
-                model: environment.OPENAI_MODEL,
-                promptVersion: ANSWER_SUGGESTION_PROMPT_VERSION,
-                inputSchemaVersion: ANSWER_SUGGESTION_INPUT_SCHEMA_VERSION,
-                outputSchemaVersion: ANSWER_SUGGESTION_OUTPUT_SCHEMA_VERSION,
-                latencyMs: failure.latencyMs,
-                outcome: "failed",
-                failureKind: failure.kind,
-                failureCode: failure.code
-              }
-            );
-          }
-        } else {
-          modelWarning = "OPENAI_API_KEY is not configured; answer suggestions were skipped";
+              promptVersion: ANSWER_SUGGESTION_PROMPT_VERSION,
+              inputSchemaVersion: ANSWER_SUGGESTION_INPUT_SCHEMA_VERSION,
+              outputSchemaVersion: ANSWER_SUGGESTION_OUTPUT_SCHEMA_VERSION,
+              outcome: "skipped",
+              reason: "teacher_confirmation_required"
+            }
+          );
         }
         const { error: draftError } = await supabase.from("lesson_drafts").insert({
           run_id: runId,
@@ -371,16 +303,9 @@ export const reliableIngestion = inngest.createFunction(
                   }
                 }
               : {}),
-            stepTimingsMs: {
-              ...(modelLatencyMs == null ? {} : { suggestUnresolvedAnswers: modelLatencyMs })
-            },
-            ...(modelTelemetry?.totalTokens == null
-              ? {}
-              : { tokenUsage: modelTelemetry.totalTokens }),
-            ...(modelTelemetry
-              ? { costUsd: modelTelemetry.costUsd, costStatus: modelTelemetry.costStatus }
-              : { costStatus: environment.OPENAI_API_KEY ? "unavailable" : "notApplicable" }),
-            warnings: [...document.warnings, ...(modelWarning ? [modelWarning] : [])],
+            stepTimingsMs: {},
+            costStatus: environment.OPENAI_API_KEY ? "unavailable" : "notApplicable",
+            warnings: [...document.warnings, modelWarning],
             validationSummary: {
               issueCount: issues.length,
               unsupportedAdditionCount: extraction.coverage.unsupportedAdditionCount,

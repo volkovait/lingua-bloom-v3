@@ -265,6 +265,43 @@ describe("OpenAI answer suggester", () => {
       ).toBeLessThanOrEqual(64);
     }
   });
+
+  test("can reuse completed batch checkpoints without another provider request", async () => {
+    const fetchImpl = vi.fn(() => {
+      throw new Error("provider must not be called for a completed checkpoint");
+    });
+    const result = await suggestUnverifiedAnswersWithTelemetry({
+      apiKey: "test-key",
+      baseUrl: "https://polza.ai/api/v1",
+      model: "test-model",
+      draft: fixtureDraft(),
+      document: fixtureDocument(),
+      fetchImpl,
+      executeBatch: async ({ batch, execute }) => {
+        expect(execute).toBeTypeOf("function");
+        return Promise.resolve({
+          suggestions: batch.flatMap((exercise) =>
+            exercise.answerFieldIds.map((answerFieldId) => ({
+              answerFieldId,
+              acceptedValues: ["cached"],
+              confidence: 0.8,
+              rationale: "durable checkpoint"
+            }))
+          ),
+          telemetry: {
+            latencyMs: 10,
+            inputTokens: 1,
+            outputTokens: 1,
+            totalTokens: 2,
+            costUsd: 0.001,
+            costStatus: "reported"
+          }
+        });
+      }
+    });
+    expect(result.suggestions).toHaveLength(1);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
 });
 
 function wordBankFixtureDraft(): ReviewDraft {

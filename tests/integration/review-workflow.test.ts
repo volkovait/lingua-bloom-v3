@@ -20,13 +20,13 @@ describe("durable review workflow", () => {
     expect(sql).toContain("return query select v_draft.revision");
   });
 
-  test("persists model failures without a partial draft and resumes from the prior checkpoint", async () => {
+  test("persists a draft before any teacher-triggered paid answer suggestion", async () => {
     const workflow = await read("apps/web/src/inngest/reliable-ingestion.ts");
-    const failure = workflow.indexOf("await failRun(");
     const draftInsert = workflow.indexOf('.from("lesson_drafts").insert');
-    expect(failure).toBeGreaterThan(0);
-    expect(draftInsert).toBeGreaterThan(failure);
-    expect(workflow).toContain('last_successful_checkpoint: "validate-coverage"');
+    expect(draftInsert).toBeGreaterThan(0);
+    expect(workflow).not.toContain("suggestUnresolvedAnswers({");
+    expect(workflow).toContain('reason: "teacher_confirmation_required"');
+    expect(workflow).toContain('last_successful_checkpoint: "assemble-draft"');
     expect(workflow).toContain("selectDocumentIrCheckpoint(kind, irCheckpointResult.data)");
   });
 });

@@ -2,7 +2,15 @@ import type { DocumentIR, ReviewDraft, SourceRef } from "@lingua-bloom/contracts
 import { ReviewDraftSchema } from "@lingua-bloom/contracts";
 import { z } from "zod";
 
-const AnswerSuggestionSchema = z
+import {
+  ANSWER_SUGGESTION_FIELDS_PER_BATCH,
+  ANSWER_SUGGESTION_PRICING_POLICY_VERSION,
+  createAnswerSuggestionPreflight,
+  packSuggestionBatches,
+  type AnswerSuggestionPreflight
+} from "./answer-suggestion-plan";
+
+export const AnswerSuggestionSchema = z
   .object({
     answerFieldId: z.string().min(1),
     acceptedValues: z.array(z.string().min(1)).min(1).max(8),
@@ -17,7 +25,13 @@ const AnswerSuggestionResultSchema = z
 
 export type AnswerSuggestion = z.infer<typeof AnswerSuggestionSchema>;
 
-interface SuggestionInput {
+export interface AnswerSuggestionBatchExecution {
+  readonly batchIndex: number;
+  readonly batch: readonly UnresolvedExercise[];
+  readonly execute: () => Promise<AnswerSuggestionBatchResult>;
+}
+
+export interface SuggestionInput {
   readonly apiKey: string;
   readonly baseUrl: string;
   readonly model: string;
@@ -25,6 +39,9 @@ interface SuggestionInput {
   readonly document: DocumentIR;
   readonly excludedAnswerFieldIds?: readonly string[];
   readonly fetchImpl?: typeof fetch;
+  readonly executeBatch?: (
+    execution: AnswerSuggestionBatchExecution
+  ) => Promise<AnswerSuggestionBatchResult>;
 }
 
 interface ResponsePayload {
@@ -47,7 +64,7 @@ interface ResponsePayload {
 export const ANSWER_SUGGESTION_PROMPT_VERSION = "answer-suggestions/1.2.0";
 export const ANSWER_SUGGESTION_INPUT_SCHEMA_VERSION = "answer-suggestion-input/1.2.0";
 export const ANSWER_SUGGESTION_OUTPUT_SCHEMA_VERSION = "answer-suggestion-output/1.1.0";
-export const MAX_ANSWER_FIELDS_PER_SUGGESTION_BATCH = 64;
+export const MAX_ANSWER_FIELDS_PER_SUGGESTION_BATCH = ANSWER_SUGGESTION_FIELDS_PER_BATCH;
 const MAX_CONCURRENT_SUGGESTION_BATCHES = 2;
 const MODEL_REQUEST_TIMEOUT_MS = 60_000;
 
@@ -130,9 +147,18 @@ export async function suggestUnverifiedAnswersWithTelemetry(
 
   const baseUrl = input.baseUrl.endsWith("/") ? input.baseUrl.slice(0, -1) : input.baseUrl;
   const startedAt = performance.now();
-  const batches = buildSuggestionBatches(unresolved);
-  const results = await mapWithConcurrency(batches, MAX_CONCURRENT_SUGGESTION_BATCHES, (batch) =>
-    requestSuggestionBatch(input, baseUrl, batch)
+  const batches = packSuggestionBatches(unresolved);
+  const results = await mapWithConcurrency(
+    batches.map((batch, batchIndex) => ({ batch, batchIndex })),
+    MAX_CONCURRENT_SUGGESTION_BATCHES,
+    ({ batch, batchIndex }) =>
+      input.executeBatch
+        ? input.executeBatch({
+            batchIndex,
+            batch,
+            execute: () => requestSuggestionBatch(input, baseUrl, batch)
+          })
+        : requestSuggestionBatch(input, baseUrl, batch)
   );
   const suggestions = results.flatMap((result) => result.suggestions);
   const known = new Set(unresolved.flatMap((exercise) => exercise.answerFieldIds));
@@ -171,13 +197,62 @@ export async function suggestUnverifiedAnswersWithTelemetry(
   };
 }
 
-type UnresolvedExercise = ReturnType<typeof collectUnresolvedExercises>[number];
+export type UnresolvedExercise = ReturnType<typeof collectUnresolvedExercises>[number];
+
+export interface AnswerSuggestionExecutionPlan {
+  readonly preflight: AnswerSuggestionPreflight;
+  readonly batches: readonly (readonly UnresolvedExercise[])[];
+}
+
+export function createAnswerSuggestionExecutionPlan(input: {
+  readonly model: string;
+  readonly draftRevision: number;
+  readonly draft: ReviewDraft;
+  readonly document: DocumentIR;
+  readonly excludedAnswerFieldIds?: readonly string[];
+  readonly estimatedUsdPer1kTokens?: number;
+  readonly hardLimitUsd?: number;
+}): AnswerSuggestionExecutionPlan {
+  const unresolved = collectUnresolvedExercises(
+    input.draft,
+    input.document,
+    new Set(input.excludedAnswerFieldIds ?? [])
+  );
+  const batches = packSuggestionBatches(unresolved);
+  const serializedBatchInputs = batches.map(serializeAnswerSuggestionBatch);
+  return {
+    batches,
+    preflight: createAnswerSuggestionPreflight(
+      batches,
+      serializedBatchInputs,
+      input.model,
+      {
+        draftRevision: input.draftRevision,
+        promptVersion: ANSWER_SUGGESTION_PROMPT_VERSION,
+        inputSchemaVersion: ANSWER_SUGGESTION_INPUT_SCHEMA_VERSION,
+        outputSchemaVersion: ANSWER_SUGGESTION_OUTPUT_SCHEMA_VERSION,
+        pricingPolicyVersion: ANSWER_SUGGESTION_PRICING_POLICY_VERSION
+      },
+      input.estimatedUsdPer1kTokens,
+      input.hardLimitUsd
+    )
+  };
+}
+
+export function serializeAnswerSuggestionBatch(exercises: readonly UnresolvedExercise[]): string {
+  return JSON.stringify({ exercises });
+}
+
+export interface AnswerSuggestionBatchResult {
+  readonly suggestions: AnswerSuggestion[];
+  readonly telemetry: AnswerSuggestionTelemetry;
+}
 
 async function requestSuggestionBatch(
   input: SuggestionInput,
   baseUrl: string,
   unresolved: readonly UnresolvedExercise[]
-): Promise<{ suggestions: AnswerSuggestion[]; telemetry: AnswerSuggestionTelemetry }> {
+): Promise<AnswerSuggestionBatchResult> {
   const startedAt = performance.now();
   let response: Response;
   try {
@@ -205,7 +280,7 @@ async function requestSuggestionBatch(
           "Return exactly one suggestion for every provided answerFieldId.",
           "When uncertain, return the best source-supported candidate with low confidence; never omit an answer field."
         ].join(" "),
-        input: JSON.stringify({ exercises: unresolved }),
+        input: serializeAnswerSuggestionBatch(unresolved),
         text: {
           format: {
             type: "json_schema",
@@ -294,57 +369,6 @@ async function requestSuggestionBatch(
   };
 }
 
-function buildSuggestionBatches(
-  unresolved: readonly UnresolvedExercise[]
-): readonly (readonly UnresolvedExercise[])[] {
-  const groups: UnresolvedExercise[][] = [];
-  for (const exercise of unresolved) {
-    const current = groups.at(-1);
-    if (current?.[0]?.groupId === exercise.groupId) current.push(exercise);
-    else groups.push([exercise]);
-  }
-
-  const batches: UnresolvedExercise[][] = [];
-  for (const group of groups) {
-    if (countAnswerFields(group) <= MAX_ANSWER_FIELDS_PER_SUGGESTION_BATCH) {
-      batches.push([...group]);
-      continue;
-    }
-
-    let currentBatch: UnresolvedExercise[] = [];
-    for (const exercise of group) {
-      for (
-        let offset = 0;
-        offset < exercise.answerFieldIds.length;
-        offset += MAX_ANSWER_FIELDS_PER_SUGGESTION_BATCH
-      ) {
-        const piece = {
-          ...exercise,
-          answerFieldIds: exercise.answerFieldIds.slice(
-            offset,
-            offset + MAX_ANSWER_FIELDS_PER_SUGGESTION_BATCH
-          )
-        };
-        if (
-          currentBatch.length > 0 &&
-          countAnswerFields(currentBatch) + piece.answerFieldIds.length >
-            MAX_ANSWER_FIELDS_PER_SUGGESTION_BATCH
-        ) {
-          batches.push(currentBatch);
-          currentBatch = [];
-        }
-        currentBatch.push(piece);
-      }
-    }
-    if (currentBatch.length > 0) batches.push(currentBatch);
-  }
-  return batches;
-}
-
-function countAnswerFields(exercises: readonly UnresolvedExercise[]) {
-  return exercises.reduce((total, exercise) => total + exercise.answerFieldIds.length, 0);
-}
-
 async function mapWithConcurrency<T, R>(
   values: readonly T[],
   concurrency: number,
@@ -424,7 +448,10 @@ function collectUnresolvedExercises(
     group.exercises.flatMap((exercise) => {
       const answerFieldIds = exercise.answerFields
         .filter(
-          (answer) => answer.reviewStatus !== "verified" && !excludedAnswerFieldIds.has(answer.id)
+          (answer) =>
+            answer.reviewStatus !== "verified" &&
+            !(answer.provenance === "modelInferred" && answer.acceptedValues.length > 0) &&
+            !excludedAnswerFieldIds.has(answer.id)
         )
         .map((answer) => answer.id);
       if (answerFieldIds.length === 0) return [];
